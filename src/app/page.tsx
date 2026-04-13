@@ -1,29 +1,105 @@
+import Link from "next/link";
+
 export default function Home() {
+  const sections = [
+    {
+      title: "Tools",
+      description:
+        "Smart utilities for creators and builders: fast, practical, and absurdly useful.",
+      vibe: "Build faster",
+      accent: "from-cyan-400/30 via-blue-500/20 to-transparent",
+    },
+    {
+      title: "Radical Ideas",
+      description:
+        "Thought experiments, product bets, and spicy concepts that challenge default thinking.",
+      vibe: "Think bigger",
+      accent: "from-fuchsia-400/30 via-purple-500/20 to-transparent",
+    },
+    {
+      title: "Non-Sense Stuffs",
+      description:
+        "Playground zone for weird experiments that should not work, but sometimes do.",
+      vibe: "Stay curious",
+      accent: "from-amber-300/30 via-orange-500/20 to-transparent",
+    },
+    {
+      title: "Songs / Poems / Stories",
+      description:
+        "Words, rhythm, and imagination blended into pieces that are raw and memorable.",
+      vibe: "Feel deeply",
+      accent: "from-emerald-300/30 via-teal-500/20 to-transparent",
+      href: "/poems",
+    },
+    {
+      title: "Area 51",
+      description:
+        "Secret lab: unreleased builds, moonshot prototypes, and high-risk concepts.",
+      vibe: "Classified",
+      accent: "from-pink-400/30 via-rose-500/20 to-transparent",
+    },
+  ];
+
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-6 py-20 sm:px-10 lg:px-16">
-      <p className="mb-6 inline-flex w-fit rounded-full border border-zinc-200 bg-white px-4 py-1 text-sm font-medium text-zinc-700 shadow-sm">
-        cooltoolsbykul.com
-      </p>
-      <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
-        Building practical tools for everyday creators.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-600">
-        This is the starting point for Cool Tools by Kul. The full platform will
-        include a blog, project and tools showcase, and an online shop with
-        secure payments.
-      </p>
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
-        {["Blog", "Tools and Projects", "Shop and Payments"].map((section) => (
-          <div
-            key={section}
-            className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm"
-          >
-            <p className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-              Coming Soon
-            </p>
-            <p className="mt-2 text-lg font-semibold text-zinc-900">{section}</p>
-          </div>
-        ))}
+    <main className="relative min-h-screen overflow-hidden bg-zinc-950 text-zinc-100">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.2),transparent_38%),radial-gradient(circle_at_20%_80%,rgba(217,70,239,0.18),transparent_32%)]" />
+
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col px-6 py-12 sm:px-10 lg:px-16">
+        <header className="mb-14 flex flex-wrap items-center justify-between gap-4">
+          <p className="inline-flex items-center rounded-full border border-zinc-700/70 bg-zinc-900/70 px-4 py-1 text-sm font-semibold text-cyan-300 backdrop-blur">
+            cooltoolsbykul.com
+          </p>
+          <p className="text-sm text-zinc-300">
+            Inventive. Artistic. Slightly dangerous.
+          </p>
+        </header>
+
+        <section className="max-w-4xl">
+          <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-6xl">
+            Welcome to the creative HQ of Kul.
+          </h1>
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-300 sm:text-xl">
+            A digital universe where useful tools, bold ideas, playful chaos, and
+            storytelling live in one place. Every section is crafted to feel like
+            a world of its own.
+          </p>
+        </section>
+
+        <section className="mt-12 grid gap-5 md:grid-cols-2">
+          {sections.map((section) => (
+            <article
+              key={section.title}
+              className="group relative overflow-hidden rounded-3xl border border-zinc-800/90 bg-zinc-900/80 p-6 shadow-2xl shadow-black/20 transition-transform duration-300 hover:-translate-y-1"
+            >
+              <div
+                className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${section.accent} opacity-60 transition-opacity duration-300 group-hover:opacity-90`}
+              />
+              <div className="relative">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-300">
+                  {section.vibe}
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-white">
+                  {section.title}
+                </h2>
+                <p className="mt-3 leading-7 text-zinc-200/90">
+                  {section.description}
+                </p>
+                {section.href ? (
+                  <Link
+                    href={section.href}
+                    className="mt-4 inline-flex items-center text-sm font-semibold text-emerald-200 hover:text-emerald-100"
+                  >
+                    Open collection {"->"}
+                  </Link>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </section>
+
+        <footer className="mt-14 border-t border-zinc-800 pt-6 text-sm text-zinc-400">
+          Cool Tools by Kul - Crafted with Next.js, styled for impact.
+        </footer>
       </div>
     </main>
   );
