@@ -8,6 +8,7 @@ export default function Home() {
         "Smart utilities for creators and builders: fast, practical, and absurdly useful.",
       vibe: "Build faster",
       accent: "from-cyan-400/30 via-blue-500/20 to-transparent",
+      href: "/summary",
     },
     {
       title: "Radical Ideas",
