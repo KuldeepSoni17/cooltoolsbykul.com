@@ -46,15 +46,15 @@ export default function AttackDefensePage() {
 
           <div className="mt-8 flex flex-wrap gap-3">
             <a
-              href="https://github.com/KuldeepSoni17/Attack-Defense"
+              href="https://web-navy-six-14.vercel.app"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center rounded-xl bg-lime-400 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-lime-300"
             >
-              View Source
+              Play Attack-Defense
             </a>
             <span className="inline-flex items-center rounded-xl border border-zinc-700 px-4 py-2 text-sm text-zinc-300">
-              Live match server integration in progress
+              Multiplayer is live now
             </span>
           </div>
         </section>
