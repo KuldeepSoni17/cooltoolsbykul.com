@@ -40,21 +40,20 @@ export default function Home() {
       accent: "from-pink-400/30 via-rose-500/20 to-transparent",
     },
     {
-<<<<<<< HEAD
       title: "Attack-Defense Game",
       description:
         "Real-time 3-player strategy battleground where timing, targeting, and defense choices decide who survives.",
       vibe: "Play now",
       accent: "from-lime-300/30 via-emerald-500/20 to-transparent",
       href: "/games/attack-defense",
-=======
+    },
+    {
       title: "Questions Before Conceiving",
       description:
         "A deep readiness assessment concept for people considering parenthood.",
       vibe: "Reflect deeply",
       accent: "from-yellow-300/30 via-amber-500/20 to-transparent",
       href: "/questions-before-conceiving",
->>>>>>> 1980868 (Add questions-before-conceiving landing page.)
     },
   ];
 
