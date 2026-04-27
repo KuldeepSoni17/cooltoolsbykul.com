@@ -46,17 +46,30 @@ export default function AttackDefensePage() {
 
           <div className="mt-8 flex flex-wrap gap-3">
             <a
-              href="https://web-navy-six-14.vercel.app"
-              target="_blank"
-              rel="noreferrer"
+              href="#play-now"
               className="inline-flex items-center rounded-xl bg-lime-400 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-lime-300"
             >
               Play Attack-Defense
             </a>
             <span className="inline-flex items-center rounded-xl border border-zinc-700 px-4 py-2 text-sm text-zinc-300">
-              Multiplayer is live now
+              Runs directly inside this page
             </span>
           </div>
+        </section>
+
+        <section
+          id="play-now"
+          className="mt-6 overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/70 p-3 shadow-2xl shadow-black/30"
+        >
+          <p className="mb-3 px-2 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-300">
+            Live Game
+          </p>
+          <iframe
+            title="Attack Defense Game"
+            src="https://web-navy-six-14.vercel.app"
+            className="h-[80vh] min-h-[640px] w-full rounded-2xl border border-zinc-700"
+            allow="fullscreen"
+          />
         </section>
       </div>
     </main>
