@@ -39,6 +39,14 @@ export default function Home() {
       vibe: "Classified",
       accent: "from-pink-400/30 via-rose-500/20 to-transparent",
     },
+    {
+      title: "Attack-Defense Game",
+      description:
+        "Real-time 3-player strategy battleground where timing, targeting, and defense choices decide who survives.",
+      vibe: "Play now",
+      accent: "from-lime-300/30 via-emerald-500/20 to-transparent",
+      href: "/games/attack-defense",
+    },
   ];
 
   return (
@@ -90,7 +98,7 @@ export default function Home() {
                     href={section.href}
                     className="mt-4 inline-flex items-center text-sm font-semibold text-emerald-200 hover:text-emerald-100"
                   >
-                    Open collection {"->"}
+                    Open section {"->"}
                   </Link>
                 ) : null}
               </div>
