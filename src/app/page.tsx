@@ -48,6 +48,14 @@ export default function Home() {
       href: "/games/attack-defense",
     },
     {
+      title: "Who's Responsible",
+      description:
+        "A civic accountability concept to help citizens quickly find the right department and public representative for local issues.",
+      vibe: "Civic impact",
+      accent: "from-sky-300/30 via-cyan-500/20 to-transparent",
+      href: "/whos-responsible",
+    },
+    {
       title: "Questions Before Conceiving",
       description:
         "A deep readiness assessment concept for people considering parenthood.",
