@@ -51,12 +51,12 @@ export default function QuestionsBeforeConceivingPage() {
             surface blind spots, and turn reflection into action.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
-            <button
-              type="button"
-              className="rounded-full bg-[#c8a97e] px-6 py-3 text-sm font-semibold text-[#0e0e0e]"
+            <Link
+              href="/questions-before-conceiving/assessment"
+              className="rounded-full bg-[#c8a97e] px-6 py-3 text-sm font-semibold text-[#0e0e0e] transition-colors hover:bg-[#d4b896]"
             >
-              Assessment UI in progress
-            </button>
+              Start assessment
+            </Link>
             <p className="text-sm text-[#4a4844]">
               32 questions. 10-15 minutes. No fluff.
             </p>
