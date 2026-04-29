@@ -183,4 +183,75 @@ export const DEPARTMENTS: Record<string, Department> = {
       },
     ],
   },
+  "ahmedabad-amc-roads": {
+    id: "ahmedabad-amc-roads",
+    name: "AMC Roads & Buildings Department",
+    level: "municipal",
+    city: "Ahmedabad",
+    helpline: "155303",
+    complaintUrl: "https://ahmedabadcity.gov.in/portal/jsp/complains_new.jsp",
+    websiteUrl: "https://ahmedabadcity.gov.in",
+    description:
+      "Responsible for road maintenance, potholes, and local civic infrastructure in Ahmedabad.",
+    officers: [
+      {
+        designation: "City Engineer (Roads), AMC",
+        name: "AMC Roads Engineering Cell",
+        phone: "155303",
+      },
+    ],
+  },
+  "ahmedabad-amc-water": {
+    id: "ahmedabad-amc-water",
+    name: "AMC Water Supply Department",
+    level: "municipal",
+    city: "Ahmedabad",
+    helpline: "155303",
+    complaintUrl: "https://ahmedabadcity.gov.in/portal/jsp/complains_new.jsp",
+    websiteUrl: "https://ahmedabadcity.gov.in",
+    description: "Responsible for water supply and related complaints in Ahmedabad.",
+    officers: [
+      {
+        designation: "City Engineer (Water Supply), AMC",
+        name: "AMC Water Supply Control Room",
+        phone: "155303",
+      },
+    ],
+  },
+  "ahmedabad-torrent-power": {
+    id: "ahmedabad-torrent-power",
+    name: "Torrent Power Ltd - Electricity Supply",
+    level: "state",
+    city: "Ahmedabad",
+    helpline: "1800-2333-123",
+    complaintUrl: "https://www.torrentpower.com/consumer/register-complaint",
+    websiteUrl: "https://www.torrentpower.com",
+    description:
+      "Responsible for electricity supply, outages, and distribution complaints in Ahmedabad.",
+    officers: [
+      {
+        designation: "Area Manager (Ahmedabad), Torrent Power",
+        name: "Torrent Power Customer Support",
+        phone: "1800-2333-123",
+      },
+    ],
+  },
+  "ahmedabad-traffic-police": {
+    id: "ahmedabad-traffic-police",
+    name: "Ahmedabad City Traffic Police",
+    level: "state",
+    city: "Ahmedabad",
+    helpline: "103",
+    complaintUrl: "https://www.ahmedabadcitypolice.gov.in/complaint",
+    websiteUrl: "https://ahmedabadtraffic.com",
+    description:
+      "Responsible for traffic signal faults, congestion management, and illegal parking enforcement in Ahmedabad.",
+    officers: [
+      {
+        designation: "Deputy Commissioner of Police (Traffic), Ahmedabad",
+        name: "Traffic Control Room",
+        phone: "103",
+      },
+    ],
+  },
 };

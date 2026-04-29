@@ -40,7 +40,7 @@ export default function WhosResponsiblePage() {
         return;
       }
 
-      const departments = getDepartmentsForIssue(issueSlug);
+      const departments = getDepartmentsForIssue(issueSlug, location.city);
       const liveOfficers = await fetchLiveOfficers(
         departments.map((department) => department.id)
       );
