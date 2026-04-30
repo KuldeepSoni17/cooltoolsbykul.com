@@ -23,6 +23,8 @@
 # misc
 .DS_Store
 *.pem
+data/italian-coach/raw/
+data/italian-coach/curated/
 
 # debug
 npm-debug.log*

@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "italian:data:fetch": "node scripts/italian-coach/fetch-sources.mjs",
+    "italian:data:curate": "node scripts/italian-coach/build-curated-seed.mjs",
+    "italian:data:prepare": "npm run italian:data:fetch && npm run italian:data:curate"
   },
   "dependencies": {
     "cheerio": "^1.2.0",

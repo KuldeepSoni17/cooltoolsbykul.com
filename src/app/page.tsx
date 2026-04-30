@@ -79,6 +79,14 @@ export default function Home() {
       accent: "from-emerald-300/30 via-lime-500/20 to-transparent",
       href: "/worth-it",
     },
+    {
+      title: "Italian Coach",
+      description:
+        "A serious grammar-first Italian learning system with sentence building, correction drills, and mastery tracking.",
+      vibe: "Speak with confidence",
+      accent: "from-emerald-300/30 via-cyan-500/20 to-transparent",
+      href: "/italian-coach",
+    },
   ];
 
   return (
