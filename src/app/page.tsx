@@ -71,6 +71,14 @@ export default function Home() {
       accent: "from-violet-300/30 via-fuchsia-500/20 to-transparent",
       href: "/norm-tionary",
     },
+    {
+      title: "WorthIt?",
+      description:
+        "A calm reflection tool that checks whether a worry deserves your mental energy.",
+      vibe: "Worry less",
+      accent: "from-emerald-300/30 via-lime-500/20 to-transparent",
+      href: "/worth-it",
+    },
   ];
 
   return (
