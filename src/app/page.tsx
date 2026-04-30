@@ -63,6 +63,14 @@ export default function Home() {
       accent: "from-yellow-300/30 via-amber-500/20 to-transparent",
       href: "/questions-before-conceiving",
     },
+    {
+      title: "Norm-tionary",
+      description:
+        "A swipeable dictionary of modern dysfunctions that became normal.",
+      vibe: "Uncomfortable truth",
+      accent: "from-violet-300/30 via-fuchsia-500/20 to-transparent",
+      href: "/norm-tionary",
+    },
   ];
 
   return (
