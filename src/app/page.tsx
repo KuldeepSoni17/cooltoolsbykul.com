@@ -87,6 +87,14 @@ export default function Home() {
       accent: "from-emerald-300/30 via-cyan-500/20 to-transparent",
       href: "/italian-coach",
     },
+    {
+      title: "OneStopAI Spec",
+      description:
+        "Implementation blueprint for a multi-provider AI chat app built with Next.js, FastAPI, and LiteLLM.",
+      vibe: "Ship faster",
+      accent: "from-indigo-300/30 via-violet-500/20 to-transparent",
+      href: "/onestopai",
+    },
   ];
 
   return (
