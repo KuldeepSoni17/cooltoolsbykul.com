@@ -1,8 +1,8 @@
 import { getCompanyRegistry } from "./companyRegistry";
 import { enrichAndRankJobs } from "./enrichment";
-import { scrapeCompany } from "./scrapers";
+import { scrapeCompany, validateAtsSlug } from "./scrapers";
 import { getJobs, pushProgress, saveJobs, saveSession, updateSession } from "./store";
-import { makeId } from "./utils";
+import { makeId, shouldMatchText } from "./utils";
 import type {
   CompanyRecord,
   RawJobRecord,
@@ -12,6 +12,7 @@ import type {
 } from "./types";
 
 const companyErrorCounts = new Map<string, number>();
+let atsValidationDone = false;
 
 function emit(event: SearchProgressEvent): void {
   pushProgress(event);
@@ -63,6 +64,24 @@ export async function runSearch(sessionId: string): Promise<void> {
   const startedAtMs = Date.now();
   const companies = getCompanyRegistry(true);
   const companiesBySlug = new Map(companies.map((company) => [company.slug, company]));
+
+  if (!atsValidationDone) {
+    atsValidationDone = true;
+    for (const company of companies) {
+      if (company.atsPlatform === "direct" || company.atsPlatform === "workday") continue;
+      const validation = await validateAtsSlug(company);
+      if (validation.valid) {
+        console.log(
+          `[VALID] ${company.atsPlatform} @ ${company.name} - ${validation.jobsFound} jobs found`,
+        );
+      } else {
+        console.warn(
+          `[INVALID] ${company.atsPlatform} @ ${company.name} - slug may be wrong`,
+          validation.tried,
+        );
+      }
+    }
+  }
   emit({
     sessionId,
     stage: "running",
@@ -86,7 +105,13 @@ export async function runSearch(sessionId: string): Promise<void> {
       timestamp: nowIso(),
     });
     const jobs = await scrapeWithResilience(company);
-    rawJobs.push(...jobs);
+    const matchedJobs = jobs.filter((job) =>
+      shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query),
+    );
+    console.log(
+      `[${company.atsPlatform} @ ${company.name}] Fetched ${jobs.length} total jobs, ${matchedJobs.length} matched title filter -> returning ${matchedJobs.length}`,
+    );
+    rawJobs.push(...matchedJobs);
   }
 
   emit({

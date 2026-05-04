@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { DM_Serif_Display, Geist, Geist_Mono, Outfit } from "next/font/google";
+import {
+  DM_Sans,
+  DM_Serif_Display,
+  Geist,
+  Geist_Mono,
+  IBM_Plex_Mono,
+  Outfit,
+} from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,6 +31,18 @@ const outfit = Outfit({
   weight: ["300", "400", "500", "600"],
 });
 
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+});
+
 export const metadata: Metadata = {
   title: "Cool Tools by Kul",
   description:
@@ -38,7 +57,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${dmSerifDisplay.variable} ${outfit.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${dmSerifDisplay.variable} ${outfit.variable} ${dmSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

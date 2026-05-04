@@ -48,6 +48,52 @@ export async function detectAtsForCompany(url: string): Promise<string> {
   return "direct";
 }
 
+async function fetchJson(url: string): Promise<unknown> {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function validateAtsSlug(
+  company: CompanyRecord,
+): Promise<{ valid: boolean; jobsFound: number; tried: string[] }> {
+  const slugBase = (company.atsSlug ?? company.slug).toLowerCase().trim();
+  const slugCandidates = [...new Set([slugBase, slugBase.replace(/\s+/g, "-"), slugBase.replace(/[^a-z0-9-]/g, "")])];
+  const tried: string[] = [];
+
+  if (company.atsPlatform === "greenhouse") {
+    for (const slug of slugCandidates) {
+      const url = `https://boards-api.greenhouse.io/v1/boards/${slug}/jobs`;
+      tried.push(url);
+      const payload = (await fetchJson(url)) as { jobs?: unknown[] } | null;
+      if (payload?.jobs) return { valid: true, jobsFound: payload.jobs.length, tried };
+    }
+    return { valid: false, jobsFound: 0, tried };
+  }
+
+  if (company.atsPlatform === "lever") {
+    for (const slug of slugCandidates) {
+      const url = `https://api.lever.co/v0/postings/${slug}?mode=json`;
+      tried.push(url);
+      const payload = (await fetchJson(url)) as unknown[] | null;
+      if (Array.isArray(payload)) return { valid: true, jobsFound: payload.length, tried };
+    }
+    return { valid: false, jobsFound: 0, tried };
+  }
+
+  if (company.atsPlatform === "ashby") {
+    for (const slug of slugCandidates) {
+      const url = `https://api.ashbyhq.com/posting-api/job-board/${slug}`;
+      tried.push(url);
+      const payload = (await fetchJson(url)) as { jobs?: unknown[] } | null;
+      if (payload?.jobs) return { valid: true, jobsFound: payload.jobs.length, tried };
+    }
+    return { valid: false, jobsFound: 0, tried };
+  }
+
+  return { valid: true, jobsFound: 0, tried: [company.careersPageUrl] };
+}
+
 async function scrapeGreenhouse(company: CompanyRecord): Promise<RawJobRecord[]> {
   const slug = company.atsSlug ?? company.slug;
   const endpoint = `https://boards-api.greenhouse.io/v1/boards/${slug}/jobs`;
@@ -137,7 +183,8 @@ export async function scrapeCompany(company: CompanyRecord): Promise<RawJobRecor
       default:
         return await scrapeDirect(company);
     }
-  } catch {
+  } catch (error) {
+    console.error(`[${company.atsPlatform} @ ${company.name}] Request failed:`, error);
     return [];
   }
 }
