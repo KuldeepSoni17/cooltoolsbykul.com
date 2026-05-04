@@ -46,6 +46,8 @@ export interface CompanyRecord {
   brandValueScore?: number;
   stabilityScore?: number;
   scrapeErrorCount?: number;
+  /** Workday tenant jobs base URL (no trailing slash), e.g. https://oyo.wd3.myworkdayjobs.com/oyocareers */
+  workdayUrl?: string;
 }
 
 export interface RawJobRecord {
