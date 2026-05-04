@@ -95,6 +95,14 @@ export default function Home() {
       accent: "from-indigo-300/30 via-violet-500/20 to-transparent",
       href: "/onestopai",
     },
+    {
+      title: "VacancyBible",
+      description:
+        "Search PM jobs directly from company career pages with live progress and field-level confidence labels.",
+      vibe: "Signal over noise",
+      accent: "from-teal-300/30 via-cyan-500/20 to-transparent",
+      href: "/vacancybible",
+    },
   ];
 
   return (
