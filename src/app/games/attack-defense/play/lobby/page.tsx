@@ -51,54 +51,148 @@ export default function AttackDefenseLobbyPage() {
   const payload = { userId: user.id, displayName: user.displayName, isGuest: user.isGuest };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#1e1b4b_0%,#09090b_48%),radial-gradient(circle_at_20%_90%,#052e16_0%,transparent_35%)] px-6 py-8 text-zinc-100">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
-      <h1 className="text-4xl font-black tracking-tight">Pick a table</h1>
-      <p className="text-sm text-zinc-200">Logged in as {user.displayName}</p>
+    <main className="ad-container space-y-4">
+      <h1 className="ad-title text-4xl">Lobby</h1>
+      <p className="text-sm text-[var(--ad-text-soft)]">Logged in as {user.displayName}</p>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border border-zinc-700/80 bg-zinc-900/75 p-4 shadow-xl shadow-black/30 backdrop-blur">
-          <h2 className="text-xl font-semibold">Solo run</h2>
-          <p className="mt-1 text-sm text-zinc-300">1 player vs 2 bots (instant)</p>
-          <button
-            className="mt-4 h-11 w-full rounded-lg bg-gradient-to-r from-lime-300 to-lime-400 font-bold text-zinc-900 shadow-md shadow-lime-900/30 disabled:opacity-60"
-            disabled={busy}
-            onClick={() => {
-              setBusy(true);
-              setStatus("Starting solo match...");
-              emitWhenConnected("queue:joinSoloBots", payload, (response) => {
-                setBusy(false);
-                if (response?.ok && response.roomId) {
-                  router.push(`/games/attack-defense/play/match/${response.roomId}`);
-                  return;
-                }
-                if (response?.message) setStatus(response.message);
-              });
-            }}
-          >
-            Play now
-          </button>
+      {/* Mobile - Direction B (queue-first) */}
+      <section className="md:hidden ad-card p-4">
+        <p className="text-xs uppercase tracking-[0.2em] text-[var(--ad-text-soft)]">Queue</p>
+        <div className="mt-2 rounded-xl border border-[var(--ad-border)] bg-black/25 p-4 text-center">
+          <h2 className="text-2xl font-bold">finding match...</h2>
+          <p className="mt-1 text-xs text-[var(--ad-text-soft)]">avg wait ~11s</p>
+          <div className="mt-3 grid gap-2">
+            <button
+              className="ad-btn-primary h-11 disabled:opacity-60"
+              disabled={busy}
+              onClick={() => {
+                setBusy(true);
+                setStatus("Starting solo match...");
+                emitWhenConnected("queue:joinSoloBots", payload, (response) => {
+                  setBusy(false);
+                  if (response?.ok && response.roomId) router.push(`/games/attack-defense/play/match/${response.roomId}`);
+                });
+              }}
+            >
+              Solo (vs 2 bots)
+            </button>
+            <button
+              className="ad-btn-secondary h-11 disabled:opacity-60"
+              disabled={busy}
+              onClick={() => {
+                setStatus("Joining public queue...");
+                emitWhenConnected("queue:joinPublic", payload);
+              }}
+            >
+              Public 3P queue
+            </button>
+            <button
+              className="ad-btn-tertiary h-11 disabled:opacity-60"
+              disabled={busy}
+              onClick={() => {
+                setStatus("Creating lobby...");
+                emitWhenConnected("lobby:create", payload);
+              }}
+            >
+              Create friend lobby
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Desktop - Direction A (stacked menu/cards) */}
+      <section className="hidden md:grid grid-cols-[1fr_220px] gap-4">
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="ad-card p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--ad-text-soft)]">Quick Play</p>
+              <h2 className="mt-2 text-2xl font-bold">Jump straight in</h2>
+              <p className="text-sm text-[var(--ad-text-soft)]">Best path for immediate match.</p>
+              <div className="mt-4 grid gap-2">
+                <button
+                  className="ad-btn-primary h-11 disabled:opacity-60"
+                  disabled={busy}
+                  onClick={() => {
+                    setBusy(true);
+                    setStatus("Starting solo match...");
+                    emitWhenConnected("queue:joinSoloBots", payload, (response) => {
+                      setBusy(false);
+                      if (response?.ok && response.roomId) router.push(`/games/attack-defense/play/match/${response.roomId}`);
+                    });
+                  }}
+                >
+                  1 vs 2 bots
+                </button>
+                <button
+                  className="ad-btn-secondary h-11 disabled:opacity-60"
+                  disabled={busy}
+                  onClick={() => {
+                    setStatus("Joining public queue...");
+                    emitWhenConnected("queue:joinPublic", payload);
+                  }}
+                >
+                  3 players (public)
+                </button>
+              </div>
+            </div>
+
+            <div className="ad-card p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--ad-text-soft)]">Private</p>
+              <h2 className="mt-2 text-2xl font-bold">Play with a friend</h2>
+              <div className="mt-4 grid gap-2">
+                <button
+                  className="ad-btn-tertiary h-10 disabled:opacity-60"
+                  disabled={busy}
+                  onClick={() => {
+                    setStatus("Creating lobby...");
+                    emitWhenConnected("lobby:create", payload);
+                  }}
+                >
+                  Create lobby
+                </button>
+                {createdLobbyId ? <p className="rounded-lg bg-black/25 px-3 py-2 text-sm text-cyan-200">Code: {createdLobbyId}</p> : null}
+                <input
+                  className="h-10 rounded-lg border border-[var(--ad-border)] bg-black/25 px-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300/35"
+                  placeholder="Mickey-Mouse-1234"
+                  value={joinLobbyId}
+                  onChange={(event) => setJoinLobbyId(event.target.value)}
+                />
+                <button
+                  className="ad-btn-tertiary h-10 disabled:opacity-60"
+                  disabled={busy}
+                  onClick={() => {
+                    if (!joinLobbyId.trim()) {
+                      setStatus("Enter lobby code first.");
+                      return;
+                    }
+                    setStatus("Joining friend lobby...");
+                    emitWhenConnected("lobby:join", { ...payload, lobbyId: joinLobbyId.trim() });
+                  }}
+                >
+                  Join lobby
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="rounded-2xl border border-zinc-700/80 bg-zinc-900/75 p-4 shadow-xl shadow-black/30 backdrop-blur">
-          <h2 className="text-xl font-semibold">Public 3P</h2>
-          <p className="mt-1 text-sm text-zinc-300">Match with strangers</p>
-          <button
-            className="mt-4 h-11 w-full rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 font-bold shadow-md shadow-indigo-900/30 disabled:opacity-60"
-            disabled={busy}
-            onClick={() => {
-              setStatus("Joining public queue...");
-              emitWhenConnected("queue:joinPublic", payload);
-            }}
-          >
-            Join queue
-          </button>
-        </div>
+        <aside className="space-y-3">
+          <div className="ad-card p-3">
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--ad-text-soft)]">Record</p>
+            <p className="mt-1 text-sm">Current profile: {user.displayName}</p>
+          </div>
+          <div className="ad-card p-3 text-xs text-[var(--ad-text-soft)]">
+            Tip: sneak attack ignores shield. Keep 4 energy ready.
+          </div>
+        </aside>
+      </section>
 
-        <div className="rounded-2xl border border-zinc-700/80 bg-zinc-900/75 p-4 shadow-xl shadow-black/30 backdrop-blur">
-          <h2 className="text-xl font-semibold">Friend lobby</h2>
+      {/* Mobile companion friend controls */}
+      <section className="md:hidden ad-card p-4">
+        <p className="text-xs uppercase tracking-[0.2em] text-[var(--ad-text-soft)]">Friend Lobby</p>
+        <div className="mt-2 grid gap-2">
           <button
-            className="mt-2 h-10 w-full rounded-lg bg-gradient-to-r from-cyan-500 to-sky-500 font-bold shadow-md shadow-cyan-900/30 disabled:opacity-60"
+            className="ad-btn-tertiary h-10 disabled:opacity-60"
             disabled={busy}
             onClick={() => {
               setStatus("Creating lobby...");
@@ -107,15 +201,15 @@ export default function AttackDefenseLobbyPage() {
           >
             Create lobby
           </button>
-          {createdLobbyId ? <p className="mt-2 rounded bg-zinc-800 px-2 py-1 text-xs text-cyan-200">Code: {createdLobbyId}</p> : null}
+          {createdLobbyId ? <p className="rounded-lg bg-black/25 px-3 py-2 text-sm text-cyan-200">Code: {createdLobbyId}</p> : null}
           <input
-            className="mt-2 h-10 w-full rounded-lg border border-zinc-700 bg-zinc-950/80 px-3 text-sm outline-none ring-cyan-300/40 focus:ring-2"
+            className="h-10 rounded-lg border border-[var(--ad-border)] bg-black/25 px-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300/35"
             placeholder="Mickey-Mouse-1234"
             value={joinLobbyId}
             onChange={(event) => setJoinLobbyId(event.target.value)}
           />
           <button
-            className="mt-2 h-10 w-full rounded-lg bg-gradient-to-r from-cyan-600 to-blue-500 font-bold shadow-md shadow-cyan-900/30 disabled:opacity-60"
+            className="ad-btn-tertiary h-10 disabled:opacity-60"
             disabled={busy}
             onClick={() => {
               if (!joinLobbyId.trim()) {
@@ -129,10 +223,9 @@ export default function AttackDefenseLobbyPage() {
             Join lobby
           </button>
         </div>
-      </div>
+      </section>
 
-      <p className="rounded-lg border border-zinc-700 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-200">{status}</p>
-      </div>
+      <p className="ad-card px-3 py-2 text-sm text-[var(--ad-text-soft)]">{status}</p>
     </main>
   );
 }

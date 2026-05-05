@@ -6,22 +6,53 @@ export default function AttackDefenseResultsPage() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#312e81_0%,#09090b_45%),radial-gradient(circle_at_15%_80%,#14532d_0%,transparent_35%)] px-6 py-10 text-zinc-100">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-      <div className="rounded-2xl border border-zinc-700/80 bg-zinc-900/75 p-6 text-center shadow-2xl shadow-black/35 backdrop-blur">
-        <h1 className="text-4xl font-black tracking-tight">Round Table Complete</h1>
-        <p className="mt-2 text-zinc-200">Detailed match stats and rewards can be expanded here next.</p>
-        <div className="mt-4 flex justify-center gap-2 text-xs">
-          <span className="rounded-full border border-zinc-700 bg-zinc-800/80 px-3 py-1">+24 XP</span>
-          <span className="rounded-full border border-zinc-700 bg-zinc-800/80 px-3 py-1">3 houses standing</span>
+    <main className="ad-container">
+      {/* Mobile - Direction C (Podium + MVP) */}
+      <section className="md:hidden ad-card p-5 text-center">
+        <span className="ad-tag">Victory</span>
+        <h1 className="ad-title mt-3 text-4xl">kul standing.</h1>
+        <div className="mt-5 flex items-end justify-center gap-2">
+          <div className="rounded border border-[var(--ad-border)] bg-black/25 px-3 py-4 text-xs">ASH<br />#2</div>
+          <div className="rounded border border-[var(--ad-border)] bg-[var(--ad-accent-primary)]/25 px-3 py-7 text-xs font-bold">KUL<br />#1</div>
+          <div className="rounded border border-[var(--ad-border)] bg-black/25 px-3 py-3 text-xs">BOT-K<br />#3</div>
         </div>
-      </div>
-      <button
-        className="h-12 rounded-xl bg-gradient-to-r from-lime-300 to-lime-400 font-bold text-zinc-900 shadow-lg shadow-lime-900/30 transition hover:brightness-105"
-        onClick={() => router.push("/games/attack-defense/play/lobby")}
-      >
-        Back to lobby
-      </button>
+        <div className="mt-4 rounded-lg border border-[var(--ad-border)] bg-black/25 p-3 text-sm">
+          MVP move: R6 area blast on ASH
+        </div>
+      </section>
+
+      {/* Desktop - Direction B (Timeline recap) */}
+      <section className="mt-4 hidden md:block ad-card-strong p-6">
+        <div className="flex items-center justify-between">
+          <h1 className="ad-title text-5xl">KUL wins.</h1>
+          <span className="text-sm text-[var(--ad-text-soft)]">Round 7 · 2m 14s</span>
+        </div>
+        <div className="mt-5 grid grid-cols-7 gap-2">
+          {[1, 2, 3, 4, 5, 6, 7].map((round) => (
+            <div key={round} className="rounded border border-[var(--ad-border)] bg-black/20 p-2 text-center">
+              <div className="text-xs text-[var(--ad-text-soft)]">R{round}</div>
+              <div className="mt-2 h-14 rounded bg-gradient-to-t from-indigo-500/50 to-transparent" />
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 rounded-lg border border-[var(--ad-border)] bg-black/25 p-3 text-sm text-[var(--ad-text-soft)]">
+          Key moments: R3 sneak pressure, R4 bot elimination, R6 area blast swing.
+        </div>
+      </section>
+
+      <div className="mt-4 flex flex-col gap-2 md:flex-row">
+        <button
+          className="ad-btn-primary h-12 flex-1"
+          onClick={() => router.push("/games/attack-defense/play/lobby")}
+        >
+          Rematch
+        </button>
+        <button
+          className="ad-btn-ghost h-12 flex-1 font-semibold"
+          onClick={() => router.push("/games/attack-defense/play/lobby")}
+        >
+          Back to lobby
+        </button>
       </div>
     </main>
   );
