@@ -40,6 +40,12 @@ function normalizeAtsPlatform(value: unknown): CompanyRecord["atsPlatform"] {
 export async function POST(req: Request) {
   const body = (await req.json()) as Partial<SearchInput> & { force_refresh?: boolean };
   const input = normalizeSearchInput(body);
+  console.log("[SearchRoute] Request received", {
+    title: input.title,
+    location: input.location,
+    forceRefresh: body.force_refresh === true,
+    flexibility: input.flexibility,
+  });
   const queryParams = {
     title: input.title,
     location: input.location,
@@ -54,6 +60,10 @@ export async function POST(req: Request) {
   if (!body.force_refresh) {
     const cached = await getSearchCache(queryHash);
     if (cached) {
+      console.log("[SearchRoute] Cache HIT", {
+        queryHash: queryHash.slice(0, 10),
+        resultCount: cached.result_count,
+      });
       const cachedJobs = await getJobsByIds(cached.job_ids ?? []);
       const mapped: EnrichedJob[] = (cachedJobs ?? []).map((row: Record<string, unknown>) => ({
         id: String(row.id ?? ""),
@@ -109,6 +119,7 @@ export async function POST(req: Request) {
       });
     }
   }
+  console.log("[SearchRoute] Cache MISS", { queryHash: queryHash.slice(0, 10) });
 
   const session = createSession(input);
   void runSearch(session.id);

@@ -107,6 +107,7 @@ export default function VacancyBibleClient() {
   const [fromCache, setFromCache] = useState(false);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
   const [cachedLabel, setCachedLabel] = useState<string | null>(null);
+  const [searchMode, setSearchMode] = useState<"cached_new" | "complete">("cached_new");
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     tier: "All Tiers",
@@ -146,7 +147,16 @@ export default function VacancyBibleClient() {
     setCachedLabel(null);
     setExpandedJobId(null);
     try {
-      const started = await startSearch(toSearchInput(), forceRefresh);
+      const inputPayload = toSearchInput();
+      const useForceRefresh = forceRefresh || searchMode === "complete";
+      console.log("[VacancyBible] Starting search", {
+        mode: searchMode,
+        forceRefresh: useForceRefresh,
+        title: inputPayload.title,
+        location: inputPayload.location,
+        flexibility: inputPayload.flexibility,
+      });
+      const started = await startSearch(inputPayload, useForceRefresh);
       console.log("[VacancyBible] session:", started.sessionId);
       if (started.from_cache) {
         setFromCache(true);
@@ -163,13 +173,21 @@ export default function VacancyBibleClient() {
           const result = await fetchJobs(started.sessionId);
           setJobs(result.jobs);
           setStatus(event.status === "completed" ? "completed" : "failed");
+          console.log("[VacancyBible] Search completed", {
+            sessionId: started.sessionId,
+            status: event.status,
+            jobs: result.jobs.length,
+            fromCache: started.from_cache ?? false,
+          });
           unsubscribe();
           return;
         }
+        console.log("[VacancyBible] Progress event", event);
         setEvents((current) => [...current, event]);
       });
     } catch (err) {
       setStatus("failed");
+      console.error("[VacancyBible] Search failed", err);
       setError(err instanceof Error ? err.message : "Search failed");
     }
   };
@@ -351,6 +369,36 @@ export default function VacancyBibleClient() {
               "Search VacancyBible ->"
             )}
           </button>
+
+          <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+            <span className="text-[10px] uppercase tracking-[0.08em] text-[var(--text-muted)] font-[family-name:var(--font-ibm-plex-mono)]">
+              Search Mode
+            </span>
+            <div className="inline-flex overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface-2)]">
+              <button
+                type="button"
+                onClick={() => setSearchMode("cached_new")}
+                className={`px-3 py-1 text-xs font-[family-name:var(--font-ibm-plex-mono)] ${
+                  searchMode === "cached_new"
+                    ? "bg-[var(--accent-dim)] text-[var(--accent)]"
+                    : "text-[var(--text-dim)]"
+                }`}
+              >
+                Cached+New
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchMode("complete")}
+                className={`px-3 py-1 text-xs font-[family-name:var(--font-ibm-plex-mono)] ${
+                  searchMode === "complete"
+                    ? "bg-[var(--estimated-bg)] text-[var(--estimated)]"
+                    : "text-[var(--text-dim)]"
+                }`}
+              >
+                Complete Search
+              </button>
+            </div>
+          </div>
         </section>
 
         <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">

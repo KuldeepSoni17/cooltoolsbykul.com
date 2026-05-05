@@ -197,6 +197,9 @@ export async function runSearch(sessionId: string): Promise<void> {
     const matchedGoogle = googleResults.filter((job) =>
       shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query),
     );
+    console.log(
+      `[Runner/SerpAPI] Query ${i + 1}/${serpQueries.length} returned ${googleResults.length}, matched ${matchedGoogle.length}`,
+    );
     rawJobs.push(...matchedGoogle);
     sourceCounts.serpapi += matchedGoogle.length;
   }
@@ -215,6 +218,9 @@ export async function runSearch(sessionId: string): Promise<void> {
     const naukriResults = await scrapeNaukri(2);
     const matchedNaukri = naukriResults.filter((job) =>
       shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query),
+    );
+    console.log(
+      `[Runner/Naukri] Returned ${naukriResults.length}, matched ${matchedNaukri.length}`,
     );
     rawJobs.push(...matchedNaukri);
     sourceCounts.naukri += matchedNaukri.length;
@@ -286,6 +292,14 @@ export async function runSearch(sessionId: string): Promise<void> {
   if (sourceCounts.atsDirect === 0) {
     notes.push("ATS/direct source returned zero matched jobs.");
   }
+  console.log("[Runner] Source summary", {
+    sessionId,
+    companyCount: companies.length,
+    sourceCounts,
+    rawJobsBeforeEnrichment: rawJobs.length,
+    enrichedJobs: enriched.length,
+    notes,
+  });
   saveJobs(sessionId, enriched);
   const durationMs = Date.now() - startedAtMs;
 
