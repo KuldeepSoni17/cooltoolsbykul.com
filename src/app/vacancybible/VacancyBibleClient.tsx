@@ -41,6 +41,8 @@ const domains = [
   "Edtech",
 ];
 
+const VACANCYBIBLE_UI_VERSION = "v2026.05.05.1";
+
 function FlexToggle({
   value,
   onChange,
@@ -102,6 +104,9 @@ export default function VacancyBibleClient() {
   const [jobs, setJobs] = useState<EnrichedJob[]>([]);
   const [status, setStatus] = useState<"idle" | "running" | "completed" | "failed">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [fromCache, setFromCache] = useState(false);
+  const [cachedAt, setCachedAt] = useState<string | null>(null);
+  const [cachedLabel, setCachedLabel] = useState<string | null>(null);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     tier: "All Tiers",
@@ -131,15 +136,28 @@ export default function VacancyBibleClient() {
     };
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (forceRefresh = false) => {
     setStatus("running");
     setEvents([]);
     setJobs([]);
     setError(null);
+    setFromCache(false);
+    setCachedAt(null);
+    setCachedLabel(null);
     setExpandedJobId(null);
     try {
-      const started = await startSearch(toSearchInput());
+      const started = await startSearch(toSearchInput(), forceRefresh);
       console.log("[VacancyBible] session:", started.sessionId);
+      if (started.from_cache) {
+        setFromCache(true);
+        setCachedAt(started.cached_at ?? null);
+        if (started.cached_at) {
+          const diff = Date.now() - new Date(started.cached_at).getTime();
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          setCachedLabel(hours > 0 ? `${hours}h ${minutes}m ago` : `${minutes}m ago`);
+        }
+      }
       const unsubscribe = subscribeProgress(started.sessionId, async (event) => {
         if ("done" in event) {
           const result = await fetchJobs(started.sessionId);
@@ -233,7 +251,12 @@ export default function VacancyBibleClient() {
       `}</style>
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <header className="flex items-center justify-between text-[var(--text-muted)] font-[family-name:var(--font-dm-sans)]">
-          <p className="text-2xl font-[family-name:var(--font-dm-serif-display)]">VacancyBible</p>
+          <div className="flex items-center gap-3">
+            <p className="text-2xl font-[family-name:var(--font-dm-serif-display)]">VacancyBible</p>
+            <span className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-[10px] tracking-[0.08em] font-[family-name:var(--font-ibm-plex-mono)] text-[var(--text-muted)]">
+              {VACANCYBIBLE_UI_VERSION}
+            </span>
+          </div>
           <nav className="flex items-center gap-5 text-sm">
             <a href="#how-it-works">How it works</a>
             <a href="#companies">Companies</a>
@@ -319,7 +342,7 @@ export default function VacancyBibleClient() {
           </div>
           <button
             className="h-[52px] w-full rounded-xl bg-[var(--accent)] px-4 py-2 font-medium text-white transition hover:brightness-90 font-[family-name:var(--font-dm-sans)]"
-            onClick={handleSearch}
+            onClick={() => void handleSearch()}
             type="button"
           >
             {status === "running" ? (
@@ -331,6 +354,24 @@ export default function VacancyBibleClient() {
         </section>
 
         <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+          {status === "completed" && (
+            <div className="mb-2 flex items-center gap-3 text-xs text-[var(--text-muted)] font-[family-name:var(--font-ibm-plex-mono)]">
+              {fromCache && cachedAt ? (
+                <>
+                  <span>Results from {cachedLabel ?? "moments ago"}</span>
+                  <button
+                    onClick={() => handleSearch(true)}
+                    type="button"
+                    className="text-[var(--accent)] hover:underline"
+                  >
+                    Refresh -&gt;
+                  </button>
+                </>
+              ) : (
+                <span className="text-[var(--written)]">Fresh results - cached for 6 hours</span>
+              )}
+            </div>
+          )}
           {status === "running" && latestEvent ? (
             <div className="space-y-2">
               <p className="animate-pulse text-sm text-[var(--text-muted)] font-[family-name:var(--font-ibm-plex-mono)]">

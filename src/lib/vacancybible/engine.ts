@@ -1,5 +1,7 @@
-import { getCompanyRegistry } from "./companyRegistry";
-import { runFullDiscovery } from "./discovery";
+import { runFullDiscovery } from "@/lib/discovery";
+import { loadActiveCompanies } from "@/lib/load-companies";
+import { getExistingJob, hashQuery, hashUrl, saveSearchCache, touchJobSeen } from "@/lib/cache";
+import { supabaseAdmin } from "@/lib/supabase-server";
 import { enrichAndRankJobs } from "./enrichment";
 import { scrapeCompany } from "./scrapers";
 import { buildSerpapiQueries, searchGoogleJobs } from "./serpapiScraper";
@@ -94,7 +96,7 @@ export async function runSearch(sessionId: string): Promise<void> {
     notes.push("Auto discovery started before search.");
     discoveryPromise = runFullDiscovery()
       .then((result) => {
-        notes.push(`Auto discovery finished. New companies added: ${result.newAdded}`);
+        notes.push(`Auto discovery finished. New companies added: ${result.newly_saved}`);
         discoveryLastRunMs = Date.now();
       })
       .catch((error) => {
@@ -118,7 +120,7 @@ export async function runSearch(sessionId: string): Promise<void> {
     await discoveryPromise;
   }
 
-  const companies = getCompanyRegistry(true);
+  const companies = await loadActiveCompanies();
   const companiesBySlug = new Map(companies.map((company) => [company.slug, company]));
   emit({
     sessionId,
@@ -228,7 +230,56 @@ export async function runSearch(sessionId: string): Promise<void> {
     timestamp: nowIso(),
   });
 
-  const enriched = enrichAndRankJobs(rawJobs, companiesBySlug, session.query);
+  const enriched = enrichAndRankJobs(rawJobs, companiesBySlug);
+  const savedJobIds: string[] = [];
+  for (const job of enriched) {
+    const sourceUrlHash = hashUrl(job.sourceUrl);
+    const existing = await getExistingJob(sourceUrlHash);
+    if (existing?.id) {
+      await touchJobSeen(existing.id);
+      savedJobIds.push(existing.id);
+      continue;
+    }
+    const { data, error } = await supabaseAdmin
+      .from("jobs")
+      .insert({
+        source_url: job.sourceUrl,
+        source_url_hash: sourceUrlHash,
+        company_slug: job.companyName.value.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        company_name: job.companyName.value,
+        ats_platform: job.atsPlatform,
+        source_label: `${job.atsPlatform} @ ${job.companyName.value}`,
+        exact_role_title: job.exactRoleTitle.value,
+        location: job.location.value,
+        work_mode: job.workMode.value,
+        domain: job.domain.value,
+        overall_score: (job.companyStability.value ?? 5) * 10 + (job.wlbScore.value ?? 5),
+        brand_value_score: job.wlbScore.value,
+        stability_score: job.companyStability.value,
+        wlb_score: job.wlbScore.value,
+        layoff_risk_score: job.layoffRisk.value,
+        analysis_notes: job.analysisNotes,
+        raw_description: job.rawDescription,
+        first_seen_at: new Date().toISOString(),
+        last_seen_at: new Date().toISOString(),
+        enriched_at: new Date().toISOString(),
+        is_active: true,
+      })
+      .select("id")
+      .single();
+    if (!error && data?.id) savedJobIds.push(data.id);
+  }
+  const queryParams = {
+    title: session.query.title,
+    location: session.query.location,
+    experienceMin: session.query.experienceMin,
+    experienceMax: session.query.experienceMax,
+    packageLpaMin: session.query.packageLpaMin,
+    domain: session.query.domain,
+    flexibility: session.query.flexibility,
+  };
+  const queryHash = hashQuery(queryParams);
+  await saveSearchCache(queryHash, queryParams, savedJobIds);
   if (rawJobs.length > 0 && enriched.length === 0) {
     notes.push("Raw jobs existed but enrichment produced zero results.");
   }

@@ -4,7 +4,6 @@ import type {
   Confidence,
   EnrichedJob,
   RawJobRecord,
-  SearchInput,
 } from "./types";
 
 function confidenceFromValue(value: string | null | undefined): Confidence {
@@ -58,7 +57,6 @@ function scoreOverall(job: EnrichedJob): number {
 export function enrichAndRankJobs(
   rawJobs: RawJobRecord[],
   companiesBySlug: Map<string, CompanyRecord>,
-  _query: SearchInput,
 ): EnrichedJob[] {
   const dedup = new Map<string, EnrichedJob>();
 
