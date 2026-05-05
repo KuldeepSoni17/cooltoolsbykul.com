@@ -5,7 +5,7 @@ export function SearchAllMode() {
         Continue with the existing Search All flow. No search logic was changed.
       </p>
       <a
-        href="/vacancybible"
+        href="/vacancybible/search-all"
         className="inline-flex items-center px-4 py-2 rounded-xl bg-[#5B6EF5] hover:bg-[#4A5DE4] text-white text-sm font-medium transition-colors"
       >
         Open Search All →
