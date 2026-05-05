@@ -6,7 +6,7 @@ import { useAttackDefenseAuth } from "@/hooks/attack-defense/useAuth";
 
 export default function AttackDefenseLanding() {
   const router = useRouter();
-  const { user, signInGuest } = useAttackDefenseAuth();
+  const { signInGuest } = useAttackDefenseAuth();
   const [name, setName] = useState("");
 
   return (
@@ -54,22 +54,16 @@ export default function AttackDefenseLanding() {
         </div>
       </section>
 
-      {user ? (
-        <button className="ad-btn-primary h-12" onClick={() => router.push("/games/attack-defense/play/lobby")}>
-          Continue as {user.displayName}
-        </button>
-      ) : (
-        <button
-          className="ad-btn-secondary h-12"
-          onClick={async () => {
-            if (!name.trim()) return;
-            await signInGuest(name.trim());
-            router.push("/games/attack-defense/play/lobby");
-          }}
-        >
-          Enter the table
-        </button>
-      )}
+      <button
+        className="ad-btn-secondary h-12"
+        onClick={async () => {
+          if (!name.trim()) return;
+          await signInGuest(name.trim());
+          router.push("/games/attack-defense/play/lobby");
+        }}
+      >
+        Enter the table
+      </button>
     </main>
   );
 }
