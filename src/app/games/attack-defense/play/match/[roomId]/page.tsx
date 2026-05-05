@@ -12,7 +12,7 @@ function HousePill({ label, hp, active, onClick }: { label: string; hp: string; 
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg border px-2 py-2 text-xs ${active ? "border-lime-400 bg-lime-500/20" : "border-zinc-700 bg-zinc-900/80"}`}
+      className={`rounded-lg border px-2 py-2 text-xs transition ${active ? "border-lime-300 bg-lime-500/20 shadow-md shadow-lime-900/20" : "border-zinc-700 bg-zinc-900/80"}`}
     >
       <div>{label}</div>
       <div className="text-zinc-300">{hp}</div>
@@ -44,20 +44,21 @@ export default function AttackDefenseMatchPage() {
         : GAME_UI_CONSTANTS.ROUND_DECISION_SECONDS;
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-6 py-6 pb-28 text-zinc-100">
-      <section className="rounded-2xl border border-zinc-700 bg-zinc-900/70 p-4">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#1e1b4b_0%,#09090b_45%),radial-gradient(circle_at_15%_75%,#052e16_0%,transparent_35%)] px-6 py-6 pb-28 text-zinc-100">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
+      <section className="rounded-2xl border border-zinc-700/80 bg-zinc-900/75 p-4 shadow-xl shadow-black/30 backdrop-blur">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">Round {room.round}</h1>
-          <span className="rounded bg-zinc-800 px-2 py-1 text-xs uppercase">{room.phase === "waiting" ? "pregame" : room.phase}</span>
+          <h1 className="text-2xl font-black tracking-tight">Round {room.round}</h1>
+          <span className="rounded bg-zinc-800 px-2 py-1 text-xs uppercase text-lime-300">{room.phase === "waiting" ? "pregame" : room.phase}</span>
         </div>
-        <div className="mt-2 text-sm text-zinc-300">
+        <div className="mt-2 text-sm text-zinc-200">
           Timer: {secondsLeft}s / {totalSeconds}s · Energy: {me.energy}/20
         </div>
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">
         {opponents.map((player) => (
-          <section key={player.id} className="rounded-2xl border border-zinc-700 bg-zinc-900/70 p-3">
+          <section key={player.id} className="rounded-2xl border border-zinc-700/80 bg-zinc-900/75 p-3 shadow-lg shadow-black/25 backdrop-blur">
             <div className="mb-2 flex items-center justify-between">
               <h2 className="font-semibold">{player.displayName}</h2>
               <span className="text-xs text-zinc-300">{player.energy} energy</span>
@@ -84,7 +85,7 @@ export default function AttackDefenseMatchPage() {
               })}
             </div>
             {canAct && selectedAttack && ATTACK_CONFIG[selectedAttack].target === "player" ? (
-              <button className="mt-2 h-9 w-full rounded-lg bg-lime-500/80 text-sm font-semibold text-zinc-900" onClick={() => addAttack(selectedAttack, player.id)}>
+              <button className="mt-2 h-9 w-full rounded-lg bg-gradient-to-r from-lime-300 to-lime-400 text-sm font-bold text-zinc-900 shadow-md shadow-lime-900/20" onClick={() => addAttack(selectedAttack, player.id)}>
                 Target {player.displayName}
               </button>
             ) : null}
@@ -92,7 +93,7 @@ export default function AttackDefenseMatchPage() {
         ))}
       </div>
 
-      <section className="rounded-2xl border border-zinc-700 bg-zinc-900/70 p-3">
+      <section className="rounded-2xl border border-zinc-700/80 bg-zinc-900/75 p-3 shadow-lg shadow-black/25 backdrop-blur">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="font-semibold">Your Base</h2>
           <span className="text-xs text-zinc-300">{me.actionsSubmitted || committed ? "Locked" : "Planning"}</span>
@@ -113,7 +114,7 @@ export default function AttackDefenseMatchPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-zinc-700 bg-zinc-900/70 p-3">
+      <section className="rounded-2xl border border-zinc-700/80 bg-zinc-900/75 p-3 shadow-lg shadow-black/25 backdrop-blur">
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-zinc-300">Round Breakdown</h2>
         {latestRoundSummaries.length ? (
           <div className="space-y-2">
@@ -139,38 +140,38 @@ export default function AttackDefenseMatchPage() {
       </section>
 
       {room.phase === "decision" ? (
-        <section className="fixed bottom-0 left-0 right-0 border-t border-zinc-700 bg-zinc-950/95 p-4 backdrop-blur">
+        <section className="fixed bottom-0 left-0 right-0 border-t border-zinc-700 bg-zinc-950/95 p-4 backdrop-blur-md">
           <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
             <div className="text-xs text-zinc-300">Step 1: pick attack/defense. Step 2: choose target house/player. Step 3: lock action.</div>
             <div className="grid grid-cols-2 gap-2">
-              <button className={`h-10 rounded ${activeTab === "attack" ? "bg-indigo-500" : "bg-zinc-800"}`} onClick={() => setActiveTab("attack")}>
+              <button className={`h-10 rounded font-bold ${activeTab === "attack" ? "bg-gradient-to-r from-indigo-500 to-violet-500" : "bg-zinc-800"}`} onClick={() => setActiveTab("attack")}>
                 Attack
               </button>
-              <button className={`h-10 rounded ${activeTab === "defense" ? "bg-indigo-500" : "bg-zinc-800"}`} onClick={() => setActiveTab("defense")}>
+              <button className={`h-10 rounded font-bold ${activeTab === "defense" ? "bg-gradient-to-r from-indigo-500 to-violet-500" : "bg-zinc-800"}`} onClick={() => setActiveTab("defense")}>
                 Defense
               </button>
             </div>
             <div className="grid gap-2 md:grid-cols-3">
               {activeTab === "attack"
                 ? (Object.keys(ATTACK_CONFIG) as AttackType[]).map((type) => (
-                    <button key={type} className="rounded border border-zinc-700 bg-zinc-900 p-2 text-left" onClick={() => selectActionType("attack", type)}>
+                    <button key={type} className="rounded border border-zinc-700 bg-zinc-900 p-2 text-left transition hover:border-indigo-400" onClick={() => selectActionType("attack", type)}>
                       <div className="font-medium">{ATTACK_CONFIG[type].name}</div>
                       <div className="text-xs text-zinc-400">{ATTACK_CONFIG[type].description}</div>
                     </button>
                   ))
                 : (Object.keys(DEFENSE_CONFIG) as DefenseType[]).map((type) => (
-                    <button key={type} className="rounded border border-zinc-700 bg-zinc-900 p-2 text-left" onClick={() => selectActionType("defense", type)}>
+                    <button key={type} className="rounded border border-zinc-700 bg-zinc-900 p-2 text-left transition hover:border-cyan-400" onClick={() => selectActionType("defense", type)}>
                       <div className="font-medium">{DEFENSE_CONFIG[type].name}</div>
                       <div className="text-xs text-zinc-400">{DEFENSE_CONFIG[type].description}</div>
                     </button>
                   ))}
             </div>
             <div className="flex gap-2">
-              <button className="h-10 rounded-lg bg-zinc-800 px-4 text-sm" onClick={cancelSelection}>
+              <button className="h-10 rounded-lg bg-zinc-800 px-4 text-sm font-semibold" onClick={cancelSelection}>
                 Clear pick
               </button>
               <button
-                className="h-10 flex-1 rounded-lg bg-lime-400 font-semibold text-zinc-900"
+                className="h-10 flex-1 rounded-lg bg-gradient-to-r from-lime-300 to-lime-400 font-bold text-zinc-900 shadow-md shadow-lime-900/25"
                 onClick={() => submitActions(params.roomId, { playerId: me.id, attacks: pending.attacks, defenses: pending.defenses })}
               >
                 Lock round action
@@ -185,6 +186,7 @@ export default function AttackDefenseMatchPage() {
             : `Breather ${secondsLeft}s: review what everyone selected and what happened.`}
         </div>
       )}
+      </div>
     </main>
   );
 }
