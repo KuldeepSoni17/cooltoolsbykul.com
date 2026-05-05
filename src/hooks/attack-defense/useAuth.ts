@@ -8,18 +8,28 @@ interface AuthUser {
   isGuest: boolean;
 }
 
-export function useAttackDefenseAuth() {
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    if (typeof window === "undefined") return null;
+const readStoredUser = (): AuthUser | null => {
+  if (typeof window === "undefined") return null;
+  try {
     const existingId = window.localStorage.getItem("ad_user_id");
     const existingName = window.localStorage.getItem("ad_user_name");
     return existingId && existingName ? { id: existingId, displayName: existingName, isGuest: true } : null;
-  });
+  } catch {
+    return null;
+  }
+};
+
+export function useAttackDefenseAuth() {
+  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
 
   const signInGuest = async (displayName: string) => {
     const id = crypto.randomUUID();
-    window.localStorage.setItem("ad_user_id", id);
-    window.localStorage.setItem("ad_user_name", displayName);
+    try {
+      window.localStorage.setItem("ad_user_id", id);
+      window.localStorage.setItem("ad_user_name", displayName);
+    } catch {
+      // Storage may be disabled; keep in-memory session only.
+    }
     setUser({ id, displayName, isGuest: true });
   };
 
