@@ -1,4 +1,4 @@
-import { sha256, shouldMatchText } from "./utils";
+import { sha256 } from "./utils";
 import type {
   CompanyRecord,
   Confidence,
@@ -58,12 +58,11 @@ function scoreOverall(job: EnrichedJob): number {
 export function enrichAndRankJobs(
   rawJobs: RawJobRecord[],
   companiesBySlug: Map<string, CompanyRecord>,
-  query: SearchInput,
+  _query: SearchInput,
 ): EnrichedJob[] {
   const dedup = new Map<string, EnrichedJob>();
 
   for (const raw of rawJobs) {
-    if (!shouldMatchText(`${raw.title} ${raw.location ?? ""}`, query)) continue;
     const company =
       companiesBySlug.get(raw.companySlug) ??
       ({

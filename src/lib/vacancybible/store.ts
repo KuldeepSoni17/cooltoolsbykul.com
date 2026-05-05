@@ -3,6 +3,17 @@ import type { EnrichedJob, SearchProgressEvent, SearchSession } from "./types";
 const jobsBySession = new Map<string, EnrichedJob[]>();
 const sessions = new Map<string, SearchSession>();
 const progressBySession = new Map<string, SearchProgressEvent[]>();
+const diagnosticsBySession = new Map<
+  string,
+  {
+    startedAt: string;
+    companyCountAtStart: number;
+    sourceCounts: Record<string, number>;
+    rawJobsBeforeEnrichment: number;
+    enrichedJobs: number;
+    notes: string[];
+  }
+>();
 
 export function saveSession(session: SearchSession): void {
   sessions.set(session.id, session);
@@ -45,4 +56,22 @@ export function pushProgress(event: SearchProgressEvent): void {
 
 export function getProgress(sessionId: string): SearchProgressEvent[] {
   return progressBySession.get(sessionId) ?? [];
+}
+
+export function saveDiagnostics(
+  sessionId: string,
+  diagnostics: {
+    startedAt: string;
+    companyCountAtStart: number;
+    sourceCounts: Record<string, number>;
+    rawJobsBeforeEnrichment: number;
+    enrichedJobs: number;
+    notes: string[];
+  },
+): void {
+  diagnosticsBySession.set(sessionId, diagnostics);
+}
+
+export function getDiagnostics(sessionId: string) {
+  return diagnosticsBySession.get(sessionId) ?? null;
 }

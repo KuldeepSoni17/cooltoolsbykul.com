@@ -1,9 +1,17 @@
 import { getCompanyRegistry } from "./companyRegistry";
+import { runFullDiscovery } from "./discovery";
 import { enrichAndRankJobs } from "./enrichment";
 import { scrapeCompany } from "./scrapers";
 import { buildSerpapiQueries, searchGoogleJobs } from "./serpapiScraper";
 import { scrapeNaukri } from "./naukri";
-import { getJobs, pushProgress, saveJobs, saveSession, updateSession } from "./store";
+import {
+  getJobs,
+  pushProgress,
+  saveDiagnostics,
+  saveJobs,
+  saveSession,
+  updateSession,
+} from "./store";
 import { makeId, shouldMatchText } from "./utils";
 import type {
   CompanyRecord,
@@ -14,6 +22,8 @@ import type {
 } from "./types";
 
 const companyErrorCounts = new Map<string, number>();
+let discoveryPromise: Promise<unknown> | null = null;
+let discoveryLastRunMs = 0;
 
 function emit(event: SearchProgressEvent): void {
   pushProgress(event);
@@ -78,6 +88,36 @@ export async function runSearch(sessionId: string): Promise<void> {
   console.log(`[Search] Query received: ${JSON.stringify(session.query)}`);
 
   const startedAtMs = Date.now();
+  const notes: string[] = [];
+  const nowMs = Date.now();
+  if (!discoveryPromise && nowMs - discoveryLastRunMs > 1000 * 60 * 60 * 6) {
+    notes.push("Auto discovery started before search.");
+    discoveryPromise = runFullDiscovery()
+      .then((result) => {
+        notes.push(`Auto discovery finished. New companies added: ${result.newAdded}`);
+        discoveryLastRunMs = Date.now();
+      })
+      .catch((error) => {
+        notes.push(`Auto discovery failed: ${String(error)}`);
+      })
+      .finally(() => {
+        discoveryPromise = null;
+      });
+  }
+
+  if (discoveryPromise) {
+    emit({
+      sessionId,
+      stage: "running",
+      message: "Updating company registry from ATS discovery feeds",
+      processedCompanies: 0,
+      totalCompanies: 0,
+      jobsFound: 0,
+      timestamp: nowIso(),
+    });
+    await discoveryPromise;
+  }
+
   const companies = getCompanyRegistry(true);
   const companiesBySlug = new Map(companies.map((company) => [company.slug, company]));
   emit({
@@ -91,6 +131,11 @@ export async function runSearch(sessionId: string): Promise<void> {
   });
 
   const rawJobs: RawJobRecord[] = [];
+  const sourceCounts: Record<string, number> = {
+    atsDirect: 0,
+    serpapi: 0,
+    naukri: 0,
+  };
   for (let i = 0; i < companies.length; i += 1) {
     const company = companies[i];
     emit({
@@ -108,6 +153,7 @@ export async function runSearch(sessionId: string): Promise<void> {
       `[${company.atsPlatform} @ ${company.name}] Fetched ${jobs.length} total jobs, ${matchedJobs.length} matched title filter -> returning ${matchedJobs.length}`,
     );
     rawJobs.push(...matchedJobs);
+    sourceCounts.atsDirect += matchedJobs.length;
     emit({
       sessionId,
       stage: "scraping_company",
@@ -146,7 +192,11 @@ export async function runSearch(sessionId: string): Promise<void> {
       timestamp: nowIso(),
     });
     const googleResults = await searchGoogleJobs(q.query, q.location, q.datePosted, 2);
-    rawJobs.push(...googleResults.filter((job) => shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query)));
+    const matchedGoogle = googleResults.filter((job) =>
+      shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query),
+    );
+    rawJobs.push(...matchedGoogle);
+    sourceCounts.serpapi += matchedGoogle.length;
   }
 
   const locationLower = (session.query.location ?? "").toLowerCase();
@@ -161,7 +211,11 @@ export async function runSearch(sessionId: string): Promise<void> {
       timestamp: nowIso(),
     });
     const naukriResults = await scrapeNaukri(2);
-    rawJobs.push(...naukriResults.filter((job) => shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query)));
+    const matchedNaukri = naukriResults.filter((job) =>
+      shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query),
+    );
+    rawJobs.push(...matchedNaukri);
+    sourceCounts.naukri += matchedNaukri.length;
   }
 
   emit({
@@ -175,6 +229,12 @@ export async function runSearch(sessionId: string): Promise<void> {
   });
 
   const enriched = enrichAndRankJobs(rawJobs, companiesBySlug, session.query);
+  if (rawJobs.length > 0 && enriched.length === 0) {
+    notes.push("Raw jobs existed but enrichment produced zero results.");
+  }
+  if (sourceCounts.atsDirect === 0) {
+    notes.push("ATS/direct source returned zero matched jobs.");
+  }
   saveJobs(sessionId, enriched);
   const durationMs = Date.now() - startedAtMs;
 
@@ -185,6 +245,15 @@ export async function runSearch(sessionId: string): Promise<void> {
     jobsFound: enriched.length,
     jobsNew: enriched.length,
     durationMs,
+  });
+
+  saveDiagnostics(sessionId, {
+    startedAt: new Date(startedAtMs).toISOString(),
+    companyCountAtStart: companies.length,
+    sourceCounts,
+    rawJobsBeforeEnrichment: rawJobs.length,
+    enrichedJobs: enriched.length,
+    notes,
   });
 
   emit({
