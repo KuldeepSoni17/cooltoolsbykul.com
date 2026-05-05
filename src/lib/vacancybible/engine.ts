@@ -1,6 +1,8 @@
 import { getCompanyRegistry } from "./companyRegistry";
 import { enrichAndRankJobs } from "./enrichment";
 import { scrapeCompany } from "./scrapers";
+import { buildSerpapiQueries, searchGoogleJobs } from "./serpapiScraper";
+import { scrapeNaukri } from "./naukri";
 import { getJobs, pushProgress, saveJobs, saveSession, updateSession } from "./store";
 import { makeId, shouldMatchText } from "./utils";
 import type {
@@ -56,6 +58,19 @@ async function scrapeWithResilience(company: CompanyRecord): Promise<RawJobRecor
   return raw;
 }
 
+async function safeScrape(company: CompanyRecord): Promise<RawJobRecord[]> {
+  try {
+    const raw = await scrapeWithResilience(company);
+    console.log(`[Runner] ✓ ${company.name} -> ${raw.length} jobs fetched`);
+    return raw;
+  } catch (error) {
+    console.log(
+      `[Runner] ✗ ${company.name} -> ${error instanceof Error ? error.name : "Error"}: ${String(error)}`,
+    );
+    return [];
+  }
+}
+
 export async function runSearch(sessionId: string): Promise<void> {
   const session = updateSession(sessionId, {});
   if (!session) return;
@@ -75,26 +90,64 @@ export async function runSearch(sessionId: string): Promise<void> {
     timestamp: nowIso(),
   });
 
-  const rawJobs: RawJobRecord[] = [];
-  for (let i = 0; i < companies.length; i += 1) {
-    const company = companies[i];
+  const tasks = companies.map(async (company, i) => {
     emit({
       sessionId,
       stage: "scraping_company",
       message: `Scraping ${company.name}`,
       processedCompanies: i,
       totalCompanies: companies.length,
-      jobsFound: rawJobs.length,
+      jobsFound: 0,
       timestamp: nowIso(),
     });
-    const jobs = await scrapeWithResilience(company);
-    const matchedJobs = jobs.filter((job) =>
-      shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query),
-    );
+    const jobs = await safeScrape(company);
+    const matchedJobs = jobs.filter((job) => shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query));
     console.log(
       `[${company.atsPlatform} @ ${company.name}] Fetched ${jobs.length} total jobs, ${matchedJobs.length} matched title filter -> returning ${matchedJobs.length}`,
     );
-    rawJobs.push(...matchedJobs);
+    return matchedJobs;
+  });
+
+  const rawJobs: RawJobRecord[] = [];
+  const taskResults = await Promise.allSettled(tasks);
+  for (let i = 0; i < taskResults.length; i += 1) {
+    const batch = taskResults[i];
+    if (batch.status === "rejected") {
+      console.log(
+        `[Runner] Scraper task ${i} failed: ${batch.reason instanceof Error ? batch.reason.name : "Error"}: ${String(batch.reason)}`,
+      );
+      continue;
+    }
+    if (!Array.isArray(batch.value)) {
+      console.log(`[Runner] Scraper task ${i} returned unexpected type: ${typeof batch.value}`);
+      continue;
+    }
+    rawJobs.push(...batch.value);
+  }
+  console.log(`[Runner] Total raw records collected from ATS/direct: ${rawJobs.length}`);
+
+  const titleFlex = session.query.flexibility.title === "OPEN" ? 2 : session.query.flexibility.title === "FLEXIBLE" ? 1 : 0;
+  const locationFlex =
+    session.query.flexibility.location === "OPEN"
+      ? 2
+      : session.query.flexibility.location === "FLEXIBLE"
+        ? 1
+        : 0;
+  const serpQueries = buildSerpapiQueries({
+    title: session.query.title,
+    location: session.query.location,
+    titleFlex,
+    locationFlex,
+  });
+  for (const q of serpQueries) {
+    const googleResults = await searchGoogleJobs(q.query, q.location, q.datePosted, 2);
+    rawJobs.push(...googleResults.filter((job) => shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query)));
+  }
+
+  const locationLower = (session.query.location ?? "").toLowerCase();
+  if (!session.query.location || locationLower.includes("india")) {
+    const naukriResults = await scrapeNaukri(2);
+    rawJobs.push(...naukriResults.filter((job) => shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query)));
   }
 
   emit({

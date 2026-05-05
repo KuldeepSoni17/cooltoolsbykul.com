@@ -64,8 +64,27 @@ export function enrichAndRankJobs(
 
   for (const raw of rawJobs) {
     if (!shouldMatchText(`${raw.title} ${raw.location ?? ""}`, query)) continue;
-    const company = companiesBySlug.get(raw.companySlug);
-    if (!company) continue;
+    const company =
+      companiesBySlug.get(raw.companySlug) ??
+      ({
+        name: raw.companyName || "Unknown Company",
+        slug: raw.companySlug || "external",
+        careersPageUrl: raw.sourceUrl,
+        atsPlatform:
+          raw.metadata?.ats === "greenhouse" ||
+          raw.metadata?.ats === "lever" ||
+          raw.metadata?.ats === "ashby" ||
+          raw.metadata?.ats === "workday" ||
+          raw.metadata?.ats === "smartrecruiters"
+            ? raw.metadata.ats
+            : "direct",
+        sector: "Unknown",
+        hqCountry: "Unknown",
+        indiaOffices: ["Unknown"],
+        pmMaturityScore: 5,
+        brandValueScore: 5,
+        stabilityScore: 5,
+      } satisfies CompanyRecord);
     const hash = sha256(raw.sourceUrl);
     if (dedup.has(hash)) continue;
 
