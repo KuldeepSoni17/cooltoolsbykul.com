@@ -90,14 +90,16 @@ export async function runSearch(sessionId: string): Promise<void> {
     timestamp: nowIso(),
   });
 
-  const tasks = companies.map(async (company, i) => {
+  const rawJobs: RawJobRecord[] = [];
+  for (let i = 0; i < companies.length; i += 1) {
+    const company = companies[i];
     emit({
       sessionId,
       stage: "scraping_company",
       message: `Scraping ${company.name}`,
       processedCompanies: i,
       totalCompanies: companies.length,
-      jobsFound: 0,
+      jobsFound: rawJobs.length,
       timestamp: nowIso(),
     });
     const jobs = await safeScrape(company);
@@ -105,25 +107,18 @@ export async function runSearch(sessionId: string): Promise<void> {
     console.log(
       `[${company.atsPlatform} @ ${company.name}] Fetched ${jobs.length} total jobs, ${matchedJobs.length} matched title filter -> returning ${matchedJobs.length}`,
     );
-    return matchedJobs;
-  });
-
-  const rawJobs: RawJobRecord[] = [];
-  const taskResults = await Promise.allSettled(tasks);
-  for (let i = 0; i < taskResults.length; i += 1) {
-    const batch = taskResults[i];
-    if (batch.status === "rejected") {
-      console.log(
-        `[Runner] Scraper task ${i} failed: ${batch.reason instanceof Error ? batch.reason.name : "Error"}: ${String(batch.reason)}`,
-      );
-      continue;
-    }
-    if (!Array.isArray(batch.value)) {
-      console.log(`[Runner] Scraper task ${i} returned unexpected type: ${typeof batch.value}`);
-      continue;
-    }
-    rawJobs.push(...batch.value);
+    rawJobs.push(...matchedJobs);
+    emit({
+      sessionId,
+      stage: "scraping_company",
+      message: `Completed ${company.name}`,
+      processedCompanies: i + 1,
+      totalCompanies: companies.length,
+      jobsFound: rawJobs.length,
+      timestamp: nowIso(),
+    });
   }
+
   console.log(`[Runner] Total raw records collected from ATS/direct: ${rawJobs.length}`);
 
   const titleFlex = session.query.flexibility.title === "OPEN" ? 2 : session.query.flexibility.title === "FLEXIBLE" ? 1 : 0;
@@ -139,13 +134,32 @@ export async function runSearch(sessionId: string): Promise<void> {
     titleFlex,
     locationFlex,
   });
-  for (const q of serpQueries) {
+  for (let i = 0; i < serpQueries.length; i += 1) {
+    const q = serpQueries[i];
+    emit({
+      sessionId,
+      stage: "running",
+      message: `Searching Google Jobs (${i + 1}/${serpQueries.length}): ${q.query} in ${q.location}`,
+      processedCompanies: companies.length,
+      totalCompanies: companies.length,
+      jobsFound: rawJobs.length,
+      timestamp: nowIso(),
+    });
     const googleResults = await searchGoogleJobs(q.query, q.location, q.datePosted, 2);
     rawJobs.push(...googleResults.filter((job) => shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query)));
   }
 
   const locationLower = (session.query.location ?? "").toLowerCase();
   if (!session.query.location || locationLower.includes("india")) {
+    emit({
+      sessionId,
+      stage: "running",
+      message: "Scanning Naukri India listings",
+      processedCompanies: companies.length,
+      totalCompanies: companies.length,
+      jobsFound: rawJobs.length,
+      timestamp: nowIso(),
+    });
     const naukriResults = await scrapeNaukri(2);
     rawJobs.push(...naukriResults.filter((job) => shouldMatchText(`${job.title} ${job.location ?? ""}`, session.query)));
   }
