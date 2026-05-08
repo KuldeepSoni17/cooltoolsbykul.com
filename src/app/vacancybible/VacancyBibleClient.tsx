@@ -109,6 +109,11 @@ export default function VacancyBibleClient() {
   const [cachedLabel, setCachedLabel] = useState<string | null>(null);
   const [searchMode, setSearchMode] = useState<"cached_new" | "complete">("cached_new");
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    if (typeof window === "undefined") return "dark";
+    const saved = window.localStorage.getItem("vacancybible-theme");
+    return saved === "light" || saved === "dark" ? saved : "dark";
+  });
   const [filters, setFilters] = useState({
     tier: "All Tiers",
     location: "All Locations",
@@ -118,6 +123,13 @@ export default function VacancyBibleClient() {
   });
 
   const latestEvent = events.at(-1);
+  const scrapingEvents = useMemo(
+    () =>
+      events
+        .filter((event) => event.stage === "scraping_company" && event.message.startsWith("Scraping "))
+        .slice(-5),
+    [events],
+  );
   const progressPct = useMemo(() => {
     if (!latestEvent || latestEvent.totalCompanies === 0) return 0;
     return Math.min(100, Math.round((latestEvent.processedCompanies / latestEvent.totalCompanies) * 100));
@@ -245,10 +257,18 @@ export default function VacancyBibleClient() {
     URL.revokeObjectURL(url);
   };
 
+  const toggleTheme = () => {
+    setTheme((current) => {
+      const next = current === "dark" ? "light" : "dark";
+      window.localStorage.setItem("vacancybible-theme", next);
+      return next;
+    });
+  };
+
   return (
-    <main className="min-h-screen bg-[var(--bg)] px-6 py-10 text-[var(--text)]">
+    <main className={`min-h-screen bg-[var(--bg)] px-6 py-10 text-[var(--text)] ${theme === "dark" ? "vb-theme-dark" : "vb-theme-light"}`}>
       <style jsx global>{`
-        :root {
+        .vb-theme-dark {
           --bg: #0c0c0f;
           --surface: #141418;
           --surface-2: #1a1a22;
@@ -266,6 +286,24 @@ export default function VacancyBibleClient() {
           --estimated-bg: #3d2a14;
           --estimated-border: #5e4220;
         }
+        .vb-theme-light {
+          --bg: #f6f7fb;
+          --surface: #ffffff;
+          --surface-2: #f2f4fa;
+          --border: #d9dfeb;
+          --border-hover: #bcc8de;
+          --text: #111827;
+          --text-muted: #4b5563;
+          --text-dim: #6b7280;
+          --accent: #3d5afe;
+          --accent-dim: #dfe5ff;
+          --written: #256f4b;
+          --written-bg: #dff4e8;
+          --written-border: #9fd8b7;
+          --estimated: #8a5b18;
+          --estimated-bg: #fbe8cc;
+          --estimated-border: #e8c790;
+        }
       `}</style>
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <header className="flex items-center justify-between text-[var(--text-muted)] font-[family-name:var(--font-dm-sans)]">
@@ -276,6 +314,13 @@ export default function VacancyBibleClient() {
             </span>
           </div>
           <nav className="flex items-center gap-5 text-sm">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs"
+            >
+              {theme === "dark" ? "Light" : "Dark"} theme
+            </button>
             <a href="#how-it-works">How it works</a>
             <a href="#companies">Companies</a>
           </nav>
@@ -431,6 +476,18 @@ export default function VacancyBibleClient() {
               <p className="text-xs text-[var(--text-dim)] font-[family-name:var(--font-ibm-plex-mono)]">
                 {latestEvent.processedCompanies} / {latestEvent.totalCompanies} companies · {latestEvent.jobsFound} jobs found
               </p>
+              {scrapingEvents.length > 0 ? (
+                <div className="rounded border border-[var(--border)] bg-[var(--surface-2)] p-2">
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-[var(--text-dim)] font-[family-name:var(--font-ibm-plex-mono)]">
+                    Currently scanning
+                  </p>
+                  <div className="mt-1 space-y-1 text-xs text-[var(--text-muted)] font-[family-name:var(--font-ibm-plex-mono)]">
+                    {scrapingEvents.map((event, idx) => (
+                      <p key={`${event.timestamp}-${idx}`}>{event.message.replace("Scraping ", "")}</p>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
           {status === "completed" ? (

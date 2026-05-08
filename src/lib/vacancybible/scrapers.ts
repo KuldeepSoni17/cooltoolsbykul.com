@@ -1,4 +1,5 @@
 import { load } from "cheerio";
+import { scrapeCompany as scrapeSharedCompany } from "@/lib/ats-scrapers";
 import type { CompanyRecord, RawJobRecord } from "./types";
 
 const ATS_SIGNATURES: Record<string, string[]> = {
@@ -65,38 +66,6 @@ export const VERIFIED_ASHBY_SLUGS: Record<string, string> = {
 
 function greenhouseJobsUrl(slug: string): string {
   return `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(slug)}/jobs?content=true`;
-}
-
-function normalizeText(value: unknown): string | undefined {
-  if (!value || typeof value !== "string") return undefined;
-  return value.replace(/\s+/g, " ").trim();
-}
-
-function toRawJob(company: CompanyRecord, payload: Record<string, unknown>): RawJobRecord {
-  const title =
-    normalizeText(payload.text) ??
-    normalizeText(payload.title) ??
-    normalizeText(payload.name) ??
-    "Unknown role";
-  const location =
-    normalizeText(payload.location as string) ??
-    normalizeText((payload.categories as Record<string, unknown> | undefined)?.location);
-  const sourceUrl =
-    normalizeText(payload.absolute_url) ??
-    normalizeText(payload.hostedUrl) ??
-    normalizeText(payload.url) ??
-    company.careersPageUrl;
-
-  return {
-    companySlug: company.slug,
-    companyName: company.name,
-    sourceUrl,
-    title,
-    location,
-    description: normalizeText(payload.content) ?? normalizeText(payload.description),
-    postedAt: normalizeText(payload.updated_at) ?? normalizeText(payload.postedDate),
-    metadata: payload,
-  };
 }
 
 export async function detectAtsForCompany(url: string): Promise<string> {
@@ -217,97 +186,58 @@ function resolvedAshbySlug(company: CompanyRecord): string {
 
 async function scrapeGreenhouse(company: CompanyRecord): Promise<RawJobRecord[]> {
   const slug = resolvedGhSlug(company);
-  const endpoint = greenhouseJobsUrl(slug);
-  console.log(`[Greenhouse @ ${company.name}] Starting scrape → ${endpoint}`);
-  try {
-    const res = await fetch(endpoint, { cache: "no-store" });
-    const rawText = await res.text();
-    let payload: { jobs?: Record<string, unknown>[]; error?: string };
-    try {
-      payload = JSON.parse(rawText) as typeof payload;
-    } catch {
-      console.warn(`[Greenhouse @ ${company.name}] FAILED — invalid JSON — HTTP ${res.status}`);
-      return [];
-    }
-    const jobs = payload.jobs ?? [];
-    console.log(`[Greenhouse @ ${company.name}] HTTP ${res.status} — ${jobs.length} jobs in response`);
-    if (!res.ok) {
-      console.warn(`[Greenhouse @ ${company.name}] Response error: ${payload.error ?? rawText.slice(0, 120)}`);
-      return [];
-    }
-    return jobs.map((job) => toRawJob(company, job));
-  } catch (e) {
-    console.warn(`[Greenhouse @ ${company.name}] FAILED — ${e instanceof Error ? e.name : "Error"}: ${String(e)}`);
-    return [];
-  }
+  const jobs = await scrapeSharedCompany("greenhouse", slug, company.name);
+  return jobs.map((job) => ({
+    companySlug: company.slug,
+    companyName: company.name,
+    sourceUrl: job.url || company.careersPageUrl,
+    title: job.title || "Unknown role",
+    location: job.location || undefined,
+    description: job.description || undefined,
+    metadata: { sharedScraper: true, platform: "greenhouse" },
+  }));
 }
 
 async function scrapeLever(company: CompanyRecord): Promise<RawJobRecord[]> {
   const slug = resolvedLeverSlug(company);
-  const endpoint = `https://api.lever.co/v0/postings/${slug}?mode=json`;
-  console.log(`[Lever @ ${company.name}] Starting scrape → ${endpoint}`);
-  try {
-    const res = await fetch(endpoint, { cache: "no-store" });
-    const rawText = await res.text();
-    let payload: Record<string, unknown>[];
-    try {
-      payload = JSON.parse(rawText) as Record<string, unknown>[];
-    } catch {
-      console.warn(`[Lever @ ${company.name}] FAILED — invalid JSON — HTTP ${res.status}`);
-      return [];
-    }
-    if (!Array.isArray(payload)) {
-      console.warn(`[Lever @ ${company.name}] FAILED — unexpected payload — HTTP ${res.status}`);
-      return [];
-    }
-    console.log(`[Lever @ ${company.name}] HTTP ${res.status} — ${payload.length} jobs in response`);
-    if (res.ok && payload.length === 0) {
-      console.warn(`[Lever @ ${company.name}] HTTP 200 — empty array [] — slug may be invalid`);
-    }
-    if (!res.ok) return [];
-    return payload.map((job) => toRawJob(company, job));
-  } catch (e) {
-    console.warn(`[Lever @ ${company.name}] FAILED — ${e instanceof Error ? e.name : "Error"}: ${String(e)}`);
-    return [];
-  }
+  const jobs = await scrapeSharedCompany("lever", slug, company.name);
+  return jobs.map((job) => ({
+    companySlug: company.slug,
+    companyName: company.name,
+    sourceUrl: job.url || company.careersPageUrl,
+    title: job.title || "Unknown role",
+    location: job.location || undefined,
+    description: job.description || undefined,
+    metadata: { sharedScraper: true, platform: "lever" },
+  }));
 }
 
 async function scrapeAshby(company: CompanyRecord): Promise<RawJobRecord[]> {
   const slug = resolvedAshbySlug(company);
-  const endpoint = `https://api.ashbyhq.com/posting-api/job-board/${slug}`;
-  console.log(`[Ashby @ ${company.name}] Starting scrape → ${endpoint}`);
-  try {
-    const res = await fetch(endpoint, { cache: "no-store" });
-    const payload = (await res.json()) as { jobs?: Record<string, unknown>[] };
-    const jobs = payload.jobs ?? [];
-    console.log(`[Ashby @ ${company.name}] HTTP ${res.status} — ${jobs.length} jobs in response`);
-    if (!res.ok) return [];
-    return jobs.map((job) => toRawJob(company, job));
-  } catch (e) {
-    console.warn(`[Ashby @ ${company.name}] FAILED — ${e instanceof Error ? e.name : "Error"}: ${String(e)}`);
-    return [];
-  }
+  const jobs = await scrapeSharedCompany("ashby", slug, company.name);
+  return jobs.map((job) => ({
+    companySlug: company.slug,
+    companyName: company.name,
+    sourceUrl: job.url || company.careersPageUrl,
+    title: job.title || "Unknown role",
+    location: job.location || undefined,
+    description: job.description || undefined,
+    metadata: { sharedScraper: true, platform: "ashby" },
+  }));
 }
 
 async function scrapeSmartRecruiters(company: CompanyRecord): Promise<RawJobRecord[]> {
   const slug = company.atsSlug ?? company.slug;
-  const endpoint = `https://api.smartrecruiters.com/v1/companies/${encodeURIComponent(slug)}/postings`;
-  console.log(`[SmartRecruiters @ ${company.name}] Starting scrape → ${endpoint}`);
-  try {
-    const res = await fetch(endpoint, { cache: "no-store" });
-    const payload = (await res.json()) as { content?: Record<string, unknown>[]; totalFound?: number };
-    const jobs = payload.content ?? [];
-    console.log(
-      `[SmartRecruiters @ ${company.name}] HTTP ${res.status} — ${jobs.length} jobs in response (totalFound=${payload.totalFound ?? "n/a"})`,
-    );
-    if (!res.ok) return [];
-    return jobs.map((job) => toRawJob(company, job));
-  } catch (e) {
-    console.warn(
-      `[SmartRecruiters @ ${company.name}] FAILED — ${e instanceof Error ? e.name : "Error"}: ${String(e)}`,
-    );
-    return [];
-  }
+  const jobs = await scrapeSharedCompany("smartrecruiters", slug, company.name);
+  return jobs.map((job) => ({
+    companySlug: company.slug,
+    companyName: company.name,
+    sourceUrl: job.url || company.careersPageUrl,
+    title: job.title || "Unknown role",
+    location: job.location || undefined,
+    description: job.description || undefined,
+    metadata: { sharedScraper: true, platform: "smartrecruiters" },
+  }));
 }
 
 async function scrapeWorkday(company: CompanyRecord): Promise<RawJobRecord[]> {
