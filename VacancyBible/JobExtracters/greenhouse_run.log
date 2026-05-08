@@ -1,0 +1,286 @@
+[2026-05-08T12:54:58.373Z] ══════════════════════════════════════════════════
+[2026-05-08T12:54:58.380Z] VacancyBible — Greenhouse Company Extractor v3
+[2026-05-08T12:54:58.380Z] Querying BOTH greenhouse domains across 6 indexes
+[2026-05-08T12:54:58.380Z] Total combinations: 6 indexes × 2 domains = 12
+[2026-05-08T12:54:58.381Z] ══════════════════════════════════════════════════
+[2026-05-08T12:54:58.381Z] 
+[2026-05-08T12:54:58.381Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:54:58.381Z] Task 1/12: April 2026 — boards.greenhouse.io/*
+[2026-05-08T12:54:58.381Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:54:59.312Z]   [CC-MAIN-2026-17/boards.greenhouse.io/*] pages: {"pages": 1, "pageSize": 5, "blocks": 4}
+[2026-05-08T12:54:59.313Z]   Processing 1 pages for boards.greenhouse.io/* in CC-MAIN-2026-17
+[2026-05-08T12:55:10.759Z]   [CC-MAIN-2026-17/boards.greenhouse.io/*] page 0 attempt 1/3: terminated
+[2026-05-08T12:55:41.112Z]   [SAMPLE #100] "anaconda" ← https://boards.greenhouse.io/anaconda/jobs/4496047
+[2026-05-08T12:55:41.113Z]   [SAMPLE #200] "benchling" ← https://boards.greenhouse.io/benchling/jobs/6546524?gh_jid=6546524
+[2026-05-08T12:55:41.114Z]   [SAMPLE #300] "carefeed" ← https://boards.greenhouse.io/carefeed/jobs/4972304008?utm_source=Startup+Cincy+job+board&utm_medium=getro.com&gh_src=Startup+Cincy+job+board
+[2026-05-08T12:55:41.114Z]   [SAMPLE #400] "corpsyn" ← https://boards.greenhouse.io/corpsyn
+[2026-05-08T12:55:41.114Z]   [SAMPLE #500] "dropbox" ← https://boards.greenhouse.io/dropbox/jobs/7680911
+[2026-05-08T12:55:41.115Z]   [SAMPLE #600] "five9" ← https://boards.greenhouse.io/five9/jobs/5803860004
+[2026-05-08T12:55:41.115Z]   [SAMPLE #700] "grafanalabs" ← https://boards.greenhouse.io/grafanalabs/jobs/4966875004?utm_source=newsletter&utm_medium=email&utm_campaign=nocommute.substack.com
+[2026-05-08T12:55:41.115Z]   [SAMPLE #800] "hypixelstudios" ← https://boards.greenhouse.io/hypixelstudios/jobs/4502445003?utm_source=NoCommute&utm_medium=newsletter&utm_campaign=remote-jobs-for-may-5-2021
+[2026-05-08T12:55:41.115Z]   [SAMPLE #900] "knock" ← https://boards.greenhouse.io/knock/jobs/4017054004?utm_source=NoCommute&utm_medium=newsletter&utm_campaign=remote-jobs-for-may-3-2021
+[2026-05-08T12:55:41.116Z]   [SAMPLE #1000] "mavensecuritiesholdingltd" ← https://boards.greenhouse.io/mavensecuritiesholdingltd/jobs/6572568
+[2026-05-08T12:55:41.116Z]   [SAMPLE #1100] "nitricity" ← https://boards.greenhouse.io/nitricity/jobs/4509760005?ref=climatetechlist.com&utm_source=climatetechlist.com&utm_medium=referral
+[2026-05-08T12:55:41.116Z]   [SAMPLE #1200] "pairteam" ← https://boards.greenhouse.io/pairteam/jobs/8417727002?utm_source=Kapor+Capital+job+board&utm_medium=getro.com&gh_src=Kapor+Capital+job+board
+[2026-05-08T12:55:41.116Z]   [SAMPLE #1300] "propertyfinder" ← https://boards.greenhouse.io/propertyfinder/jobs/6514234003?utm_source=Francisco+Partners+job+board&utm_medium=getro.com&gh_src=Francisco+Partners+job+board
+[2026-05-08T12:55:41.116Z]   [SAMPLE #1400] "rubyreceptionists" ← https://boards.greenhouse.io/rubyreceptionists/jobs/6195861002
+[2026-05-08T12:55:41.116Z]   [SAMPLE #1500] "smartrent" ← https://boards.greenhouse.io/smartrent/jobs/5804154004?utm_source=Fifth+Wall+job+board&utm_medium=getro.com&gh_src=Fifth+Wall+job+board
+[2026-05-08T12:55:41.116Z]   [SAMPLE #1600] "taketwo" ← https://boards.greenhouse.io/taketwo/jobs/7557120?utm_source=General+Catalyst+job+board&utm_medium=getro.com&gh_src=General+Catalyst+job+board
+[2026-05-08T12:55:41.117Z]   [SAMPLE #1700] "typeface" ← https://boards.greenhouse.io/typeface/jobs/4065834007?utm_source=aistartup.jobs&utm_medium=referral&utm_campaign=new-ai-startup-jobs-week-ending-october-17th-2024
+[2026-05-08T12:55:41.117Z]   [SAMPLE #1800] "wehrtyou" ← https://boards.greenhouse.io/wehrtyou/jobs/6139135
+[2026-05-08T12:55:41.117Z]   [CC-MAIN-2026-17/boards.greenhouse.io/*] page 1/1 (100%) | records=10689 | +1866 new | total unique=1866
+[2026-05-08T12:55:41.622Z] CSV saved: 1866 companies → greenhouse_companies.csv
+[2026-05-08T12:55:41.623Z] After task 1: 1866 unique companies total
+[2026-05-08T12:55:41.623Z] 
+[2026-05-08T12:55:41.623Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:55:41.623Z] Task 2/12: April 2026 — job-boards.greenhouse.io/*
+[2026-05-08T12:55:41.623Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:55:41.915Z]   [CC-MAIN-2026-17/job-boards.greenhouse.io/*] pages: {"pages": 4, "pageSize": 5, "blocks": 20}
+[2026-05-08T12:55:41.915Z]   Processing 4 pages for job-boards.greenhouse.io/* in CC-MAIN-2026-17
+[2026-05-08T12:55:45.647Z]   [SAMPLE #1966] "alumis" ← https://job-boards.greenhouse.io/alumis/jobs/4549527008
+[2026-05-08T12:55:45.649Z]   [SAMPLE #2066] "aviationinstituteofmaintenance" ← https://job-boards.greenhouse.io/aviationinstituteofmaintenance/jobs/5018079008?utm_id=8161566&utm_source=+AviaNation.com
+[2026-05-08T12:55:45.652Z]   [SAMPLE #2166] "bswift" ← https://job-boards.greenhouse.io/bswift/jobs/4450713006
+[2026-05-08T12:55:45.653Z]   [SAMPLE #2266] "classicalcharterschools" ← https://job-boards.greenhouse.io/classicalcharterschools/jobs/6562466003
+[2026-05-08T12:55:45.653Z]   [CC-MAIN-2026-17/job-boards.greenhouse.io/*] page 1/4 (25%) | records=14292 | +469 new | total unique=2335
+[2026-05-08T12:55:50.204Z]   [SAMPLE #2366] "daiyafoodsinc" ← https://job-boards.greenhouse.io/daiyafoodsinc/jobs/4556314005?utm_id=3121385&utm_source=Sunrise+Jobs
+[2026-05-08T12:55:50.205Z]   [SAMPLE #2466] "emslinqinc" ← https://job-boards.greenhouse.io/emslinqinc/jobs/5119717008
+[2026-05-08T12:55:50.206Z]   [SAMPLE #2566] "foleyhoag" ← https://job-boards.greenhouse.io/foleyhoag
+[2026-05-08T12:55:50.207Z]   [SAMPLE #2666] "gradientai" ← https://job-boards.greenhouse.io/gradientai/jobs/6650390003
+[2026-05-08T12:55:50.208Z]   [SAMPLE #2766] "hut8" ← https://job-boards.greenhouse.io/hut8/jobs/4308130008?ref=findweb3.com
+[2026-05-08T12:55:50.209Z]   [SAMPLE #2866] "keplergroup" ← https://job-boards.greenhouse.io/keplergroup/jobs/5483698
+[2026-05-08T12:55:50.209Z]   [CC-MAIN-2026-17/job-boards.greenhouse.io/*] page 2/4 (50%) | records=15000 | +546 new | total unique=2881
+[2026-05-08T12:55:58.478Z]   [SAMPLE #2966] "luno" ← https://job-boards.greenhouse.io/luno/jobs/6607454
+[2026-05-08T12:55:58.479Z]   [SAMPLE #3066] "modoenergy" ← https://job-boards.greenhouse.io/modoenergy
+[2026-05-08T12:55:58.480Z]   [SAMPLE #3166] "nutrafol" ← https://job-boards.greenhouse.io/nutrafol/jobs/4535517005
+[2026-05-08T12:55:58.481Z]   [SAMPLE #3266] "partumhealthdirect" ← https://job-boards.greenhouse.io/partumhealthdirect/jobs/5074021007
+[2026-05-08T12:55:58.482Z]   [SAMPLE #3366] "pursuit" ← https://job-boards.greenhouse.io/pursuit
+[2026-05-08T12:55:58.483Z]   [SAMPLE #3466] "rzero" ← https://job-boards.greenhouse.io/rzero/jobs/4561936006
+[2026-05-08T12:55:58.483Z]   [CC-MAIN-2026-17/job-boards.greenhouse.io/*] page 3/4 (75%) | records=15000 | +639 new | total unique=3520
+[2026-05-08T12:56:03.725Z]   [SAMPLE #3566] "sojern" ← https://job-boards.greenhouse.io/sojern/jobs/4768059007
+[2026-05-08T12:56:03.726Z]   [SAMPLE #3666] "supportingstrategies1" ← https://job-boards.greenhouse.io/supportingstrategies1
+[2026-05-08T12:56:03.726Z]   [SAMPLE #3766] "threatlocker" ← https://job-boards.greenhouse.io/threatlocker/jobs/4709931004
+[2026-05-08T12:56:03.727Z]   [SAMPLE #3866] "vectara" ← https://job-boards.greenhouse.io/vectara
+[2026-05-08T12:56:03.728Z]   [SAMPLE #3966] "xometryeurope" ← https://job-boards.greenhouse.io/xometryeurope/jobs/4662530007
+[2026-05-08T12:56:03.728Z]   [CC-MAIN-2026-17/job-boards.greenhouse.io/*] page 4/4 (100%) | records=13097 | +476 new | total unique=3996
+[2026-05-08T12:56:04.232Z] CSV saved: 3996 companies → greenhouse_companies.csv
+[2026-05-08T12:56:04.233Z] After task 2: 3996 unique companies total
+[2026-05-08T12:56:04.233Z] 
+[2026-05-08T12:56:04.233Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:56:04.233Z] Task 3/12: March 2026 — boards.greenhouse.io/*
+[2026-05-08T12:56:04.233Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:56:04.523Z]   [CC-MAIN-2026-12/boards.greenhouse.io/*] pages: {"pages": 1, "pageSize": 5, "blocks": 5}
+[2026-05-08T12:56:04.524Z]   Processing 1 pages for boards.greenhouse.io/* in CC-MAIN-2026-12
+[2026-05-08T12:56:38.094Z]   [CC-MAIN-2026-12/boards.greenhouse.io/*] page 0 attempt 1/3: terminated
+[2026-05-08T12:56:47.617Z]   [SAMPLE #4096] "cyluscybersecurity" ← https://boards.greenhouse.io/cyluscybersecurity/jobs/7984668002?utm_source=Vertex+Ventures+Israel+job+board&utm_medium=getro.com&gh_src=Vertex+Ventures+Israel+job+board
+[2026-05-08T12:56:47.619Z]   [SAMPLE #4196] "knvisionscareers" ← https://boards.greenhouse.io/knvisionscareers
+[2026-05-08T12:56:47.619Z]   [SAMPLE #4296] "rdsourcing" ← https://boards.greenhouse.io/rdsourcing/jobs/8414333002
+[2026-05-08T12:56:47.620Z]   [SAMPLE #4396] "weedmaps" ← https://boards.greenhouse.io/weedmaps/jobs/687081?utm_source=elixirjobs.net&utm_medium=job_board&utm_campaign=elixirjobs.net
+[2026-05-08T12:56:47.621Z]   [CC-MAIN-2026-12/boards.greenhouse.io/*] page 1/1 (100%) | records=11564 | +418 new | total unique=4414
+[2026-05-08T12:56:48.131Z] CSV saved: 4414 companies → greenhouse_companies.csv
+[2026-05-08T12:56:48.131Z] After task 3: 4414 unique companies total
+[2026-05-08T12:56:48.131Z] 
+[2026-05-08T12:56:48.132Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:56:48.132Z] Task 4/12: March 2026 — job-boards.greenhouse.io/*
+[2026-05-08T12:56:48.132Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:56:48.493Z]   [CC-MAIN-2026-12/job-boards.greenhouse.io/*] pages: {"pages": 5, "pageSize": 5, "blocks": 21}
+[2026-05-08T12:56:48.493Z]   Processing 5 pages for job-boards.greenhouse.io/* in CC-MAIN-2026-12
+[2026-05-08T12:56:54.769Z]   [SAMPLE #4514] "catchcreationllc" ← https://job-boards.greenhouse.io/catchcreationllc/jobs/4108837009
+[2026-05-08T12:56:54.769Z]   [CC-MAIN-2026-12/job-boards.greenhouse.io/*] page 1/5 (20%) | records=12361 | +113 new | total unique=4527
+[2026-05-08T12:57:03.165Z]   [SAMPLE #4614] "fountain-mx" ← https://job-boards.greenhouse.io/fountain-mx
+[2026-05-08T12:57:03.167Z]   [CC-MAIN-2026-12/job-boards.greenhouse.io/*] page 2/5 (40%) | records=15000 | +136 new | total unique=4663
+[2026-05-08T12:57:10.318Z]   [SAMPLE #4714] "machinifyinc" ← https://job-boards.greenhouse.io/machinifyinc/jobs/4062513009
+[2026-05-08T12:57:10.320Z]   [SAMPLE #4814] "planomatic" ← https://job-boards.greenhouse.io/planomatic/jobs/8334421002
+[2026-05-08T12:57:10.321Z]   [CC-MAIN-2026-12/job-boards.greenhouse.io/*] page 3/5 (60%) | records=15000 | +186 new | total unique=4849
+[2026-05-08T12:57:14.866Z]   [SAMPLE #4914] "thalamusgme" ← https://job-boards.greenhouse.io/thalamusgme
+[2026-05-08T12:57:14.871Z]   [CC-MAIN-2026-12/job-boards.greenhouse.io/*] page 4/5 (80%) | records=15000 | +135 new | total unique=4984
+[2026-05-08T12:57:15.740Z]   [CC-MAIN-2026-12/job-boards.greenhouse.io/*] page 5/5 (100%) | records=14 | +0 new | total unique=4984
+[2026-05-08T12:57:16.246Z] CSV saved: 4984 companies → greenhouse_companies.csv
+[2026-05-08T12:57:16.247Z] After task 4: 4984 unique companies total
+[2026-05-08T12:57:16.247Z] 
+[2026-05-08T12:57:16.247Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:57:16.247Z] Task 5/12: February 2026 — boards.greenhouse.io/*
+[2026-05-08T12:57:16.248Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:57:16.550Z]   [CC-MAIN-2026-08/boards.greenhouse.io/*] pages: {"pages": 1, "pageSize": 5, "blocks": 4}
+[2026-05-08T12:57:16.550Z]   Processing 1 pages for boards.greenhouse.io/* in CC-MAIN-2026-08
+[2026-05-08T12:57:20.797Z]   [SAMPLE #5084] "drb" ← https://boards.greenhouse.io/drb/jobs/4182693004
+[2026-05-08T12:57:20.798Z]   [SAMPLE #5184] "nesto" ← https://boards.greenhouse.io/nesto/jobs/4910488002
+[2026-05-08T12:57:20.799Z]   [SAMPLE #5284] "tradesy74" ← https://boards.greenhouse.io/tradesy74/jobs/4918610002?utm_source=NoCommute&utm_medium=newsletter&utm_campaign=remote-jobs-for-december-9-2021
+[2026-05-08T12:57:20.800Z]   [CC-MAIN-2026-08/boards.greenhouse.io/*] page 1/1 (100%) | records=10448 | +331 new | total unique=5315
+[2026-05-08T12:57:21.309Z] CSV saved: 5315 companies → greenhouse_companies.csv
+[2026-05-08T12:57:21.310Z] After task 5: 5315 unique companies total
+[2026-05-08T12:57:21.311Z] 
+[2026-05-08T12:57:21.311Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:57:21.311Z] Task 6/12: February 2026 — job-boards.greenhouse.io/*
+[2026-05-08T12:57:21.311Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:57:21.628Z]   [CC-MAIN-2026-08/job-boards.greenhouse.io/*] pages: {"pages": 5, "pageSize": 5, "blocks": 21}
+[2026-05-08T12:57:21.628Z]   Processing 5 pages for job-boards.greenhouse.io/* in CC-MAIN-2026-08
+[2026-05-08T12:57:27.176Z]   [CC-MAIN-2026-08/job-boards.greenhouse.io/*] page 1/5 (20%) | records=14642 | +98 new | total unique=5413
+[2026-05-08T12:57:32.225Z]   [SAMPLE #5415] "csgconsultantspermit-technician-full-time" ← https://job-boards.greenhouse.io/csgconsultantspermit-technician-full-time/
+[2026-05-08T12:57:32.228Z]   [SAMPLE #5515] "jmwconsultantsllc" ← https://job-boards.greenhouse.io/jmwconsultantsllc
+[2026-05-08T12:57:32.228Z]   [CC-MAIN-2026-08/job-boards.greenhouse.io/*] page 2/5 (40%) | records=15000 | +110 new | total unique=5523
+[2026-05-08T12:57:38.183Z]   [SAMPLE #5615] "rakutenmedical18" ← https://job-boards.greenhouse.io/rakutenmedical18/jobs/7580282003
+[2026-05-08T12:57:38.184Z]   [CC-MAIN-2026-08/job-boards.greenhouse.io/*] page 3/5 (60%) | records=15000 | +102 new | total unique=5625
+[2026-05-08T12:57:46.082Z]   [CC-MAIN-2026-08/job-boards.greenhouse.io/*] page 4/5 (80%) | records=15000 | +86 new | total unique=5711
+[2026-05-08T12:57:47.109Z]   [CC-MAIN-2026-08/job-boards.greenhouse.io/*] page 5/5 (100%) | records=443 | +1 new | total unique=5712
+[2026-05-08T12:57:47.615Z] CSV saved: 5712 companies → greenhouse_companies.csv
+[2026-05-08T12:57:47.616Z] After task 6: 5712 unique companies total
+[2026-05-08T12:57:47.616Z] 
+[2026-05-08T12:57:47.616Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:57:47.616Z] Task 7/12: January 2026 — boards.greenhouse.io/*
+[2026-05-08T12:57:47.616Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:57:47.987Z]   [CC-MAIN-2026-04/boards.greenhouse.io/*] pages: {"pages": 2, "pageSize": 5, "blocks": 6}
+[2026-05-08T12:57:47.987Z]   Processing 2 pages for boards.greenhouse.io/* in CC-MAIN-2026-04
+[2026-05-08T12:57:52.403Z]   [SAMPLE #5812] "everbody" ← https://boards.greenhouse.io/everbody/jobs/6385466002
+[2026-05-08T12:57:52.406Z]   [SAMPLE #5912] "parade" ← https://boards.greenhouse.io/parade/jobs/4092755004?s=LinkedIn&source=LinkedIn
+[2026-05-08T12:57:52.407Z]   [CC-MAIN-2026-04/boards.greenhouse.io/*] page 1/2 (50%) | records=12836 | +286 new | total unique=5998
+[2026-05-08T12:57:54.383Z]   [SAMPLE #6012] "verusen" ← https://boards.greenhouse.io/verusen/jobs/4010076005?utm_source=Glasswing+Ventures+job+board&utm_medium=getro.com&gh_src=Glasswing+Ventures+job+board
+[2026-05-08T12:57:54.383Z]   [CC-MAIN-2026-04/boards.greenhouse.io/*] page 2/2 (100%) | records=1444 | +31 new | total unique=6029
+[2026-05-08T12:57:54.891Z] CSV saved: 6029 companies → greenhouse_companies.csv
+[2026-05-08T12:57:54.892Z] After task 7: 6029 unique companies total
+[2026-05-08T12:57:54.892Z] 
+[2026-05-08T12:57:54.892Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:57:54.892Z] Task 8/12: January 2026 — job-boards.greenhouse.io/*
+[2026-05-08T12:57:54.892Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:57:55.174Z]   [CC-MAIN-2026-04/job-boards.greenhouse.io/*] pages: {"pages": 5, "pageSize": 5, "blocks": 25}
+[2026-05-08T12:57:55.175Z]   Processing 5 pages for job-boards.greenhouse.io/* in CC-MAIN-2026-04
+[2026-05-08T12:58:02.564Z]   [CC-MAIN-2026-04/job-boards.greenhouse.io/*] page 1/5 (20%) | records=12448 | +59 new | total unique=6088
+[2026-05-08T12:58:06.815Z]   [SAMPLE #6129] "ensemble" ← https://job-boards.greenhouse.io/ensemble
+[2026-05-08T12:58:06.817Z]   [CC-MAIN-2026-04/job-boards.greenhouse.io/*] page 2/5 (40%) | records=15000 | +77 new | total unique=6165
+[2026-05-08T12:58:14.376Z]   [SAMPLE #6229] "mx51" ← https://job-boards.greenhouse.io/mx51/jobs/5724795004
+[2026-05-08T12:58:14.377Z]   [CC-MAIN-2026-04/job-boards.greenhouse.io/*] page 3/5 (60%) | records=15000 | +78 new | total unique=6243
+[2026-05-08T12:58:18.544Z]   [CC-MAIN-2026-04/job-boards.greenhouse.io/*] page 4/5 (80%) | records=15000 | +64 new | total unique=6307
+[2026-05-08T12:58:22.076Z]   [SAMPLE #6329] "thepharmacyhub" ← https://job-boards.greenhouse.io/thepharmacyhub
+[2026-05-08T12:58:22.078Z]   [CC-MAIN-2026-04/job-boards.greenhouse.io/*] page 5/5 (100%) | records=12768 | +55 new | total unique=6362
+[2026-05-08T12:58:22.582Z] CSV saved: 6362 companies → greenhouse_companies.csv
+[2026-05-08T12:58:22.582Z] After task 8: 6362 unique companies total
+[2026-05-08T12:58:22.582Z] 
+[2026-05-08T12:58:22.582Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:58:22.582Z] Task 9/12: December 2025 — boards.greenhouse.io/*
+[2026-05-08T12:58:22.582Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:58:22.860Z]   [CC-MAIN-2025-51/boards.greenhouse.io/*] pages: {"pages": 2, "pageSize": 5, "blocks": 6}
+[2026-05-08T12:58:22.860Z]   Processing 2 pages for boards.greenhouse.io/* in CC-MAIN-2025-51
+[2026-05-08T12:58:26.724Z]   [SAMPLE #6462] "focusedlabs" ← https://boards.greenhouse.io/focusedlabs
+[2026-05-08T12:58:26.725Z]   [SAMPLE #6562] "rogorthodontics" ← https://boards.greenhouse.io/rogorthodontics
+[2026-05-08T12:58:26.726Z]   [CC-MAIN-2025-51/boards.greenhouse.io/*] page 1/2 (50%) | records=13375 | +218 new | total unique=6580
+[2026-05-08T12:58:28.166Z]   [CC-MAIN-2025-51/boards.greenhouse.io/*] page 2/2 (100%) | records=1952 | +34 new | total unique=6614
+[2026-05-08T12:58:28.670Z] CSV saved: 6614 companies → greenhouse_companies.csv
+[2026-05-08T12:58:28.670Z] After task 9: 6614 unique companies total
+[2026-05-08T12:58:28.670Z] 
+[2026-05-08T12:58:28.670Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:58:28.670Z] Task 10/12: December 2025 — job-boards.greenhouse.io/*
+[2026-05-08T12:58:28.670Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:58:29.048Z]   [CC-MAIN-2025-51/job-boards.greenhouse.io/*] pages: {"pages": 5, "pageSize": 5, "blocks": 22}
+[2026-05-08T12:58:29.049Z]   Processing 5 pages for job-boards.greenhouse.io/* in CC-MAIN-2025-51
+[2026-05-08T12:58:33.114Z]   [CC-MAIN-2025-51/job-boards.greenhouse.io/*] page 1/5 (20%) | records=12458 | +43 new | total unique=6657
+[2026-05-08T12:58:50.527Z]   [CC-MAIN-2025-51/job-boards.greenhouse.io/*] page 2/5 (40%) | records=15000 | +34 new | total unique=6691
+[2026-05-08T12:59:02.863Z]   [SAMPLE #6714] "lyratechgroup" ← https://job-boards.greenhouse.io/lyratechgroup/jobs/4939702008
+[2026-05-08T12:59:02.866Z]   [CC-MAIN-2025-51/job-boards.greenhouse.io/*] page 3/5 (60%) | records=15000 | +60 new | total unique=6751
+[2026-05-08T12:59:12.586Z]   [CC-MAIN-2025-51/job-boards.greenhouse.io/*] page 4/5 (80%) | records=15000 | +44 new | total unique=6795
+[2026-05-08T12:59:16.438Z]   [CC-MAIN-2025-51/job-boards.greenhouse.io/*] page 5/5 (100%) | records=3766 | +6 new | total unique=6801
+[2026-05-08T12:59:16.946Z] CSV saved: 6801 companies → greenhouse_companies.csv
+[2026-05-08T12:59:16.946Z] After task 10: 6801 unique companies total
+[2026-05-08T12:59:16.947Z] 
+[2026-05-08T12:59:16.947Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:59:16.947Z] Task 11/12: November 2025 — boards.greenhouse.io/*
+[2026-05-08T12:59:16.947Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:59:17.251Z]   [CC-MAIN-2025-47/boards.greenhouse.io/*] pages: {"pages": 2, "pageSize": 5, "blocks": 7}
+[2026-05-08T12:59:17.251Z]   Processing 2 pages for boards.greenhouse.io/* in CC-MAIN-2025-47
+[2026-05-08T12:59:27.347Z]   [SAMPLE #6901] "launchpotato" ← https://boards.greenhouse.io/launchpotato/jobs/5636978004
+[2026-05-08T12:59:27.347Z]   [CC-MAIN-2025-47/boards.greenhouse.io/*] page 1/2 (50%) | records=13569 | +182 new | total unique=6983
+[2026-05-08T12:59:30.505Z]   [SAMPLE #7001] "tillatechnologies" ← https://boards.greenhouse.io/tillatechnologies/jobs/4611241101?utm_source=Motion+Ventures+job+board&utm_medium=getro.com&gh_src=Motion+Ventures+job+board
+[2026-05-08T12:59:30.506Z]   [CC-MAIN-2025-47/boards.greenhouse.io/*] page 2/2 (100%) | records=4523 | +48 new | total unique=7031
+[2026-05-08T12:59:31.015Z] CSV saved: 7031 companies → greenhouse_companies.csv
+[2026-05-08T12:59:31.016Z] After task 11: 7031 unique companies total
+[2026-05-08T12:59:31.016Z] 
+[2026-05-08T12:59:31.016Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:59:31.016Z] Task 12/12: November 2025 — job-boards.greenhouse.io/*
+[2026-05-08T12:59:31.016Z] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2026-05-08T12:59:31.308Z]   [CC-MAIN-2025-47/job-boards.greenhouse.io/*] pages: {"pages": 4, "pageSize": 5, "blocks": 18}
+[2026-05-08T12:59:31.308Z]   Processing 4 pages for job-boards.greenhouse.io/* in CC-MAIN-2025-47
+[2026-05-08T12:59:38.111Z]   [CC-MAIN-2025-47/job-boards.greenhouse.io/*] page 1/4 (25%) | records=12391 | +36 new | total unique=7067
+[2026-05-08T12:59:42.591Z]   [CC-MAIN-2025-47/job-boards.greenhouse.io/*] page 2/4 (50%) | records=15000 | +38 new | total unique=7105
+[2026-05-08T12:59:48.631Z]   [SAMPLE #7131] "sandstonecarecastlerock" ← https://job-boards.greenhouse.io/sandstonecarecastlerock
+[2026-05-08T12:59:48.633Z]   [CC-MAIN-2025-47/job-boards.greenhouse.io/*] page 3/4 (75%) | records=15000 | +34 new | total unique=7139
+[2026-05-08T12:59:51.197Z]   [CC-MAIN-2025-47/job-boards.greenhouse.io/*] page 4/4 (100%) | records=7882 | +28 new | total unique=7167
+[2026-05-08T12:59:51.709Z] CSV saved: 7167 companies → greenhouse_companies.csv
+[2026-05-08T12:59:51.709Z] After task 12: 7167 unique companies total
+[2026-05-08T12:59:51.713Z] CSV saved: 7167 companies → greenhouse_companies.csv
+[2026-05-08T12:59:51.715Z] 
+[2026-05-08T12:59:51.715Z] ══════════════════════════════════════════════════
+[2026-05-08T12:59:51.715Z] CROSS-CHECK — every 100th unique slug:
+[2026-05-08T12:59:51.715Z] ══════════════════════════════════════════════════
+[2026-05-08T12:59:51.715Z]   #100 [CC-MAIN-2026-17/boards.greenhouse.io/*]: anaconda → https://job-boards.greenhouse.io/anaconda
+[2026-05-08T12:59:51.715Z]   #200 [CC-MAIN-2026-17/boards.greenhouse.io/*]: benchling → https://job-boards.greenhouse.io/benchling
+[2026-05-08T12:59:51.716Z]   #300 [CC-MAIN-2026-17/boards.greenhouse.io/*]: carefeed → https://job-boards.greenhouse.io/carefeed
+[2026-05-08T12:59:51.716Z]   #400 [CC-MAIN-2026-17/boards.greenhouse.io/*]: corpsyn → https://job-boards.greenhouse.io/corpsyn
+[2026-05-08T12:59:51.716Z]   #500 [CC-MAIN-2026-17/boards.greenhouse.io/*]: dropbox → https://job-boards.greenhouse.io/dropbox
+[2026-05-08T12:59:51.716Z]   #600 [CC-MAIN-2026-17/boards.greenhouse.io/*]: five9 → https://job-boards.greenhouse.io/five9
+[2026-05-08T12:59:51.716Z]   #700 [CC-MAIN-2026-17/boards.greenhouse.io/*]: grafanalabs → https://job-boards.greenhouse.io/grafanalabs
+[2026-05-08T12:59:51.716Z]   #800 [CC-MAIN-2026-17/boards.greenhouse.io/*]: hypixelstudios → https://job-boards.greenhouse.io/hypixelstudios
+[2026-05-08T12:59:51.716Z]   #900 [CC-MAIN-2026-17/boards.greenhouse.io/*]: knock → https://job-boards.greenhouse.io/knock
+[2026-05-08T12:59:51.716Z]   #1000 [CC-MAIN-2026-17/boards.greenhouse.io/*]: mavensecuritiesholdingltd → https://job-boards.greenhouse.io/mavensecuritiesholdingltd
+[2026-05-08T12:59:51.716Z]   #1100 [CC-MAIN-2026-17/boards.greenhouse.io/*]: nitricity → https://job-boards.greenhouse.io/nitricity
+[2026-05-08T12:59:51.716Z]   #1200 [CC-MAIN-2026-17/boards.greenhouse.io/*]: pairteam → https://job-boards.greenhouse.io/pairteam
+[2026-05-08T12:59:51.716Z]   #1300 [CC-MAIN-2026-17/boards.greenhouse.io/*]: propertyfinder → https://job-boards.greenhouse.io/propertyfinder
+[2026-05-08T12:59:51.717Z]   #1400 [CC-MAIN-2026-17/boards.greenhouse.io/*]: rubyreceptionists → https://job-boards.greenhouse.io/rubyreceptionists
+[2026-05-08T12:59:51.717Z]   #1500 [CC-MAIN-2026-17/boards.greenhouse.io/*]: smartrent → https://job-boards.greenhouse.io/smartrent
+[2026-05-08T12:59:51.717Z]   #1600 [CC-MAIN-2026-17/boards.greenhouse.io/*]: taketwo → https://job-boards.greenhouse.io/taketwo
+[2026-05-08T12:59:51.717Z]   #1700 [CC-MAIN-2026-17/boards.greenhouse.io/*]: typeface → https://job-boards.greenhouse.io/typeface
+[2026-05-08T12:59:51.717Z]   #1800 [CC-MAIN-2026-17/boards.greenhouse.io/*]: wehrtyou → https://job-boards.greenhouse.io/wehrtyou
+[2026-05-08T12:59:51.717Z]   #1966 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: alumis → https://job-boards.greenhouse.io/alumis
+[2026-05-08T12:59:51.717Z]   #2066 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: aviationinstituteofmaintenance → https://job-boards.greenhouse.io/aviationinstituteofmaintenance
+[2026-05-08T12:59:51.717Z]   #2166 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: bswift → https://job-boards.greenhouse.io/bswift
+[2026-05-08T12:59:51.717Z]   #2266 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: classicalcharterschools → https://job-boards.greenhouse.io/classicalcharterschools
+[2026-05-08T12:59:51.717Z]   #2366 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: daiyafoodsinc → https://job-boards.greenhouse.io/daiyafoodsinc
+[2026-05-08T12:59:51.717Z]   #2466 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: emslinqinc → https://job-boards.greenhouse.io/emslinqinc
+[2026-05-08T12:59:51.717Z]   #2566 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: foleyhoag → https://job-boards.greenhouse.io/foleyhoag
+[2026-05-08T12:59:51.717Z]   #2666 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: gradientai → https://job-boards.greenhouse.io/gradientai
+[2026-05-08T12:59:51.717Z]   #2766 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: hut8 → https://job-boards.greenhouse.io/hut8
+[2026-05-08T12:59:51.718Z]   #2866 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: keplergroup → https://job-boards.greenhouse.io/keplergroup
+[2026-05-08T12:59:51.718Z]   #2966 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: luno → https://job-boards.greenhouse.io/luno
+[2026-05-08T12:59:51.718Z]   #3066 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: modoenergy → https://job-boards.greenhouse.io/modoenergy
+[2026-05-08T12:59:51.718Z]   #3166 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: nutrafol → https://job-boards.greenhouse.io/nutrafol
+[2026-05-08T12:59:51.718Z]   #3266 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: partumhealthdirect → https://job-boards.greenhouse.io/partumhealthdirect
+[2026-05-08T12:59:51.718Z]   #3366 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: pursuit → https://job-boards.greenhouse.io/pursuit
+[2026-05-08T12:59:51.718Z]   #3466 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: rzero → https://job-boards.greenhouse.io/rzero
+[2026-05-08T12:59:51.718Z]   #3566 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: sojern → https://job-boards.greenhouse.io/sojern
+[2026-05-08T12:59:51.718Z]   #3666 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: supportingstrategies1 → https://job-boards.greenhouse.io/supportingstrategies1
+[2026-05-08T12:59:51.718Z]   #3766 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: threatlocker → https://job-boards.greenhouse.io/threatlocker
+[2026-05-08T12:59:51.718Z]   #3866 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: vectara → https://job-boards.greenhouse.io/vectara
+[2026-05-08T12:59:51.719Z]   #3966 [CC-MAIN-2026-17/job-boards.greenhouse.io/*]: xometryeurope → https://job-boards.greenhouse.io/xometryeurope
+[2026-05-08T12:59:51.719Z]   #4096 [CC-MAIN-2026-12/boards.greenhouse.io/*]: cyluscybersecurity → https://job-boards.greenhouse.io/cyluscybersecurity
+[2026-05-08T12:59:51.719Z]   #4196 [CC-MAIN-2026-12/boards.greenhouse.io/*]: knvisionscareers → https://job-boards.greenhouse.io/knvisionscareers
+[2026-05-08T12:59:51.719Z]   #4296 [CC-MAIN-2026-12/boards.greenhouse.io/*]: rdsourcing → https://job-boards.greenhouse.io/rdsourcing
+[2026-05-08T12:59:51.719Z]   #4396 [CC-MAIN-2026-12/boards.greenhouse.io/*]: weedmaps → https://job-boards.greenhouse.io/weedmaps
+[2026-05-08T12:59:51.719Z]   #4514 [CC-MAIN-2026-12/job-boards.greenhouse.io/*]: catchcreationllc → https://job-boards.greenhouse.io/catchcreationllc
+[2026-05-08T12:59:51.719Z]   #4614 [CC-MAIN-2026-12/job-boards.greenhouse.io/*]: fountain-mx → https://job-boards.greenhouse.io/fountain-mx
+[2026-05-08T12:59:51.719Z]   #4714 [CC-MAIN-2026-12/job-boards.greenhouse.io/*]: machinifyinc → https://job-boards.greenhouse.io/machinifyinc
+[2026-05-08T12:59:51.719Z]   #4814 [CC-MAIN-2026-12/job-boards.greenhouse.io/*]: planomatic → https://job-boards.greenhouse.io/planomatic
+[2026-05-08T12:59:51.719Z]   #4914 [CC-MAIN-2026-12/job-boards.greenhouse.io/*]: thalamusgme → https://job-boards.greenhouse.io/thalamusgme
+[2026-05-08T12:59:51.719Z]   #5084 [CC-MAIN-2026-08/boards.greenhouse.io/*]: drb → https://job-boards.greenhouse.io/drb
+[2026-05-08T12:59:51.719Z]   #5184 [CC-MAIN-2026-08/boards.greenhouse.io/*]: nesto → https://job-boards.greenhouse.io/nesto
+[2026-05-08T12:59:51.719Z]   #5284 [CC-MAIN-2026-08/boards.greenhouse.io/*]: tradesy74 → https://job-boards.greenhouse.io/tradesy74
+[2026-05-08T12:59:51.719Z]   #5415 [CC-MAIN-2026-08/job-boards.greenhouse.io/*]: csgconsultantspermit-technician-full-time → https://job-boards.greenhouse.io/csgconsultantspermit-technician-full-time
+[2026-05-08T12:59:51.719Z]   #5515 [CC-MAIN-2026-08/job-boards.greenhouse.io/*]: jmwconsultantsllc → https://job-boards.greenhouse.io/jmwconsultantsllc
+[2026-05-08T12:59:51.719Z]   #5615 [CC-MAIN-2026-08/job-boards.greenhouse.io/*]: rakutenmedical18 → https://job-boards.greenhouse.io/rakutenmedical18
+[2026-05-08T12:59:51.719Z]   #5812 [CC-MAIN-2026-04/boards.greenhouse.io/*]: everbody → https://job-boards.greenhouse.io/everbody
+[2026-05-08T12:59:51.720Z]   #5912 [CC-MAIN-2026-04/boards.greenhouse.io/*]: parade → https://job-boards.greenhouse.io/parade
+[2026-05-08T12:59:51.720Z]   #6012 [CC-MAIN-2026-04/boards.greenhouse.io/*]: verusen → https://job-boards.greenhouse.io/verusen
+[2026-05-08T12:59:51.720Z]   #6129 [CC-MAIN-2026-04/job-boards.greenhouse.io/*]: ensemble → https://job-boards.greenhouse.io/ensemble
+[2026-05-08T12:59:51.720Z]   #6229 [CC-MAIN-2026-04/job-boards.greenhouse.io/*]: mx51 → https://job-boards.greenhouse.io/mx51
+[2026-05-08T12:59:51.720Z]   #6329 [CC-MAIN-2026-04/job-boards.greenhouse.io/*]: thepharmacyhub → https://job-boards.greenhouse.io/thepharmacyhub
+[2026-05-08T12:59:51.720Z]   #6462 [CC-MAIN-2025-51/boards.greenhouse.io/*]: focusedlabs → https://job-boards.greenhouse.io/focusedlabs
+[2026-05-08T12:59:51.720Z]   #6562 [CC-MAIN-2025-51/boards.greenhouse.io/*]: rogorthodontics → https://job-boards.greenhouse.io/rogorthodontics
+[2026-05-08T12:59:51.720Z]   #6714 [CC-MAIN-2025-51/job-boards.greenhouse.io/*]: lyratechgroup → https://job-boards.greenhouse.io/lyratechgroup
+[2026-05-08T12:59:51.720Z]   #6901 [CC-MAIN-2025-47/boards.greenhouse.io/*]: launchpotato → https://job-boards.greenhouse.io/launchpotato
+[2026-05-08T12:59:51.720Z]   #7001 [CC-MAIN-2025-47/boards.greenhouse.io/*]: tillatechnologies → https://job-boards.greenhouse.io/tillatechnologies
+[2026-05-08T12:59:51.720Z]   #7131 [CC-MAIN-2025-47/job-boards.greenhouse.io/*]: sandstonecarecastlerock → https://job-boards.greenhouse.io/sandstonecarecastlerock
+[2026-05-08T12:59:51.721Z] 
+[2026-05-08T12:59:51.721Z] ══════════════════════════════════════════════════
+[2026-05-08T12:59:51.721Z] COMPLETE
+[2026-05-08T12:59:51.721Z] Unique companies: 7167
+[2026-05-08T12:59:51.721Z] Output:           greenhouse_companies.csv
+[2026-05-08T12:59:51.721Z] ══════════════════════════════════════════════════
+[2026-05-08T12:59:51.721Z] 
+[2026-05-08T12:59:51.721Z] Import to Google Sheets:
+[2026-05-08T12:59:51.721Z] File → Import → Upload → greenhouse_companies.csv
