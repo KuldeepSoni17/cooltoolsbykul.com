@@ -156,6 +156,12 @@ export default function VacancyBibleClient() {
     };
   };
 
+  const refreshSessionJobs = async (sessionId: string) => {
+    const result = await fetchJobs(sessionId);
+    setJobs(result.jobs);
+    return result.jobs.length;
+  };
+
   const handleSearch = async (forceRefresh = false) => {
     setStatus("running");
     setEvents([]);
@@ -189,13 +195,11 @@ export default function VacancyBibleClient() {
       }
       const unsubscribe = subscribeProgress(started.sessionId, async (event) => {
         if ("done" in event) {
-          const result = await fetchJobs(started.sessionId);
-          setJobs(result.jobs);
           setStatus(event.status === "completed" ? "completed" : "failed");
           console.log("[VacancyBible] Search completed", {
             sessionId: started.sessionId,
             status: event.status,
-            jobs: result.jobs.length,
+            jobs: jobs.length,
             fromCache: started.from_cache ?? false,
           });
           unsubscribe();
@@ -203,19 +207,6 @@ export default function VacancyBibleClient() {
         }
         console.log("[VacancyBible] Progress event", event);
         setEvents((current) => [...current, event]);
-        if (
-          (event.stage === "scraping_company" &&
-            event.message.startsWith("Completed ") &&
-            event.processedCompanies % 10 === 0) ||
-          event.stage === "enriching"
-        ) {
-          try {
-            const partial = await fetchJobs(started.sessionId);
-            setJobs(partial.jobs);
-          } catch (partialErr) {
-            console.warn("[VacancyBible] Partial jobs fetch failed", partialErr);
-          }
-        }
       });
     } catch (err) {
       setStatus("failed");
@@ -485,6 +476,24 @@ export default function VacancyBibleClient() {
               )}
             </div>
           )}
+          {(status === "running" || status === "completed") && latestEvent ? (
+            <div className="mb-2 flex items-center gap-2">
+              <button
+                onClick={() =>
+                  void refreshSessionJobs(latestEvent.sessionId).catch((refreshErr) => {
+                    console.warn("[VacancyBible] Manual refresh failed", refreshErr);
+                  })
+                }
+                type="button"
+                className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-xs font-[family-name:var(--font-ibm-plex-mono)] text-[var(--text-muted)] hover:border-[var(--border-hover)] hover:text-[var(--text)]"
+              >
+                Refresh results
+              </button>
+              <span className="text-[10px] font-[family-name:var(--font-ibm-plex-mono)] text-[var(--text-dim)]">
+                Manual refresh only
+              </span>
+            </div>
+          ) : null}
           {status === "running" && latestEvent ? (
             <div className="space-y-2">
               <p className="animate-pulse text-sm text-[var(--text-muted)] font-[family-name:var(--font-ibm-plex-mono)]">
