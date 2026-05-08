@@ -70,7 +70,13 @@ export async function seedCompanies(): Promise<{ greenhouse: number; total: numb
   const greenhouseRows = parseCSV(path.join(base, "greenhouse_companies.csv"));
   console.log(`[SeedCompanies] Parsed greenhouse rows: ${greenhouseRows.length}`);
 
-  const records = greenhouseRows.map((row) => ({
+  const deduped = new Map<string, CompanyRow>();
+  for (const row of greenhouseRows) {
+    if (!row.slug) continue;
+    if (!deduped.has(row.slug)) deduped.set(row.slug, row);
+  }
+
+  const records = [...deduped.values()].map((row) => ({
     slug: row.slug,
     name: row.slug.replace(/-/g, " ").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
     ats_platform: "greenhouse",
@@ -80,24 +86,42 @@ export async function seedCompanies(): Promise<{ greenhouse: number; total: numb
     is_active: true,
   }));
 
+  const existingSlugs = new Set<string>();
+  const PAGE = 1000;
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabaseAdmin
+      .from("companies")
+      .select("slug")
+      .order("slug", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) {
+      console.error("[SeedCompanies] Failed to read existing slugs:", error.message);
+      break;
+    }
+    const rows = (data ?? []) as Array<{ slug?: string }>;
+    for (const row of rows) {
+      if (row.slug) existingSlugs.add(row.slug);
+    }
+    if (rows.length < PAGE) break;
+    from += PAGE;
+  }
+
+  const recordsToInsert = records.filter((record) => !existingSlugs.has(record.slug));
+  console.log(`[SeedCompanies] New records after dedupe/filter: ${recordsToInsert.length}`);
+
   let saved = 0;
   const BATCH = 500;
-  for (let i = 0; i < records.length; i += BATCH) {
-    const batch = records.slice(i, i + BATCH);
-    let { data, error } = await supabaseAdmin
-      .from("companies")
-      .upsert(batch, { onConflict: "slug", ignoreDuplicates: true })
-      .select("id");
+  for (let i = 0; i < recordsToInsert.length; i += BATCH) {
+    const batch = recordsToInsert.slice(i, i + BATCH);
+    let { data, error } = await supabaseAdmin.from("companies").insert(batch).select("id");
     if (error?.message?.toLowerCase().includes("api_url")) {
       const withoutApiUrl = batch.map((row) => {
         const clone = { ...row } as Record<string, unknown>;
         delete clone.api_url;
         return clone;
       });
-      ({ data, error } = await supabaseAdmin
-        .from("companies")
-        .upsert(withoutApiUrl, { onConflict: "slug", ignoreDuplicates: true })
-        .select("id"));
+      ({ data, error } = await supabaseAdmin.from("companies").insert(withoutApiUrl).select("id"));
     }
     if (error) {
       console.error(`[SeedCompanies] Batch ${i} failed: ${error.message}`);
