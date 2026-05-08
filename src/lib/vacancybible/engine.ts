@@ -140,6 +140,9 @@ export async function runSearch(sessionId: string): Promise<void> {
   };
   for (let i = 0; i < companies.length; i += 1) {
     const company = companies[i];
+    console.log(
+      `[Search] Scanning company ${i + 1}/${companies.length}: ${company.name} (remaining: ${companies.length - (i + 1)})`,
+    );
     emit({
       sessionId,
       stage: "scraping_company",

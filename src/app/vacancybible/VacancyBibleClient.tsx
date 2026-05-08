@@ -134,6 +134,13 @@ export default function VacancyBibleClient() {
     if (!latestEvent || latestEvent.totalCompanies === 0) return 0;
     return Math.min(100, Math.round((latestEvent.processedCompanies / latestEvent.totalCompanies) * 100));
   }, [latestEvent]);
+  const searchedCompanies = latestEvent?.processedCompanies ?? 0;
+  const totalCompaniesInSearch = latestEvent?.totalCompanies ?? 0;
+  const companiesRemaining = Math.max(totalCompaniesInSearch - searchedCompanies, 0);
+  const currentCompanyName =
+    latestEvent?.stage === "scraping_company" && latestEvent.message.startsWith("Scraping ")
+      ? latestEvent.message.replace("Scraping ", "")
+      : null;
 
   const toSearchInput = (): SearchInput => {
     const experienceValues = (input.experience.match(/\d+/g) ?? []).map(Number);
@@ -476,6 +483,22 @@ export default function VacancyBibleClient() {
               <p className="text-xs text-[var(--text-dim)] font-[family-name:var(--font-ibm-plex-mono)]">
                 {latestEvent.processedCompanies} / {latestEvent.totalCompanies} companies · {latestEvent.jobsFound} jobs found
               </p>
+              <div className="grid grid-cols-3 gap-2 text-[11px] font-[family-name:var(--font-ibm-plex-mono)]">
+                <div className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
+                  Searched: <span className="text-[var(--text)]">{searchedCompanies}</span>
+                </div>
+                <div className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
+                  In search: <span className="text-[var(--text)]">{totalCompaniesInSearch}</span>
+                </div>
+                <div className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1">
+                  To search: <span className="text-[var(--text)]">{companiesRemaining}</span>
+                </div>
+              </div>
+              {currentCompanyName ? (
+                <p className="text-xs text-[var(--text-muted)] font-[family-name:var(--font-ibm-plex-mono)]">
+                  Active company: {currentCompanyName}
+                </p>
+              ) : null}
               {scrapingEvents.length > 0 ? (
                 <div className="rounded border border-[var(--border)] bg-[var(--surface-2)] p-2">
                   <p className="text-[10px] uppercase tracking-[0.08em] text-[var(--text-dim)] font-[family-name:var(--font-ibm-plex-mono)]">
