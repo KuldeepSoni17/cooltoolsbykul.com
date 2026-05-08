@@ -203,6 +203,19 @@ export default function VacancyBibleClient() {
         }
         console.log("[VacancyBible] Progress event", event);
         setEvents((current) => [...current, event]);
+        if (
+          (event.stage === "scraping_company" &&
+            event.message.startsWith("Completed ") &&
+            event.processedCompanies % 10 === 0) ||
+          event.stage === "enriching"
+        ) {
+          try {
+            const partial = await fetchJobs(started.sessionId);
+            setJobs(partial.jobs);
+          } catch (partialErr) {
+            console.warn("[VacancyBible] Partial jobs fetch failed", partialErr);
+          }
+        }
       });
     } catch (err) {
       setStatus("failed");

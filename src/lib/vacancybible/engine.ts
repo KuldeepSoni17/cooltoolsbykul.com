@@ -133,6 +133,7 @@ export async function runSearch(sessionId: string): Promise<void> {
   });
 
   const rawJobs: RawJobRecord[] = [];
+  let lastPreviewRawCount = 0;
   const sourceCounts: Record<string, number> = {
     atsDirect: 0,
     serpapi: 0,
@@ -159,6 +160,17 @@ export async function runSearch(sessionId: string): Promise<void> {
     );
     rawJobs.push(...matchedJobs);
     sourceCounts.atsDirect += matchedJobs.length;
+
+    const shouldUpdatePreview =
+      i === companies.length - 1 ||
+      (i + 1) % 20 === 0 ||
+      (rawJobs.length > 0 && rawJobs.length - lastPreviewRawCount >= 25);
+    if (shouldUpdatePreview) {
+      const preview = enrichAndRankJobs(rawJobs, companiesBySlug);
+      saveJobs(sessionId, preview);
+      lastPreviewRawCount = rawJobs.length;
+    }
+
     emit({
       sessionId,
       stage: "scraping_company",
