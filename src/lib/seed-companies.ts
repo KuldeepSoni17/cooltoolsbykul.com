@@ -84,10 +84,21 @@ export async function seedCompanies(): Promise<{ greenhouse: number; total: numb
   const BATCH = 500;
   for (let i = 0; i < records.length; i += BATCH) {
     const batch = records.slice(i, i + BATCH);
-    const { data, error } = await supabaseAdmin
+    let { data, error } = await supabaseAdmin
       .from("companies")
-      .upsert(batch, { onConflict: "slug,ats_platform", ignoreDuplicates: true })
+      .upsert(batch, { onConflict: "slug", ignoreDuplicates: true })
       .select("id");
+    if (error?.message?.toLowerCase().includes("api_url")) {
+      const withoutApiUrl = batch.map((row) => {
+        const clone = { ...row } as Record<string, unknown>;
+        delete clone.api_url;
+        return clone;
+      });
+      ({ data, error } = await supabaseAdmin
+        .from("companies")
+        .upsert(withoutApiUrl, { onConflict: "slug", ignoreDuplicates: true })
+        .select("id"));
+    }
     if (error) {
       console.error(`[SeedCompanies] Batch ${i} failed: ${error.message}`);
       continue;
