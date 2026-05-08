@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { supabaseAdmin } from "./supabase-server";
+import type { CompanyRecord } from "@/lib/vacancybible/types";
 
 type CompanyRow = {
   slug: string;
@@ -50,7 +51,7 @@ function parseCSV(filePath: string): CompanyRow[] {
     .filter((r) => r.slug.length > 0);
 }
 
-function resolveExtractorsBase(): string {
+export function resolveExtractorsBase(): string {
   const candidates = [
     path.join(process.cwd(), "jobExtractors"),
     path.join(process.cwd(), "JobExtracters"),
@@ -63,6 +64,29 @@ function resolveExtractorsBase(): string {
     if (fs.existsSync(dir)) return dir;
   }
   return candidates[0];
+}
+
+export function loadCompaniesFromGreenhouseCsv(): CompanyRecord[] {
+  const base = resolveExtractorsBase();
+  const greenhouseRows = parseCSV(path.join(base, "greenhouse_companies.csv"));
+  const deduped = new Map<string, CompanyRow>();
+  for (const row of greenhouseRows) {
+    if (!row.slug) continue;
+    if (!deduped.has(row.slug)) deduped.set(row.slug, row);
+  }
+  return [...deduped.values()].map((row) => ({
+    slug: row.slug,
+    name: row.slug.replace(/-/g, " ").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    atsPlatform: "greenhouse",
+    careersPageUrl: row.greenhouse_url || `https://job-boards.greenhouse.io/${row.slug}`,
+    atsSlug: row.slug,
+    sector: "Unknown",
+    hqCountry: "Unknown",
+    indiaOffices: ["Unknown"],
+    pmMaturityScore: 5,
+    brandValueScore: 5,
+    stabilityScore: 5,
+  }));
 }
 
 export async function seedCompanies(): Promise<{ greenhouse: number; total: number }> {

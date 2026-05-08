@@ -1,5 +1,5 @@
 import { hasSupabaseAdminConfig, supabaseAdmin } from "./supabase-server";
-import { seedCompanies } from "./seed-companies";
+import { loadCompaniesFromGreenhouseCsv, seedCompanies } from "./seed-companies";
 import type { CompanyRecord } from "@/lib/vacancybible/types";
 
 const MIN_COMPANY_TARGET = 1000;
@@ -25,6 +25,15 @@ export async function loadActiveCompanies(): Promise<CompanyRecord[]> {
   const { error } = initial;
 
   if (error) {
+    if (error.message.includes("Could not find the table 'public.companies'")) {
+      const csvCompanies = loadCompaniesFromGreenhouseCsv();
+      if (csvCompanies.length > 0) {
+        console.log(
+          `[LoadCompanies] Companies table missing; using greenhouse CSV fallback with ${csvCompanies.length} companies.`,
+        );
+        return csvCompanies;
+      }
+    }
     throw new Error(`[LoadCompanies] Supabase query failed: ${error.message}`);
   }
 
