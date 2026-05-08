@@ -14,7 +14,10 @@ export async function startSearch(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...input, force_refresh: forceRefresh }),
   });
-  if (!res.ok) throw new Error("Failed to start search");
+  if (!res.ok) {
+    const payload = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(payload.error ?? "Failed to start search");
+  }
   const payload = (await res.json()) as {
     sessionId: string;
     from_cache?: boolean;

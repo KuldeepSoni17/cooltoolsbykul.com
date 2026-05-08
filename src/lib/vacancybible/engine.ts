@@ -87,12 +87,13 @@ export async function runSearch(sessionId: string): Promise<void> {
   const session = updateSession(sessionId, {});
   if (!session) return;
 
-  console.log(`[Search] Query received: ${JSON.stringify(session.query)}`);
+  try {
+    console.log(`[Search] Query received: ${JSON.stringify(session.query)}`);
 
-  const startedAtMs = Date.now();
-  const notes: string[] = [];
-  const nowMs = Date.now();
-  if (!discoveryPromise && nowMs - discoveryLastRunMs > 1000 * 60 * 60 * 6) {
+    const startedAtMs = Date.now();
+    const notes: string[] = [];
+    const nowMs = Date.now();
+    if (!discoveryPromise && nowMs - discoveryLastRunMs > 1000 * 60 * 60 * 6) {
     notes.push("Auto discovery started before search.");
     discoveryPromise = runFullDiscovery()
       .then((result) => {
@@ -107,7 +108,7 @@ export async function runSearch(sessionId: string): Promise<void> {
       });
   }
 
-  if (discoveryPromise) {
+    if (discoveryPromise) {
     emit({
       sessionId,
       stage: "running",
@@ -120,9 +121,9 @@ export async function runSearch(sessionId: string): Promise<void> {
     await discoveryPromise;
   }
 
-  const companies = await loadActiveCompanies();
-  const companiesBySlug = new Map(companies.map((company) => [company.slug, company]));
-  emit({
+    const companies = await loadActiveCompanies();
+    const companiesBySlug = new Map(companies.map((company) => [company.slug, company]));
+    emit({
     sessionId,
     stage: "running",
     message: `Running search across ${companies.length} companies.`,
@@ -132,14 +133,14 @@ export async function runSearch(sessionId: string): Promise<void> {
     timestamp: nowIso(),
   });
 
-  const rawJobs: RawJobRecord[] = [];
-  let lastPreviewRawCount = 0;
-  const sourceCounts: Record<string, number> = {
+    const rawJobs: RawJobRecord[] = [];
+    let lastPreviewRawCount = 0;
+    const sourceCounts: Record<string, number> = {
     atsDirect: 0,
     serpapi: 0,
     naukri: 0,
   };
-  for (let i = 0; i < companies.length; i += 1) {
+    for (let i = 0; i < companies.length; i += 1) {
     const company = companies[i];
     console.log(
       `[Search] Scanning company ${i + 1}/${companies.length}: ${company.name} (remaining: ${companies.length - (i + 1)})`,
@@ -182,22 +183,22 @@ export async function runSearch(sessionId: string): Promise<void> {
     });
   }
 
-  console.log(`[Runner] Total raw records collected from ATS/direct: ${rawJobs.length}`);
+    console.log(`[Runner] Total raw records collected from ATS/direct: ${rawJobs.length}`);
 
-  const titleFlex = session.query.flexibility.title === "OPEN" ? 2 : session.query.flexibility.title === "FLEXIBLE" ? 1 : 0;
-  const locationFlex =
+    const titleFlex = session.query.flexibility.title === "OPEN" ? 2 : session.query.flexibility.title === "FLEXIBLE" ? 1 : 0;
+    const locationFlex =
     session.query.flexibility.location === "OPEN"
       ? 2
       : session.query.flexibility.location === "FLEXIBLE"
         ? 1
         : 0;
-  const serpQueries = buildSerpapiQueries({
+    const serpQueries = buildSerpapiQueries({
     title: session.query.title,
     location: session.query.location,
     titleFlex,
     locationFlex,
   });
-  for (let i = 0; i < serpQueries.length; i += 1) {
+    for (let i = 0; i < serpQueries.length; i += 1) {
     const q = serpQueries[i];
     emit({
       sessionId,
@@ -219,8 +220,8 @@ export async function runSearch(sessionId: string): Promise<void> {
     sourceCounts.serpapi += matchedGoogle.length;
   }
 
-  const locationLower = (session.query.location ?? "").toLowerCase();
-  if (!session.query.location || locationLower.includes("india")) {
+    const locationLower = (session.query.location ?? "").toLowerCase();
+    if (!session.query.location || locationLower.includes("india")) {
     emit({
       sessionId,
       stage: "running",
@@ -241,7 +242,7 @@ export async function runSearch(sessionId: string): Promise<void> {
     sourceCounts.naukri += matchedNaukri.length;
   }
 
-  emit({
+    emit({
     sessionId,
     stage: "enriching",
     message: "Applying enrichment and confidence labels.",
@@ -251,9 +252,9 @@ export async function runSearch(sessionId: string): Promise<void> {
     timestamp: nowIso(),
   });
 
-  const enriched = enrichAndRankJobs(rawJobs, companiesBySlug);
-  const savedJobIds: string[] = [];
-  for (const job of enriched) {
+    const enriched = enrichAndRankJobs(rawJobs, companiesBySlug);
+    const savedJobIds: string[] = [];
+    for (const job of enriched) {
     const sourceUrlHash = hashUrl(job.sourceUrl);
     const existing = await getExistingJob(sourceUrlHash);
     if (existing?.id) {
@@ -290,7 +291,7 @@ export async function runSearch(sessionId: string): Promise<void> {
       .single();
     if (!error && data?.id) savedJobIds.push(data.id);
   }
-  const queryParams = {
+    const queryParams = {
     title: session.query.title,
     location: session.query.location,
     experienceMin: session.query.experienceMin,
@@ -299,15 +300,15 @@ export async function runSearch(sessionId: string): Promise<void> {
     domain: session.query.domain,
     flexibility: session.query.flexibility,
   };
-  const queryHash = hashQuery(queryParams);
-  await saveSearchCache(queryHash, queryParams, savedJobIds);
-  if (rawJobs.length > 0 && enriched.length === 0) {
+    const queryHash = hashQuery(queryParams);
+    await saveSearchCache(queryHash, queryParams, savedJobIds);
+    if (rawJobs.length > 0 && enriched.length === 0) {
     notes.push("Raw jobs existed but enrichment produced zero results.");
   }
-  if (sourceCounts.atsDirect === 0) {
+    if (sourceCounts.atsDirect === 0) {
     notes.push("ATS/direct source returned zero matched jobs.");
   }
-  console.log("[Runner] Source summary", {
+    console.log("[Runner] Source summary", {
     sessionId,
     companyCount: companies.length,
     sourceCounts,
@@ -315,10 +316,10 @@ export async function runSearch(sessionId: string): Promise<void> {
     enrichedJobs: enriched.length,
     notes,
   });
-  saveJobs(sessionId, enriched);
-  const durationMs = Date.now() - startedAtMs;
+    saveJobs(sessionId, enriched);
+    const durationMs = Date.now() - startedAtMs;
 
-  updateSession(sessionId, {
+    updateSession(sessionId, {
     status: "completed",
     completedAt: nowIso(),
     companiesHit: companies.length,
@@ -327,7 +328,7 @@ export async function runSearch(sessionId: string): Promise<void> {
     durationMs,
   });
 
-  saveDiagnostics(sessionId, {
+    saveDiagnostics(sessionId, {
     startedAt: new Date(startedAtMs).toISOString(),
     companyCountAtStart: companies.length,
     sourceCounts,
@@ -336,15 +337,32 @@ export async function runSearch(sessionId: string): Promise<void> {
     notes,
   });
 
-  emit({
+    emit({
     sessionId,
     stage: "completed",
     message: "Search complete.",
     processedCompanies: companies.length,
     totalCompanies: companies.length,
-    jobsFound: getJobs(sessionId).length,
-    timestamp: nowIso(),
-  });
+      jobsFound: getJobs(sessionId).length,
+      timestamp: nowIso(),
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Search failed unexpectedly";
+    console.error("[Search] Failed:", message);
+    updateSession(sessionId, {
+      status: "failed",
+      completedAt: nowIso(),
+    });
+    emit({
+      sessionId,
+      stage: "failed",
+      message,
+      processedCompanies: 0,
+      totalCompanies: 0,
+      jobsFound: 0,
+      timestamp: nowIso(),
+    });
+  }
 }
 
 export function resetCompanyCircuitBreaker(slug: string): boolean {

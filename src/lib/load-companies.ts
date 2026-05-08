@@ -1,6 +1,5 @@
-import { supabaseAdmin } from "./supabase-server";
+import { hasSupabaseAdminConfig, supabaseAdmin } from "./supabase-server";
 import { seedCompanies } from "./seed-companies";
-import { REGISTRY_COMPANIES } from "@/lib/vacancybible/registryData";
 import type { CompanyRecord } from "@/lib/vacancybible/types";
 
 const MIN_COMPANY_TARGET = 1000;
@@ -16,13 +15,17 @@ async function queryActiveCompanies() {
 }
 
 export async function loadActiveCompanies(): Promise<CompanyRecord[]> {
+  if (!hasSupabaseAdminConfig()) {
+    throw new Error(
+      "[LoadCompanies] Missing Supabase config: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.",
+    );
+  }
   const initial = await queryActiveCompanies();
   let { data } = initial;
   const { error } = initial;
 
   if (error) {
-    console.error("[LoadCompanies] Supabase error; fallback registry:", error.message);
-    return REGISTRY_COMPANIES;
+    throw new Error(`[LoadCompanies] Supabase query failed: ${error.message}`);
   }
 
   const rows = (data ?? []) as Array<{
@@ -61,7 +64,9 @@ export async function loadActiveCompanies(): Promise<CompanyRecord[]> {
     careers_url: string;
   }>).filter((r) => Boolean(r.slug) && Boolean(r.name) && Boolean(r.careers_url));
 
-  if (finalRows.length === 0) return REGISTRY_COMPANIES;
+  if (finalRows.length === 0) {
+    throw new Error("[LoadCompanies] No active companies available after seeding.");
+  }
 
   return finalRows.map((row) => ({
     slug: row.slug,

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasSupabaseAdminConfig } from "@/lib/supabase-server";
 import { createSession, runSearch } from "@/lib/vacancybible/engine";
 import { getJobsByIds, getSearchCache, hashQuery } from "@/lib/cache";
 import { saveJobs, updateSession } from "@/lib/vacancybible/store";
@@ -38,6 +39,16 @@ function normalizeAtsPlatform(value: unknown): CompanyRecord["atsPlatform"] {
 }
 
 export async function POST(req: Request) {
+  if (!hasSupabaseAdminConfig()) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "VacancyBible backend is not configured: missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.",
+      },
+      { status: 503 },
+    );
+  }
   const body = (await req.json()) as Partial<SearchInput> & { force_refresh?: boolean };
   const input = normalizeSearchInput(body);
   console.log("[SearchRoute] Request received", {
