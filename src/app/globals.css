@@ -10,6 +10,16 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* Unlock ( /unlock ) */
+  --color-bg-primary: #0a0a0a;
+  --color-bg-secondary: #111111;
+  --color-bg-card: #161616;
+  --color-border: #222222;
+  --color-text-primary: #f0f0f0;
+  --color-text-secondary: #888888;
+  --color-accent-yellow: #f5e642;
+  --color-accent-teal: #00e5cc;
+  --color-accent-red: #ff4444;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +33,16 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Unlock app shell (see src/app/unlock/layout.tsx) */
+.unlock-app {
+  --unlock-glow: rgba(245, 230, 66, 0.08);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-unlock-jb), var(--font-geist-mono), ui-monospace, monospace;
+}
+
+.unlock-app :where(.font-display) {
+  font-family: var(--font-unlock-fraunces), ui-serif, serif;
 }

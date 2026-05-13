@@ -62,11 +62,6 @@ function getAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || process.env.VITE_APP_URL || "https://cooltoolsbykul.com";
 }
 
-function parseResult(raw: string): WorryResult {
-  const parsed = JSON.parse(raw) as WorryResult;
-  return parsed;
-}
-
 async function fetchWorryResult(worryText: string): Promise<WorryResult> {
   const run = async () => {
     const res = await fetch("/api/check", {
@@ -74,10 +69,12 @@ async function fetchWorryResult(worryText: string): Promise<WorryResult> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ worryText }),
     });
-    if (!res.ok) throw new Error("NETWORK");
-    const data = (await res.json()) as { output?: string };
-    if (!data.output) throw new Error("INVALID_JSON");
-    return parseResult(data.output);
+    const data = (await res.json()) as { result?: WorryResult; error?: string };
+    if (!res.ok) {
+      throw new Error(data.error || "Couldn't reach the server. Please try again.");
+    }
+    if (!data.result) throw new Error("INVALID_JSON");
+    return data.result;
   };
 
   try {
@@ -153,8 +150,8 @@ export default function WorthItClient() {
       setHistory((prev) => [nextEntry, ...prev].slice(0, 20));
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
     } catch (err) {
-      if (err instanceof Error && err.message === "NETWORK") {
-        setError("Couldn't reach the server. Please try again.");
+      if (err instanceof Error && err.message !== "INVALID_JSON") {
+        setError(err.message);
       } else {
         setError("Couldn't parse the response. Please try again.");
       }

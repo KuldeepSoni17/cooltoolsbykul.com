@@ -3,6 +3,14 @@ import Link from "next/link";
 export default function Home() {
   const sections = [
     {
+      title: "Unlock",
+      description:
+        "Missed-opportunity discovery: the features, subscriptions, and perks you already have — surfaced as clear, actionable unlocks.",
+      vibe: "You already have more than you think",
+      accent: "from-yellow-300/30 via-amber-500/20 to-transparent",
+      href: "/unlock",
+    },
+    {
       title: "Tag App",
       description:
         "Daily social chain game: OTP auth, encrypted quiz DNA, approve-to-extend chains, Redis snapshots, and server-side winner logic.",
