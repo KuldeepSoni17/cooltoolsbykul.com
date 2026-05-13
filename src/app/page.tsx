@@ -3,6 +3,14 @@ import Link from "next/link";
 export default function Home() {
   const sections = [
     {
+      title: "Tag App",
+      description:
+        "Daily social chain game: OTP auth, encrypted quiz DNA, approve-to-extend chains, Redis snapshots, and server-side winner logic.",
+      vibe: "Ship the chain",
+      accent: "from-emerald-300/30 via-lime-500/20 to-transparent",
+      href: "/tag-app",
+    },
+    {
       title: "Tools",
       description:
         "Smart utilities for creators and builders: fast, practical, and absurdly useful.",
