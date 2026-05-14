@@ -29,6 +29,32 @@ export default function TagAppPage() {
           </p>
         </section>
 
+        <section className="rounded-3xl border border-emerald-500/30 bg-emerald-950/30 p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Use it now (no install)</p>
+          <p className="mt-3 text-sm leading-7 text-zinc-200">
+            <strong className="text-white">Web app:</strong>{" "}
+            <a
+              className="font-semibold text-emerald-300 underline-offset-4 hover:underline"
+              href="/tag-app-play/"
+            >
+              cooltoolsbykul.com/tag-app-play/
+            </a>
+            <br />
+            <strong className="text-white">API:</strong>{" "}
+            <a
+              className="break-all font-mono text-sm text-emerald-200 hover:underline"
+              href="https://tag-app-server-production.up.railway.app/health"
+            >
+              https://tag-app-server-production.up.railway.app
+            </a>
+            <br />
+            <span className="text-zinc-400">
+              Demo sign-in: tap &quot;Send OTP&quot;, then enter code <code className="text-emerald-200">444444</code>{" "}
+              (MSG91 not configured on the server yet).
+            </span>
+          </p>
+        </section>
+
         <section className="grid gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-900/70 p-6 shadow-2xl shadow-black/30 sm:grid-cols-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Stack</p>
@@ -48,8 +74,8 @@ export default function TagAppPage() {
               >
                 github.com/KuldeepSoni17/tag-app
               </a>
-              . Spin up the API with Docker Compose for Postgres/Redis, run Prisma migrations, then
-              aim the mobile client at your LAN using <code className="text-emerald-200">EXPO_PUBLIC_API_URL</code>.
+              . The production API runs on Railway; this site hosts a static web build under{" "}
+              <code className="text-emerald-200">/tag-app-play/</code>.
             </p>
           </div>
         </section>
