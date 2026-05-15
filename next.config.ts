@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
+      // Tag App static web (Expo export in public/tag-app-play)
+      {
+        source: "/tag-app-play",
+        destination: "/tag-app-play/index.html",
+      },
       // Bare /echo with no trailing slash
       {
         source: "/echo",
