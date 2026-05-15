@@ -7,6 +7,20 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "commons.wikimedia.org" },
     ],
   },
+  async rewrites() {
+    return [
+      // Bare /echo with no trailing slash
+      {
+        source: "/echo",
+        destination: "https://client-omega-six-31.vercel.app/echo",
+      },
+      // Everything under /echo/ — assets, SPA routes, PWA files
+      {
+        source: "/echo/:path*",
+        destination: "https://client-omega-six-31.vercel.app/echo/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

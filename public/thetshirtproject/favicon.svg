@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Lotus petals -->
+  <ellipse cx="32" cy="32" rx="6" ry="14" fill="#D4A853" opacity="0.9" transform="rotate(0 32 32)"/>
+  <ellipse cx="32" cy="32" rx="6" ry="14" fill="#D4A853" opacity="0.85" transform="rotate(45 32 32)"/>
+  <ellipse cx="32" cy="32" rx="6" ry="14" fill="#C85C3A" opacity="0.8" transform="rotate(90 32 32)"/>
+  <ellipse cx="32" cy="32" rx="6" ry="14" fill="#C85C3A" opacity="0.75" transform="rotate(135 32 32)"/>
+  <ellipse cx="32" cy="32" rx="6" ry="14" fill="#D4A853" opacity="0.9" transform="rotate(180 32 32)"/>
+  <ellipse cx="32" cy="32" rx="6" ry="14" fill="#D4A853" opacity="0.85" transform="rotate(225 32 32)"/>
+  <ellipse cx="32" cy="32" rx="6" ry="14" fill="#C85C3A" opacity="0.8" transform="rotate(270 32 32)"/>
+  <ellipse cx="32" cy="32" rx="6" ry="14" fill="#C85C3A" opacity="0.75" transform="rotate(315 32 32)"/>
+  <!-- Center -->
+  <circle cx="32" cy="32" r="7" fill="#1E2B1A"/>
+  <circle cx="32" cy="32" r="4" fill="#D4A853"/>
+</svg>
