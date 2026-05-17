@@ -11,10 +11,10 @@ export default function Home() {
       href: "/unlock",
     },
     {
-      title: "Tag App",
+      title: "TagRush",
       description:
-        "Daily social chain game: OTP auth, encrypted quiz DNA, approve-to-extend chains, Redis snapshots, and server-side winner logic.",
-      vibe: "Ship the chain",
+        "Daily tag-chain game with neon arcade UI: WhatsApp invites, signup bonus, encrypted quiz DNA, and server-side winner logic.",
+      vibe: "Tag. Win.",
       accent: "from-emerald-300/30 via-lime-500/20 to-transparent",
       href: "/tag-app",
     },
