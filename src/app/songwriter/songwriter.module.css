@@ -1,0 +1,212 @@
+.shell {
+  --sw-bg: #0c0a0f;
+  --sw-panel: #16121c;
+  --sw-border: #2a2433;
+  --sw-accent: #e879f9;
+  --sw-accent-2: #fbbf24;
+  --sw-muted: #a1a1aa;
+  --sw-success: #34d399;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(232, 121, 249, 0.15), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 50%, rgba(251, 191, 36, 0.08), transparent),
+    var(--sw-bg);
+  color: #fafafa;
+  font-family: var(--font-outfit), system-ui, sans-serif;
+}
+
+.header {
+  border-bottom: 1px solid var(--sw-border);
+  background: rgba(12, 10, 15, 0.85);
+  backdrop-filter: blur(12px);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 121, 249, 0.35);
+  background: rgba(232, 121, 249, 0.1);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f5d0fe;
+}
+
+.card {
+  border-radius: 1rem;
+  border: 1px solid var(--sw-border);
+  background: var(--sw-panel);
+  padding: 1.25rem;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border-radius: 0.625rem;
+  border: 1px solid var(--sw-border);
+  background: #0c0a0f;
+  padding: 0.625rem 0.875rem;
+  color: #fafafa;
+  font-size: 0.9375rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: rgba(232, 121, 249, 0.6);
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--sw-muted);
+}
+
+.btnPrimary {
+  border-radius: 0.625rem;
+  background: linear-gradient(135deg, #c026d3, #e879f9);
+  padding: 0.625rem 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  transition: opacity 0.15s;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnGhost {
+  border-radius: 0.625rem;
+  border: 1px solid var(--sw-border);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--sw-muted);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btnGhost:hover {
+  border-color: rgba(232, 121, 249, 0.4);
+  color: #fafafa;
+}
+
+.stepNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stepPill {
+  border-radius: 999px;
+  border: 1px solid var(--sw-border);
+  padding: 0.35rem 0.85rem;
+  font-size: 0.75rem;
+  color: var(--sw-muted);
+}
+
+.stepPillActive {
+  border-color: rgba(232, 121, 249, 0.5);
+  background: rgba(232, 121, 249, 0.12);
+  color: #f5d0fe;
+}
+
+.stepPillDone {
+  border-color: rgba(52, 211, 153, 0.35);
+  color: var(--sw-success);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  color: #fde68a;
+}
+
+.moodChip {
+  cursor: pointer;
+  border-radius: 999px;
+  border: 1px solid var(--sw-border);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--sw-muted);
+  transition: all 0.15s;
+}
+
+.moodChipOn {
+  border-color: rgba(232, 121, 249, 0.5);
+  background: rgba(232, 121, 249, 0.15);
+  color: #f5d0fe;
+}
+
+.panelTitle {
+  font-family: var(--font-dm-serif-display), serif;
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.reviewBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.reviewBtn {
+  border-radius: 0.5rem;
+  border: 1px solid var(--sw-border);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--sw-muted);
+}
+
+.reviewBtn:hover {
+  border-color: rgba(232, 121, 249, 0.4);
+  color: #fafafa;
+}
+
+.accepted {
+  border-color: rgba(52, 211, 153, 0.4);
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.rejected {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.historyItem {
+  border-left: 2px solid rgba(232, 121, 249, 0.4);
+  padding-left: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--sw-muted);
+}
+
+.slider {
+  width: 100%;
+  accent-color: #e879f9;
+}
+
+.error {
+  border-radius: 0.625rem;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.1);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #fecaca;
+}

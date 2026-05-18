@@ -119,6 +119,14 @@ export default function Home() {
       accent: "from-teal-300/30 via-cyan-500/20 to-transparent",
       href: "/vacancybible",
     },
+    {
+      title: "AI Songwriting Studio",
+      description:
+        "Turn raw lyrics and humming into structured songs, chords, and production-ready packages.",
+      vibe: "Your song, clearer",
+      accent: "from-fuchsia-300/30 via-purple-500/20 to-transparent",
+      href: "/songwriter",
+    },
   ];
 
   return (
