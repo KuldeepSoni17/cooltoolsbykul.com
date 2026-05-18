@@ -1,22 +1,45 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
+import {
+  ActionCard,
+  EnergyMeter,
+  HouseSketch,
+  PipTimer,
+  PlayerTag,
+  RingTimer,
+  WBtn,
+  houseSketchState,
+} from "@/components/attack-defense/wf-primitives";
 import { ATTACK_CONFIG, DEFENSE_CONFIG, GAME_UI_CONSTANTS } from "@/lib/attack-defense/gameConstants";
-import type { AttackType, DefenseType } from "@/lib/attack-defense/gameTypes";
+import type { AttackType, DefenseType, House, Player } from "@/lib/attack-defense/gameTypes";
 import { useAttackDefenseAuth } from "@/hooks/attack-defense/useAuth";
 import { useAttackDefenseGame } from "@/hooks/attack-defense/useGame";
 
-function HousePill({ label, hp, active, onClick }: { label: string; hp: string; active?: boolean; onClick?: () => void }) {
+const OPPONENT_COLORS = ["#ffd6cc", "#cce0f0"];
+
+function HouseRow({
+  houses,
+  targetable,
+  onHouseClick,
+}: {
+  houses: House[];
+  targetable?: boolean;
+  onHouseClick?: (houseId: string) => void;
+}) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-lg border px-2 py-2 text-xs transition ${active ? "border-lime-300 bg-lime-500/20 shadow-md shadow-lime-900/20" : "border-zinc-700 bg-zinc-900/80"}`}
-    >
-      <div>{label}</div>
-      <div className="text-zinc-300">{hp}</div>
-    </button>
+    <div className="wf-row wf-gap-2 wf-ai-c wf-center" style={{ marginTop: 8 }}>
+      {houses.map((house, i) => (
+        <HouseSketch
+          key={house.id}
+          hp={house.hp}
+          max={house.maxHp}
+          state={houseSketchState(house, targetable && !house.isDestroyed)}
+          onClick={targetable && !house.isDestroyed && onHouseClick ? () => onHouseClick(house.id) : undefined}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -24,236 +47,339 @@ export default function AttackDefenseMatchPage() {
   const router = useRouter();
   const params = useParams<{ roomId: string }>();
   const { user } = useAttackDefenseAuth();
-  const { room, secondsLeft, pending, selecting, activeTab, committed, latestRoundEvents, latestRoundSummaries, setActiveTab, selectActionType, cancelSelection, addAttack, addDefense, submitActions } =
-    useAttackDefenseGame();
+  const {
+    room,
+    secondsLeft,
+    pending,
+    selecting,
+    activeTab,
+    committed,
+    latestRoundEvents,
+    latestRoundSummaries,
+    setActiveTab,
+    selectActionType,
+    cancelSelection,
+    addAttack,
+    addDefense,
+    submitActions,
+  } = useAttackDefenseGame();
 
   const me = useMemo(() => room?.players.find((p) => p.userId === user?.id || p.id === user?.id), [room, user?.id]);
   const opponents = useMemo(() => room?.players.filter((p) => p.id !== me?.id) ?? [], [room, me?.id]);
 
-  if (!room || !me) return <main className="p-6 text-zinc-100">Waiting for room...</main>;
-  if (room.phase === "game_over") router.push("/games/attack-defense/play/results");
+  useEffect(() => {
+    if (!room || room.phase !== "game_over") return;
+    try {
+      sessionStorage.setItem(
+        "ad_last_result",
+        JSON.stringify({
+          winnerId: room.winnerId,
+          round: room.round,
+          meName: me?.displayName,
+          won: room.winnerId === me?.id,
+        })
+      );
+    } catch {
+      /* ignore */
+    }
+    router.push("/games/attack-defense/play/results");
+  }, [room, me?.id, me?.displayName, router]);
 
-  const canAct = room.phase === "decision" && !committed && !me.actionsSubmitted;
+  if (!room || !me) {
+    return (
+      <main className="wf-container wf-pad-3">
+        <p className="scribble">Waiting for room...</p>
+      </main>
+    );
+  }
+
+  const phase = room.phase;
+  const canAct = phase === "decision" && !committed && !me.actionsSubmitted;
   const selectedAttack = selecting?.kind === "attack" ? (selecting.type as AttackType) : null;
   const selectedDefense = selecting?.kind === "defense" ? (selecting.type as DefenseType) : null;
   const totalSeconds =
-    room.phase === "waiting"
+    phase === "waiting"
       ? GAME_UI_CONSTANTS.ROUND_INITIAL_BREATHER_SECONDS
-      : room.phase === "resolution"
+      : phase === "resolution"
         ? GAME_UI_CONSTANTS.ROUND_RESOLUTION_SECONDS
         : GAME_UI_CONSTANTS.ROUND_DECISION_SECONDS;
+  const timerPct = Math.max(0, Math.min(1, secondsLeft / totalSeconds));
+  const pipFilled = Math.ceil(timerPct * 15);
+  const pendingEnergy =
+    pending.attacks.reduce((s, a) => s + ATTACK_CONFIG[a.type].energyCost, 0) +
+    pending.defenses.reduce((s, d) => s + DEFENSE_CONFIG[d.type].energyCost, 0);
+
+  const attackCost = pending.attacks[0] ? ATTACK_CONFIG[pending.attacks[0].type].energyCost : 0;
+  const defenseCost = pending.defenses[0] ? DEFENSE_CONFIG[pending.defenses[0].type].energyCost : 0;
+  const lockCost = attackCost + defenseCost;
+
+  const renderOpponent = (player: Player, index: number, tilted?: boolean) => {
+    const houseTargetable = Boolean(canAct && selectedAttack && ATTACK_CONFIG[selectedAttack].target === "house");
+    const playerTargetable = Boolean(canAct && selectedAttack && ATTACK_CONFIG[selectedAttack].target === "player");
+
+    return (
+      <div
+        key={player.id}
+        className={`sketchy-thin wf-pad-2 wf-col wf-gap-1 ${player.isEliminated ? "dashed" : ""} ${tilted ? (index === 0 ? "rotate-3" : "rotate-2") : ""}`}
+        style={{
+          background: OPPONENT_COLORS[index] ?? "var(--paper)",
+          opacity: player.isEliminated ? 0.5 : 1,
+          flex: tilted ? 1 : undefined,
+        }}
+      >
+        <div className="wf-row wf-between wf-ai-c">
+          <PlayerTag name={player.displayName} eliminated={player.isEliminated} color={OPPONENT_COLORS[index]} />
+          <span className="chip energy">⚡{player.energy}</span>
+        </div>
+        <HouseRow
+          houses={player.houses}
+          targetable={houseTargetable}
+          onHouseClick={(houseId) => selectedAttack && addAttack(selectedAttack, player.id, houseId)}
+        />
+        {playerTargetable ? (
+          <WBtn sm variant="attack" onClick={() => selectedAttack && addAttack(selectedAttack, player.id)}>
+            Target {player.displayName}
+          </WBtn>
+        ) : null}
+        {phase === "resolution" && latestRoundSummaries.find((s) => s.playerId === player.id) ? (
+          <div className="wf-xs wf-muted wf-center-text">
+            {latestRoundSummaries.find((s) => s.playerId === player.id)?.decisions.join(" · ") || "no action"}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
+  const actionButtons = phase === "decision" && (
+    <div className="wf-row wf-gap-1 wf-mt-1" style={{ flexWrap: "wrap" }}>
+      {(Object.keys(ATTACK_CONFIG) as AttackType[]).map((type) => (
+        <WBtn
+          key={type}
+          sm
+          variant="attack"
+          disabled={!canAct}
+          onClick={() => {
+            setActiveTab("attack");
+            selectActionType("attack", type);
+          }}
+        >
+          ⚔ {ATTACK_CONFIG[type].name.toLowerCase()}
+        </WBtn>
+      ))}
+      {(Object.keys(DEFENSE_CONFIG) as DefenseType[]).map((type) => (
+        <WBtn
+          key={type}
+          sm
+          variant="defense"
+          disabled={!canAct}
+          onClick={() => {
+            setActiveTab("defense");
+            selectActionType("defense", type);
+          }}
+        >
+          {type === "SHIELD" ? "🛡" : "⚠"} {DEFENSE_CONFIG[type].name.toLowerCase()}
+        </WBtn>
+      ))}
+      <WBtn
+        sm
+        variant="primary"
+        disabled={!canAct || (pending.attacks.length === 0 && pending.defenses.length === 0)}
+        onClick={() => submitActions(params.roomId, { playerId: me.id, attacks: pending.attacks, defenses: pending.defenses })}
+      >
+        submit{lockCost ? ` (${lockCost}⚡)` : ""}
+      </WBtn>
+    </div>
+  );
 
   return (
-    <main className="ad-container pb-28">
-      {/* Shared header */}
-      <section className="ad-card-strong p-4">
-        <div className="flex items-center justify-between">
-          <h1 className="ad-title text-2xl">Round {room.round}</h1>
-          <span className="ad-tag text-[var(--ad-accent-primary)]">{room.phase === "waiting" ? "pregame" : room.phase}</span>
+    <main className="wf-container" style={{ paddingBottom: phase === "decision" ? "1rem" : "2rem" }}>
+      {/* Mobile — Direction B (arena curve) */}
+      <section className="md:hidden wf-col wf-grow" style={{ minHeight: "85vh", gap: 4 }}>
+        <div className="wf-row wf-between wf-ai-c wf-pad-2">
+          <span className="hand wf-b">round {room.round}</span>
+          <RingTimer pct={timerPct} label={`${secondsLeft}s`} size={48} />
+          <span className="chip energy">⚡{me.energy}</span>
         </div>
-        <div className="mt-2 text-sm text-[var(--ad-text-soft)]">
-          Timer: {secondsLeft}s / {totalSeconds}s · Energy: {me.energy}/20
-        </div>
-      </section>
 
-      {/* Mobile - Direction B (Arena curve/cards) */}
-      <div className="mt-4 space-y-3 md:hidden">
-        {opponents.map((player) => (
-          <section key={player.id} className="ad-card p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="font-semibold">{player.displayName}</h2>
-              <span className="text-xs text-[var(--ad-text-soft)]">{player.energy} energy</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {player.houses.map((house, idx) => {
-                const active = Boolean(canAct && selectedAttack && ATTACK_CONFIG[selectedAttack].target === "house" && !house.isDestroyed);
-                return (
-                  <HousePill
-                    key={house.id}
-                    label={`House ${idx + 1}`}
-                    hp={`${house.hp}/${house.maxHp}`}
-                    active={active}
-                    onClick={
-                      active
-                        ? () => {
-                            if (!selectedAttack) return;
-                            addAttack(selectedAttack, player.id, house.id);
-                          }
-                        : undefined
-                    }
-                  />
-                );
-              })}
-            </div>
-            {canAct && selectedAttack && ATTACK_CONFIG[selectedAttack].target === "player" ? (
-              <button className="ad-btn-primary mt-2 h-9 w-full text-sm" onClick={() => addAttack(selectedAttack, player.id)}>
-                Target {player.displayName}
-              </button>
-            ) : null}
-          </section>
-        ))}
-        <section className="ad-card p-3">
-          <div className="mb-2 text-center text-sm text-[var(--ad-text-soft)]">
-            {room.phase === "resolution" ? "Resolving..." : room.phase === "waiting" ? "Match starts soon" : "Choose your move"}
-          </div>
-        </section>
-        <section className="ad-card p-3">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-semibold">Your Base</h2>
-          <span className="text-xs text-[var(--ad-text-soft)]">{me.actionsSubmitted || committed ? "Locked" : "Planning"}</span>
+        <div className="wf-row wf-between" style={{ padding: 4 }}>
+          {opponents.map((o, i) => renderOpponent(o, i, true))}
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          {me.houses.map((house, idx) => {
-            const active = Boolean(canAct && selectedDefense && !house.isDestroyed);
-            return (
-              <HousePill
-                key={house.id}
-                label={`House ${idx + 1}`}
-                hp={`${house.hp}/${house.maxHp}`}
-                active={active}
-                onClick={active ? () => addDefense(selectedDefense!, house.id) : undefined}
-              />
-            );
-          })}
-        </div>
-      </section>
-      </div>
 
-      {/* Desktop - Direction D (Top-down map metaphor) */}
-      <section className="mt-4 hidden md:block ad-card p-4">
-        <div className="grid grid-cols-2 gap-4">
-          {opponents.map((player) => (
-            <div key={player.id} className="rounded-xl border border-[var(--ad-border)] bg-black/20 p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <h2 className="font-semibold">{player.displayName}</h2>
-                <span className="text-xs text-[var(--ad-text-soft)]">{player.energy} energy</span>
+        <div className="wf-grow wf-center">
+          {phase === "decision" ? (
+            <div className="sketchy wf-pad-2 wf-col wf-ai-c wf-center-text" style={{ background: "var(--paper-2)" }}>
+              <div className="hand wf-lg">choose your move</div>
+              <div className="wf-row wf-gap-1 wf-mt-1">
+                <span className={`chip ${activeTab === "attack" ? "attack" : ""}`}>⚔ attack</span>
+                <span className={`chip ${activeTab === "defense" ? "defense" : ""}`}>🛡 defense</span>
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                {player.houses.map((house, idx) => {
-                  const active = Boolean(canAct && selectedAttack && ATTACK_CONFIG[selectedAttack].target === "house" && !house.isDestroyed);
-                  return (
-                    <HousePill
-                      key={house.id}
-                      label={`House ${idx + 1}`}
-                      hp={`${house.hp}/${house.maxHp}`}
-                      active={active}
-                      onClick={
-                        active
-                          ? () => {
-                              if (!selectedAttack) return;
-                              addAttack(selectedAttack, player.id, house.id);
-                            }
-                          : undefined
-                      }
-                    />
-                  );
-                })}
-              </div>
-              {canAct && selectedAttack && ATTACK_CONFIG[selectedAttack].target === "player" ? (
-                <button className="ad-btn-primary mt-2 h-9 w-full text-sm" onClick={() => addAttack(selectedAttack, player.id)}>
-                  Target {player.displayName}
-                </button>
-              ) : null}
+              {selecting ? <div className="wf-xs wf-muted wf-mt-1">tap a house to target →</div> : null}
             </div>
-          ))}
+          ) : phase === "resolution" ? (
+            <div className="sketchy wf-pad-2 wf-center-text" style={{ background: "#ffe6c4" }}>
+              <div className="hand wf-lg">resolving…</div>
+              <div className="wf-xs">{latestRoundEvents.length} events this round</div>
+            </div>
+          ) : phase === "waiting" ? (
+            <div className="sketchy wf-pad-2 wf-center-text">
+              <div className="hand wf-lg">starts in {secondsLeft}s</div>
+            </div>
+          ) : null}
         </div>
-        <div className="my-3 rounded-xl border border-[var(--ad-border)] bg-black/20 p-3 text-center text-sm text-[var(--ad-text-soft)]">
-          {room.phase === "resolution" ? "Top-down battle recap in progress..." : room.phase === "waiting" ? "Pregame planning window active." : "Tap targets on opponent camps."}
-        </div>
-        <section className="rounded-xl border border-[var(--ad-border)] bg-black/20 p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold">Your Base</h2>
-            <span className="text-xs text-[var(--ad-text-soft)]">{me.actionsSubmitted || committed ? "Locked" : "Planning"}</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {me.houses.map((house, idx) => {
-              const active = Boolean(canAct && selectedDefense && !house.isDestroyed);
-              return (
-                <HousePill
-                  key={house.id}
-                  label={`House ${idx + 1}`}
-                  hp={`${house.hp}/${house.maxHp}`}
-                  active={active}
-                  onClick={active ? () => addDefense(selectedDefense!, house.id) : undefined}
-                />
-              );
-            })}
-          </div>
-        </section>
-      </section>
 
-      <section className="mt-4 ad-card p-3">
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-zinc-300">Round Breakdown</h2>
-        {latestRoundSummaries.length ? (
-          <div className="space-y-2">
-            {latestRoundSummaries.map((summary) => (
-              <div key={summary.playerId} className="rounded bg-zinc-800/80 px-2 py-2 text-xs">
-                <div className="font-semibold">{summary.displayName}</div>
-                <div>{summary.decisions.length ? summary.decisions.join(" | ") : "⏸️ No action"}</div>
+        <div className="sketchy wf-pad-2" style={{ background: "var(--paper-2)" }}>
+          <div className="wf-row wf-between wf-ai-c">
+            <PlayerTag name={me.displayName} you color="var(--accent-3)" />
+            <span className="wf-xs wf-muted">your base</span>
+          </div>
+          <HouseRow
+            houses={me.houses}
+            targetable={Boolean(canAct && selectedDefense)}
+            onHouseClick={(houseId) => selectedDefense && addDefense(selectedDefense, houseId)}
+          />
+        </div>
+
+        {actionButtons}
+
+        {phase === "resolution" && latestRoundSummaries.length > 0 ? (
+          <div className="sketchy-thin wf-pad-2 wf-col wf-gap-1">
+            <div className="wf-xs wf-upper wf-muted">what happened</div>
+            {latestRoundSummaries.map((s) => (
+              <div key={s.playerId} className="wf-xs">
+                · {s.displayName}: {s.decisions.length ? s.decisions.join(", ") : "no action"}
+              </div>
+            ))}
+            {latestRoundEvents.map((e, i) => (
+              <div key={i} className="wf-xs">
+                · {e.message}
               </div>
             ))}
           </div>
-        ) : (
-          <div className="text-sm text-zinc-400">Round recap appears after timer ends.</div>
-        )}
-        {latestRoundEvents.length ? (
-          <ul className="mt-3 space-y-1 text-sm">
-            {latestRoundEvents.map((event, idx) => (
-              <li key={`${event.type}-${idx}`} className="rounded bg-zinc-800/80 px-2 py-1">
-                {event.message}
-              </li>
-            ))}
-          </ul>
         ) : null}
       </section>
 
-      {room.phase === "decision" ? (
-        <section className="fixed bottom-0 left-0 right-0 border-t border-[var(--ad-border)] bg-[#0b1020f2] p-4 backdrop-blur-md">
-          <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
-            <div className="text-xs text-[var(--ad-text-soft)]">Step 1: pick attack/defense. Step 2: choose target house/player. Step 3: lock action.</div>
-            <div className="grid grid-cols-2 gap-2">
-              <button className={`h-10 rounded font-bold ${activeTab === "attack" ? "ad-btn-secondary" : "bg-zinc-800"}`} onClick={() => setActiveTab("attack")}>
-                Attack
-              </button>
-              <button className={`h-10 rounded font-bold ${activeTab === "defense" ? "ad-btn-secondary" : "bg-zinc-800"}`} onClick={() => setActiveTab("defense")}>
-                Defense
-              </button>
-            </div>
-            <div className="grid gap-2 md:grid-cols-3">
-              {activeTab === "attack"
-                ? (Object.keys(ATTACK_CONFIG) as AttackType[]).map((type) => (
-                    <button key={type} className="rounded border border-[var(--ad-border)] bg-black/25 p-2 text-left transition hover:border-indigo-400" onClick={() => selectActionType("attack", type)}>
-                      <div className="font-medium">{ATTACK_CONFIG[type].name}</div>
-                      <div className="text-xs text-[var(--ad-text-soft)]">{ATTACK_CONFIG[type].description}</div>
-                    </button>
-                  ))
-                : (Object.keys(DEFENSE_CONFIG) as DefenseType[]).map((type) => (
-                    <button key={type} className="rounded border border-[var(--ad-border)] bg-black/25 p-2 text-left transition hover:border-cyan-400" onClick={() => selectActionType("defense", type)}>
-                      <div className="font-medium">{DEFENSE_CONFIG[type].name}</div>
-                      <div className="text-xs text-[var(--ad-text-soft)]">{DEFENSE_CONFIG[type].description}</div>
-                    </button>
-                  ))}
-            </div>
-            <div className="flex gap-2">
-              <button className="ad-btn-ghost h-10 px-4 text-sm font-semibold" onClick={cancelSelection}>
-                Clear pick
-              </button>
-              <button
-                className="ad-btn-primary h-10 flex-1"
-                onClick={() => submitActions(params.roomId, { playerId: me.id, attacks: pending.attacks, defenses: pending.defenses })}
-              >
-                Lock round action
-              </button>
-            </div>
+      {/* Desktop — Direction D (top-down map) */}
+      <section className="hidden md:flex md:flex-col wf-gap-2 wf-grow" style={{ minHeight: "85vh" }}>
+        <div className="sketchy-thin wf-pad-2 wf-row wf-between wf-ai-c">
+          <span className="hand wf-xl">
+            round {room.round} · {phase}
+          </span>
+          <PipTimer filled={pipFilled} total={15} label={`${secondsLeft}s`} />
+          <div style={{ width: 200 }}>
+            <EnergyMeter value={me.energy} pending={pendingEnergy} />
           </div>
-        </section>
-      ) : (
-        <div className="fixed bottom-0 left-0 right-0 border-t border-[var(--ad-border)] bg-[#0b1020f2] p-4 text-center text-sm text-zinc-200">
-          {room.phase === "waiting"
-            ? `Match starts in ${secondsLeft}s. Plan round 1.`
-            : `Breather ${secondsLeft}s: review what everyone selected and what happened.`}
         </div>
-      )}
+
+        <div className="sketchy wf-grow wf-col" style={{ background: "var(--paper-2)", padding: 12, position: "relative", minHeight: 360 }}>
+          <div className="wf-row wf-between">
+            {opponents.map((o, i) => (
+              <div key={o.id} className="wf-col wf-ai-c wf-gap-1" style={{ opacity: o.isEliminated ? 0.5 : 1 }}>
+                <div className="wf-xs wf-b">{o.displayName}</div>
+                <HouseRow
+                  houses={o.houses}
+                  targetable={Boolean(canAct && selectedAttack && ATTACK_CONFIG[selectedAttack].target === "house")}
+                  onHouseClick={(houseId) => selectedAttack && addAttack(selectedAttack, o.id, houseId)}
+                />
+                <span className="chip energy">⚡{o.energy}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="wf-grow wf-center wf-col">
+            {phase === "waiting" ? (
+              <div className="hand wf-xl">match starts in {secondsLeft}s</div>
+            ) : phase === "resolution" ? (
+              <>
+                <div className="hand wf-muted">resolving…</div>
+                <div className="wf-small wf-muted wf-mt-2 wf-center-text">
+                  {latestRoundEvents.slice(0, 3).map((e) => e.message).join(" · ")}
+                </div>
+              </>
+            ) : (
+              <div className="hand wf-muted">↕ tap to target</div>
+            )}
+          </div>
+
+          <div className="wf-col wf-ai-c wf-gap-1">
+            <span className="chip">
+              ⚡{me.energy}
+              {pendingEnergy ? ` (-${pendingEnergy})` : ""}
+            </span>
+            <HouseRow
+              houses={me.houses}
+              targetable={Boolean(canAct && selectedDefense)}
+              onHouseClick={(houseId) => selectedDefense && addDefense(selectedDefense, houseId)}
+            />
+            <PlayerTag name={me.displayName} you />
+          </div>
+        </div>
+
+        {phase === "decision" ? (
+          <div className="sketchy-thin wf-pad-2 wf-row wf-gap-2 wf-between wf-ai-c" style={{ flexWrap: "wrap" }}>
+            <div className="wf-row wf-gap-1" style={{ flexWrap: "wrap", flex: 1 }}>
+              {(Object.keys(ATTACK_CONFIG) as AttackType[]).map((type) => (
+                <ActionCard
+                  key={type}
+                  kind="attack"
+                  name={ATTACK_CONFIG[type].name.toLowerCase()}
+                  cost={ATTACK_CONFIG[type].energyCost}
+                  desc={ATTACK_CONFIG[type].description}
+                  sm
+                  selected={pending.attacks[0]?.type === type}
+                  disabled={!canAct}
+                  onClick={() => {
+                    setActiveTab("attack");
+                    selectActionType("attack", type);
+                  }}
+                />
+              ))}
+              {(Object.keys(DEFENSE_CONFIG) as DefenseType[]).map((type) => (
+                <ActionCard
+                  key={type}
+                  kind="defense"
+                  name={DEFENSE_CONFIG[type].name.toLowerCase()}
+                  cost={DEFENSE_CONFIG[type].energyCost}
+                  desc={DEFENSE_CONFIG[type].description}
+                  sm
+                  selected={pending.defenses[0]?.type === type}
+                  disabled={!canAct}
+                  onClick={() => {
+                    setActiveTab("defense");
+                    selectActionType("defense", type);
+                  }}
+                />
+              ))}
+            </div>
+            <WBtn
+              variant="primary"
+              disabled={!canAct || (pending.attacks.length === 0 && pending.defenses.length === 0)}
+              onClick={() => submitActions(params.roomId, { playerId: me.id, attacks: pending.attacks, defenses: pending.defenses })}
+            >
+              submit (1 · {lockCost || 0}⚡) →
+            </WBtn>
+            <WBtn sm onClick={cancelSelection}>
+              clear
+            </WBtn>
+          </div>
+        ) : (
+          <div className="sketchy-thin wf-pad-2 wf-center-text wf-small">
+            {phase === "waiting"
+              ? `Pregame · plan round 1 · ${secondsLeft}s left`
+              : `Breather · next round in ${secondsLeft}s`}
+          </div>
+        )}
+
+        {phase === "resolution" && latestRoundSummaries.length > 0 ? (
+          <div className="sketchy-thin wf-pad-2">
+            <div className="wf-xs wf-upper wf-muted wf-mb-1">round log</div>
+            {latestRoundSummaries.map((s) => (
+              <div className="wf-xs" key={s.playerId}>
+                · {s.displayName}: {s.decisions.join(" | ") || "no action"}
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </section>
     </main>
   );
 }

@@ -1,59 +1,126 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Hatch, WBtn } from "@/components/attack-defense/wf-primitives";
+
+interface LastResult {
+  winnerId?: string;
+  round?: number;
+  meName?: string;
+  won?: boolean;
+}
 
 export default function AttackDefenseResultsPage() {
   const router = useRouter();
+  const [result, setResult] = useState<LastResult | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("ad_last_result");
+      if (raw) setResult(JSON.parse(raw) as LastResult);
+    } catch {
+      setResult(null);
+    }
+  }, []);
+
+  const outcome = result?.won ? "win" : result?.won === false ? "loss" : "win";
+  const name = result?.meName ?? "kul";
+  const roundLabel = result?.round ? `round ${result.round}` : "round 7";
 
   return (
-    <main className="ad-container">
-      {/* Mobile - Direction C (Podium + MVP) */}
-      <section className="md:hidden ad-card p-5 text-center">
-        <span className="ad-tag">Victory</span>
-        <h1 className="ad-title mt-3 text-4xl">kul standing.</h1>
-        <div className="mt-5 flex items-end justify-center gap-2">
-          <div className="rounded border border-[var(--ad-border)] bg-black/25 px-3 py-4 text-xs">ASH<br />#2</div>
-          <div className="rounded border border-[var(--ad-border)] bg-[var(--ad-accent-primary)]/25 px-3 py-7 text-xs font-bold">KUL<br />#1</div>
-          <div className="rounded border border-[var(--ad-border)] bg-black/25 px-3 py-3 text-xs">BOT-K<br />#3</div>
+    <main className="wf-container wf-col wf-gap-3" style={{ paddingTop: "1.5rem", paddingBottom: "2rem" }}>
+      {/* Mobile — Direction C (podium) */}
+      <section className="md:hidden wf-col wf-gap-2 wf-grow">
+        <div className="wf-center-text">
+          <span className="stamp">{outcome === "win" ? "victory" : outcome === "loss" ? "defeat" : "draw"}</span>
         </div>
-        <div className="mt-4 rounded-lg border border-[var(--ad-border)] bg-black/25 p-3 text-sm">
-          MVP move: R6 area blast on ASH
+        <div className="hand wf-center-text" style={{ fontSize: 36, marginTop: 4 }}>
+          {outcome === "win" ? `${name} standing.` : `${name} fell.`}
         </div>
+        <div className="wf-row wf-gap-2 wf-ai-c wf-center wf-mt-2" style={{ height: 160 }}>
+          <div className="wf-col wf-ai-c">
+            <div className="wf-xs">opponent</div>
+            <Hatch w={60} h={60} label="2" />
+          </div>
+          <div className="wf-col wf-ai-c">
+            <div className="wf-xs wf-b">{name.toUpperCase()}</div>
+            <Hatch w={64} h={100} label="1" style={{ background: "var(--accent-3)" }} />
+          </div>
+          <div className="wf-col wf-ai-c">
+            <div className="wf-xs">bot</div>
+            <Hatch w={60} h={40} label="3" />
+          </div>
+        </div>
+        <div className="sketchy-thin wf-pad-2">
+          <div className="wf-xs wf-upper wf-muted">mvp move</div>
+          <div className="hand">last round swing</div>
+        </div>
+        <WBtn variant="primary" full onClick={() => router.push("/games/attack-defense/play/lobby")}>
+          rematch
+        </WBtn>
+        <WBtn full onClick={() => router.push("/games/attack-defense/play/lobby")}>
+          lobby
+        </WBtn>
       </section>
 
-      {/* Desktop - Direction B (Timeline recap) */}
-      <section className="mt-4 hidden md:block ad-card-strong p-6">
-        <div className="flex items-center justify-between">
-          <h1 className="ad-title text-5xl">KUL wins.</h1>
-          <span className="text-sm text-[var(--ad-text-soft)]">Round 7 · 2m 14s</span>
+      {/* Desktop — Direction B (timeline) */}
+      <section className="hidden md:flex md:flex-col wf-gap-3 wf-grow">
+        <div className="wf-row wf-between wf-ai-c">
+          <div className="hand" style={{ fontSize: 48 }}>
+            {outcome === "win" ? `⚑ ${name} wins.` : `${name} fell.`}
+          </div>
+          <div className="wf-muted">{roundLabel} · 2m 14s</div>
         </div>
-        <div className="mt-5 grid grid-cols-7 gap-2">
-          {[1, 2, 3, 4, 5, 6, 7].map((round) => (
-            <div key={round} className="rounded border border-[var(--ad-border)] bg-black/20 p-2 text-center">
-              <div className="text-xs text-[var(--ad-text-soft)]">R{round}</div>
-              <div className="mt-2 h-14 rounded bg-gradient-to-t from-indigo-500/50 to-transparent" />
-            </div>
-          ))}
+        <div className="sketchy wf-pad-3" style={{ background: "var(--paper-2)" }}>
+          <div className="wf-row wf-gap-2 wf-ai-end" style={{ justifyContent: "space-between" }}>
+            {[1, 2, 3, 4, 5, 6, 7].map((r) => (
+              <div key={r} className="wf-col wf-gap-1 wf-ai-c">
+                <div className="wf-row wf-gap-1 wf-ai-end">
+                  <div style={{ width: 10, height: Math.max(8, 80 - r * 8), background: "var(--accent-3)", border: "1.5px solid var(--ink)" }} />
+                  <div style={{ width: 10, height: Math.max(8, 72 - r * 10), background: "#ffd6cc", border: "1.5px solid var(--ink)" }} />
+                  <div style={{ width: 10, height: Math.max(4, 64 - r * 12), background: "#cce0f0", border: "1.5px solid var(--ink)" }} />
+                </div>
+                <span className="mono wf-xs">R{r}</span>
+              </div>
+            ))}
+          </div>
+          <div className="wf-row wf-gap-3 wf-mt-2 wf-small">
+            <span>
+              <span style={{ background: "var(--accent-3)", border: "1.5px solid var(--ink)", display: "inline-block", width: 10, height: 10, marginRight: 4 }} />
+              {name}
+            </span>
+            <span>
+              <span style={{ background: "#ffd6cc", border: "1.5px solid var(--ink)", display: "inline-block", width: 10, height: 10, marginRight: 4 }} />
+              opponent
+            </span>
+            <span>
+              <span style={{ background: "#cce0f0", border: "1.5px solid var(--ink)", display: "inline-block", width: 10, height: 10, marginRight: 4 }} />
+              bot
+            </span>
+          </div>
         </div>
-        <div className="mt-4 rounded-lg border border-[var(--ad-border)] bg-black/25 p-3 text-sm text-[var(--ad-text-soft)]">
-          Key moments: R3 sneak pressure, R4 bot elimination, R6 area blast swing.
+        <div className="wf-row wf-gap-3">
+          <div className="sketchy-thin wf-pad-2 wf-grow">
+            <div className="wf-xs wf-upper wf-muted">key moments</div>
+            <ul className="wf-small" style={{ margin: "4px 0 0 16px", padding: 0 }}>
+              <li>Early shields traded</li>
+              <li>Mid-game sneak pressure</li>
+              <li>Final elimination swing</li>
+            </ul>
+          </div>
+          <div className="sketchy-thin wf-pad-2" style={{ width: 200 }}>
+            <div className="wf-xs wf-upper wf-muted">result</div>
+            <div className="mono wf-b wf-lg">{outcome === "win" ? "WIN" : "LOSS"}</div>
+          </div>
+        </div>
+        <div className="wf-row wf-gap-2">
+          <WBtn variant="primary" onClick={() => router.push("/games/attack-defense/play/lobby")}>
+            rematch →
+          </WBtn>
+          <WBtn onClick={() => router.push("/games/attack-defense/play/lobby")}>lobby</WBtn>
         </div>
       </section>
-
-      <div className="mt-4 flex flex-col gap-2 md:flex-row">
-        <button
-          className="ad-btn-primary h-12 flex-1"
-          onClick={() => router.push("/games/attack-defense/play/lobby")}
-        >
-          Rematch
-        </button>
-        <button
-          className="ad-btn-ghost h-12 flex-1 font-semibold"
-          onClick={() => router.push("/games/attack-defense/play/lobby")}
-        >
-          Back to lobby
-        </button>
-      </div>
     </main>
   );
 }

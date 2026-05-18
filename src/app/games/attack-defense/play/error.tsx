@@ -1,5 +1,7 @@
 "use client";
 
+import { WBtn } from "@/components/attack-defense/wf-primitives";
+
 export default function AttackDefensePlayError({
   error,
   reset,
@@ -8,17 +10,19 @@ export default function AttackDefensePlayError({
   reset: () => void;
 }) {
   return (
-    <main className="ad-container min-h-screen py-10">
-      <section className="ad-card p-6">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--ad-text-soft)]">Route recovery</p>
-        <h1 className="ad-title mt-2 text-3xl">Game screen hit an error</h1>
-        <p className="mt-3 text-sm text-[var(--ad-text-soft)]">
-          A runtime issue interrupted rendering. Retry once, and if this repeats, refresh the page.
+    <main className="wf-container wf-pad-3">
+      <section className="sketchy wf-pad-3 wf-col wf-gap-3">
+        <span className="stamp">error</span>
+        <h1 className="hand" style={{ fontSize: 36 }}>
+          Game screen hit a snag
+        </h1>
+        <p className="scribble wf-small wf-muted">A runtime issue interrupted rendering. Retry once, or refresh the page.</p>
+        <p className="mono wf-xs" style={{ color: "var(--accent)" }}>
+          {error.message}
         </p>
-        <p className="mt-3 rounded-lg bg-black/25 px-3 py-2 text-xs text-rose-200">{error.message}</p>
-        <button className="ad-btn-primary mt-4 h-11 px-4" onClick={reset}>
+        <WBtn variant="primary" onClick={reset}>
           Retry screen
-        </button>
+        </WBtn>
       </section>
     </main>
   );
