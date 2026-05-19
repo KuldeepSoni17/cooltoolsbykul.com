@@ -32,6 +32,7 @@ export const SUBDOMAIN_ROUTES: Record<string, string> = {
   summary: "/summary",
   watchlist: "/watchlist",
   echo: "/echo",
+  divergence: "/divergence",
 };
 
 /** Static SPA folders under public/ that need index.html fallback. */
