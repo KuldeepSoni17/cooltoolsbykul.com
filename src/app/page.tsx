@@ -159,6 +159,14 @@ export default function Home() {
       accent: "from-indigo-300/30 via-violet-500/20 to-transparent",
       href: "/graph-isomorphism",
     },
+    {
+      title: "Mysteries",
+      description:
+        "A space to explore murders, serial cases, cold files, and the rabbit holes worth losing an evening in.",
+      vibe: "Follow the clues",
+      accent: "from-red-400/30 via-rose-900/20 to-transparent",
+      href: "/mysteries",
+    },
   ];
 
   return (
