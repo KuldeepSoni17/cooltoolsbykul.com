@@ -136,7 +136,7 @@
     position: absolute;
     border-radius: 8px;
     transition: left 140ms cubic-bezier(.25,.7,.3,1), top 140ms cubic-bezier(.25,.7,.3,1),
-                transform 220ms ease, opacity 220ms ease, background 200ms ease;
+                opacity 220ms ease, background 240ms ease, color 240ms ease;
   }
 
   .cell-bg { background: var(--grid); }
@@ -150,12 +150,38 @@
     font-weight: 800;
     box-shadow: 0 1px 0 rgba(0,0,0,0.15);
     font-family: "SF Pro Display", system-ui, sans-serif;
+    letter-spacing: -0.01em;
+    padding: 0 4px;
+    text-align: center;
+    line-height: 1;
   }
   .tile.rare { color: var(--rare); }
+  .tile.multi {
+    background: linear-gradient(135deg, #f5e7c8, #d9b878);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: #2a1f10;
+  }
   .tile.scoring {
     background: var(--clear);
     color: white;
-    transform: scale(1.05);
+  }
+  .tile.merge-pulse {
+    animation: mergePulse 320ms cubic-bezier(.2,.8,.4,1.2);
+    z-index: 2;
+  }
+  @keyframes mergePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.16); }
+    100% { transform: scale(1); }
+  }
+  .tile.shake {
+    animation: shake 220ms ease;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
   }
   .tile.clearing {
     transform: scale(0.3);
@@ -259,7 +285,7 @@
       <div class="score-box"><div class="score-label">Best</div><div class="score-value" id="best">0</div></div>
     </div>
   </div>
-  <div class="hint">Swipe or arrow keys — slide tiles to form words across rows or columns</div>
+  <div class="hint">Swipe to merge letters — build prefixes, complete words clear and score</div>
   <div class="grid" id="grid">
     <div class="grid-cells" id="grid-cells"></div>
     <div class="toasts" id="toasts"></div>
@@ -306,7 +332,9 @@ const $toasts = document.getElementById("toasts");
 const $overlay = document.getElementById("overlay");
 const $overlayScore = document.getElementById("overlay-score");
 
-let state, animating = false, lastDir = "down";
+const MIN_WORD = 3;
+let PREFIXES = null;
+let state, animating = false;
 
 function pctPos(r, c) {
   return {
@@ -330,19 +358,43 @@ function buildBackground() {
   }
 }
 
-function makeTile(letter, r, c) {
+function buildPrefixes() {
+  PREFIXES = new Set();
+  for (const w of window.WORDS) {
+    for (let i = 1; i <= w.length; i++) PREFIXES.add(w.slice(0, i));
+  }
+}
+
+function fontSizeFor(text) {
+  const len = text.length;
+  if (len <= 1) return "clamp(22px, 7.5vw, 36px)";
+  if (len === 2) return "clamp(18px, 6.2vw, 30px)";
+  if (len === 3) return "clamp(15px, 5vw, 25px)";
+  if (len === 4) return "clamp(12px, 4vw, 20px)";
+  if (len === 5) return "clamp(11px, 3.6vw, 18px)";
+  return "clamp(9px, 3vw, 15px)";
+}
+
+function applyTileLook(tile) {
+  tile.el.textContent = tile.text;
+  tile.el.style.fontSize = fontSizeFor(tile.text);
+  tile.el.classList.toggle("multi", tile.text.length >= 2);
+  tile.el.classList.toggle("rare", tile.text.length === 1 && RARE.has(tile.text));
+}
+
+function makeTile(text, r, c) {
   const el = document.createElement("div");
-  el.className = "tile spawn" + (RARE.has(letter) ? " rare" : "");
-  el.textContent = letter;
+  el.className = "tile spawn";
   const p = pctPos(r, c);
   el.style.left = p.left + "%";
   el.style.top = p.top + "%";
   el.style.width = CELL_PCT + "%";
   el.style.height = CELL_PCT + "%";
-  el.style.fontSize = "clamp(22px, 7.5vw, 36px)";
   $cells.appendChild(el);
+  const tile = { text, el };
+  applyTileLook(tile);
   setTimeout(() => el.classList.remove("spawn"), 280);
-  return { letter, el };
+  return tile;
 }
 
 function placeTile(tile, r, c) {
@@ -358,8 +410,7 @@ function newGame() {
     best: Number(localStorage.getItem("wordfall_best") || 0)
   };
   Array.from($cells.querySelectorAll(".tile")).forEach(n => n.remove());
-  // Initial sprinkle
-  for (let i = 0; i < 8; i++) spawnRandom();
+  for (let i = 0; i < 6; i++) spawnRandom();
   $score.textContent = 0;
   $best.textContent = state.best;
   $combo.textContent = "";
@@ -378,216 +429,185 @@ function spawnRandom() {
   return true;
 }
 
-function slide(dir) {
-  if (animating) return;
-  const g = state.grid;
-  let moved = false;
+// Slide a single line of tiles. Each existing tile in `tiles` may be:
+//   - kept (placed at a new slot)
+//   - absorbed into a neighbor via merge (tiles concatenate in reading order)
+// A merged tile can NOT absorb another tile in the same swipe (one merge per tile per turn).
+// Returns: { line: array(SIZE) of tile|null, merges: [{ keeper, absorbed, newText, isWord }] }
+function processLine(tiles, slideToEnd) {
+  tiles.forEach(t => { if (t) t.mergedThisTurn = false; });
+  const result = Array(SIZE).fill(null);
+  const merges = [];
 
-  const compact = (line, toEnd) => {
-    const filled = line.filter(x => x);
-    const out = Array(SIZE).fill(null);
-    if (!toEnd) for (let i = 0; i < filled.length; i++) out[i] = filled[i];
-    else        for (let i = 0; i < filled.length; i++) out[SIZE - filled.length + i] = filled[i];
-    return out;
-  };
-
-  if (dir === "left" || dir === "right") {
-    for (let r = 0; r < SIZE; r++) {
-      const newRow = compact(g[r], dir === "right");
-      for (let c = 0; c < SIZE; c++) {
-        if (newRow[c] !== g[r][c]) moved = true;
-        g[r][c] = newRow[c];
+  if (!slideToEnd) {
+    let slot = 0;
+    for (let i = 0; i < SIZE; i++) {
+      const tile = tiles[i];
+      if (!tile) continue;
+      if (slot > 0) {
+        const prev = result[slot - 1];
+        if (prev && !prev.mergedThisTurn && !tile.mergedThisTurn) {
+          // prev is spatially LEFT of tile in this reading
+          const candidate = prev.text + tile.text;
+          if (PREFIXES.has(candidate.toLowerCase())) {
+            prev.mergedThisTurn = true;
+            merges.push({
+              keeper: prev,
+              absorbed: tile,
+              newText: candidate,
+              isWord: window.WORDS.has(candidate.toLowerCase()) && candidate.length >= MIN_WORD
+            });
+            continue;
+          }
+        }
       }
+      result[slot++] = tile;
     }
   } else {
-    for (let c = 0; c < SIZE; c++) {
-      const col = [];
-      for (let r = 0; r < SIZE; r++) col.push(g[r][c]);
-      const newCol = compact(col, dir === "down");
-      for (let r = 0; r < SIZE; r++) {
-        if (newCol[r] !== g[r][c]) moved = true;
-        g[r][c] = newCol[r];
+    let slot = SIZE - 1;
+    for (let i = SIZE - 1; i >= 0; i--) {
+      const tile = tiles[i];
+      if (!tile) continue;
+      if (slot < SIZE - 1) {
+        const prev = result[slot + 1];
+        if (prev && !prev.mergedThisTurn && !tile.mergedThisTurn) {
+          // tile (current iter) is spatially LEFT of prev
+          const candidate = tile.text + prev.text;
+          if (PREFIXES.has(candidate)) {
+            prev.mergedThisTurn = true;
+            // Spatially the keeper position stays at prev's slot.
+            // Reading order: tile first, prev second.
+            merges.push({
+              keeper: prev,
+              absorbed: tile,
+              newText: candidate,
+              isWord: window.WORDS.has(candidate) && candidate.length >= MIN_WORD
+            });
+            continue;
+          }
+        }
+      }
+      result[slot--] = tile;
+    }
+  }
+  return { line: result, merges };
+}
+
+function slide(dir) {
+  if (animating || !PREFIXES) return;
+
+  const horizontal = dir === "left" || dir === "right";
+  const slideToEnd = dir === "right" || dir === "down";
+  const oldGrid = state.grid.map(row => row.slice());
+  const allMerges = [];
+
+  for (let lineIdx = 0; lineIdx < SIZE; lineIdx++) {
+    const line = [];
+    for (let i = 0; i < SIZE; i++) {
+      line.push(horizontal ? state.grid[lineIdx][i] : state.grid[i][lineIdx]);
+    }
+    const { line: newLine, merges } = processLine(line, slideToEnd);
+    for (let i = 0; i < SIZE; i++) {
+      if (horizontal) state.grid[lineIdx][i] = newLine[i];
+      else state.grid[i][lineIdx] = newLine[i];
+    }
+    // Locate each merge's final (r,c) in updated grid
+    for (const m of merges) {
+      let pos = null;
+      for (let i = 0; i < SIZE && !pos; i++) {
+        const r = horizontal ? lineIdx : i;
+        const c = horizontal ? i : lineIdx;
+        if (state.grid[r][c] === m.keeper) pos = { r, c };
+      }
+      allMerges.push({ ...m, pos });
+    }
+  }
+
+  let moved = allMerges.length > 0;
+  if (!moved) {
+    outer: for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        if (oldGrid[r][c] !== state.grid[r][c]) { moved = true; break outer; }
       }
     }
   }
 
   if (!moved) {
-    // No motion. Still check if grid is full → game over.
-    if (gridFull()) showGameOver();
+    if (gridFull() && !anyMergePossible()) showGameOver();
     return;
   }
 
-  lastDir = dir;
   animating = true;
 
-  // Reposition tiles based on new grid state
-  for (let r = 0; r < SIZE; r++)
-    for (let c = 0; c < SIZE; c++)
-      if (g[r][c]) placeTile(g[r][c], r, c);
-
-  setTimeout(() => processCascade(0), 160);
-}
-
-function findWords() {
-  const matches = [];
-  const WORDS = window.WORDS;
-  if (!WORDS) return matches;
-
-  const processLine = (cells) => {
-    // cells: array of {r,c,letter} or null
-    let i = 0;
-    while (i < cells.length) {
-      if (!cells[i]) { i++; continue; }
-      let j = i;
-      while (j < cells.length && cells[j]) j++;
-      const run = cells.slice(i, j);
-      const str = run.map(x => x.letter.toLowerCase()).join("");
-      // Greedy longest-first, non-overlapping
-      const used = Array(run.length).fill(false);
-      for (let len = run.length; len >= 3; len--) {
-        for (let s = 0; s + len <= run.length; s++) {
-          if (used.slice(s, s + len).some(Boolean)) continue;
-          const sub = str.slice(s, s + len);
-          if (WORDS.has(sub)) {
-            matches.push({ word: sub, cells: run.slice(s, s + len).map(x => [x.r, x.c]) });
-            for (let k = s; k < s + len; k++) used[k] = true;
-          }
-        }
-      }
-      i = j;
-    }
-  };
-
+  // Animate absorbed tiles to keeper positions, and all other tiles to their new positions.
+  for (const m of allMerges) if (m.pos) placeTile(m.absorbed, m.pos.r, m.pos.c);
   for (let r = 0; r < SIZE; r++) {
-    const line = [];
-    for (let c = 0; c < SIZE; c++) line.push(state.grid[r][c] ? { r, c, letter: state.grid[r][c].letter } : null);
-    processLine(line);
-  }
-  for (let c = 0; c < SIZE; c++) {
-    const line = [];
-    for (let r = 0; r < SIZE; r++) line.push(state.grid[r][c] ? { r, c, letter: state.grid[r][c].letter } : null);
-    processLine(line);
-  }
-
-  // Dedupe by cell set (same word found via row+col shouldn't double-count; in practice this won't happen since rows and cols don't share runs)
-  return matches;
-}
-
-function clearMatches(matches, multiplier) {
-  let total = 0;
-  const cleared = new Set();
-
-  for (const m of matches) {
-    let base = 0;
-    for (const [r, c] of m.cells) base += LETTER_SCORE[state.grid[r][c].letter] || 1;
-    const gain = base * m.word.length * multiplier;
-    total += gain;
-    showToast(m.word.toUpperCase() + " +" + gain, multiplier > 1);
-    for (const [r, c] of m.cells) cleared.add(r * SIZE + c);
-  }
-
-  // Flash scoring tiles, then remove
-  for (const k of cleared) {
-    const r = Math.floor(k / SIZE), c = k % SIZE;
-    const t = state.grid[r][c];
-    if (!t) continue;
-    t.el.classList.add("scoring");
-  }
-  setTimeout(() => {
-    for (const k of cleared) {
-      const r = Math.floor(k / SIZE), c = k % SIZE;
-      const t = state.grid[r][c];
-      if (!t) continue;
-      t.el.classList.remove("scoring");
-      t.el.classList.add("clearing");
-      const el = t.el;
-      setTimeout(() => el.remove(), 240);
-      state.grid[r][c] = null;
-    }
-  }, 220);
-
-  state.score += total;
-  $score.textContent = state.score;
-  $score.classList.remove("bump");
-  void $score.offsetWidth;
-  $score.classList.add("bump");
-  if (state.score > state.best) {
-    state.best = state.score;
-    localStorage.setItem("wordfall_best", state.best);
-    $best.textContent = state.best;
-  }
-  return cleared.size;
-}
-
-function settleAfterClear() {
-  // Compact remaining tiles in the direction of last slide so gaps appear at the opposite edge,
-  // then we'll spawn new tiles into those edges.
-  const g = state.grid;
-  if (lastDir === "left" || lastDir === "right") {
-    for (let r = 0; r < SIZE; r++) {
-      const filled = g[r].filter(x => x);
-      const out = Array(SIZE).fill(null);
-      if (lastDir === "left") for (let i = 0; i < filled.length; i++) out[i] = filled[i];
-      else                    for (let i = 0; i < filled.length; i++) out[SIZE - filled.length + i] = filled[i];
-      for (let c = 0; c < SIZE; c++) g[r][c] = out[c];
-    }
-  } else {
     for (let c = 0; c < SIZE; c++) {
-      const col = [];
-      for (let r = 0; r < SIZE; r++) col.push(g[r][c]);
-      const filled = col.filter(x => x);
-      const out = Array(SIZE).fill(null);
-      if (lastDir === "up")   for (let i = 0; i < filled.length; i++) out[i] = filled[i];
-      else                    for (let i = 0; i < filled.length; i++) out[SIZE - filled.length + i] = filled[i];
-      for (let r = 0; r < SIZE; r++) g[r][c] = out[r];
+      if (state.grid[r][c]) placeTile(state.grid[r][c], r, c);
     }
   }
-  // Re-position
-  for (let r = 0; r < SIZE; r++)
-    for (let c = 0; c < SIZE; c++)
-      if (g[r][c]) placeTile(g[r][c], r, c);
+
+  setTimeout(() => completeSlide(allMerges), 165);
 }
 
-function processCascade(comboLevel) {
-  const matches = findWords();
-  if (matches.length > 0) {
-    const mult = comboLevel + 1;
-    if (mult > 1) {
-      $combo.textContent = "Combo ×" + mult;
-      showToast("COMBO ×" + mult, true);
+function completeSlide(allMerges) {
+  // Finalize merges: absorb DOM nodes, update keeper text, pulse, score words.
+  let totalGained = 0;
+  for (const m of allMerges) {
+    if (m.absorbed.el && m.absorbed.el.parentNode) m.absorbed.el.remove();
+    m.keeper.text = m.newText;
+    applyTileLook(m.keeper);
+    m.keeper.el.classList.add("merge-pulse");
+    setTimeout(() => m.keeper.el.classList.remove("merge-pulse"), 320);
+  }
+
+  const wordMerges = allMerges.filter(m => m.isWord);
+  if (wordMerges.length) {
+    for (const m of wordMerges) {
+      const gain = scoreFor(m.newText) * m.newText.length;
+      totalGained += gain;
+      showToast(m.newText.toUpperCase() + " +" + gain, false);
     }
-    clearMatches(matches, mult);
-    // wait for clear animation, settle, then re-check
+    state.score += totalGained;
+    $score.textContent = state.score;
+    $score.classList.remove("bump");
+    void $score.offsetWidth;
+    $score.classList.add("bump");
+    if (state.score > state.best) {
+      state.best = state.score;
+      localStorage.setItem("wordfall_best", state.best);
+      $best.textContent = state.best;
+    }
+
     setTimeout(() => {
-      settleAfterClear();
-      setTimeout(() => processCascade(mult), 200);
-    }, 480);
-    return;
-  }
-
-  // No more words to clear. Spawn 2 new tiles (or whatever fits).
-  const spawned = spawnRandom() + spawnRandom();
-  if (spawned === 0 && gridFull()) {
-    showGameOver();
-    animating = false;
-    return;
-  }
-
-  // After spawn, check if new tiles caused new words (edge case)
-  setTimeout(() => {
-    const newMatches = findWords();
-    if (newMatches.length > 0) {
-      clearMatches(newMatches, 1);
+      for (const m of wordMerges) {
+        m.keeper.el.classList.add("scoring");
+      }
       setTimeout(() => {
-        settleAfterClear();
-        setTimeout(() => processCascade(0), 200);
-      }, 480);
-    } else {
-      $combo.textContent = "";
-      animating = false;
-      if (gridFull() && !canMove()) showGameOver();
-    }
-  }, 280);
+        for (const m of wordMerges) {
+          m.keeper.el.classList.add("clearing");
+          const el = m.keeper.el;
+          setTimeout(() => el.remove(), 260);
+          if (m.pos) state.grid[m.pos.r][m.pos.c] = null;
+        }
+        setTimeout(finishTurn, 280);
+      }, 240);
+    }, 320);
+  } else {
+    setTimeout(finishTurn, 200);
+  }
+}
+
+function finishTurn() {
+  spawnRandom();
+  animating = false;
+  if (gridFull() && !anyMergePossible()) showGameOver();
+}
+
+function scoreFor(text) {
+  let s = 0;
+  for (const ch of text) s += LETTER_SCORE[ch] || 1;
+  return s;
 }
 
 function gridFull() {
@@ -597,11 +617,21 @@ function gridFull() {
   return true;
 }
 
-function canMove() {
-  // Any swipe would compact tiles to an edge. If grid is fully packed in all 4 directions, no move helps.
-  // With our compacting rule, "no move" = grid is full (every cell occupied), because then every direction
-  // leaves the grid unchanged.
-  return !gridFull();
+function anyMergePossible() {
+  if (!PREFIXES) return true;
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE - 1; c++) {
+      const a = state.grid[r][c], b = state.grid[r][c + 1];
+      if (a && b && PREFIXES.has((a.text + b.text).toLowerCase())) return true;
+    }
+  }
+  for (let c = 0; c < SIZE; c++) {
+    for (let r = 0; r < SIZE - 1; r++) {
+      const a = state.grid[r][c], b = state.grid[r + 1][c];
+      if (a && b && PREFIXES.has((a.text + b.text).toLowerCase())) return true;
+    }
+  }
+  return false;
 }
 
 function showGameOver() {
@@ -667,13 +697,13 @@ $grid.addEventListener("mouseup", e => {
 // Boot
 window.addEventListener("load", () => {
   buildBackground();
+  const start = () => { buildPrefixes(); newGame(); };
   if (!window.WORDS) {
-    // Wait briefly for words.js
     const wait = setInterval(() => {
-      if (window.WORDS) { clearInterval(wait); newGame(); }
+      if (window.WORDS) { clearInterval(wait); start(); }
     }, 50);
   } else {
-    newGame();
+    start();
   }
 });
 </script>
