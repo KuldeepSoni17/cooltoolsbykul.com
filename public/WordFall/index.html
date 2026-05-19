@@ -48,6 +48,7 @@
 
   .game {
     width: 100%;
+    max-width: min(460px, calc(100vh - 170px));
     max-width: min(460px, calc(100dvh - 170px));
     margin-top: clamp(8px, 4vh, 40px);
   }
@@ -285,7 +286,7 @@
       <div class="score-box"><div class="score-label">Best</div><div class="score-value" id="best">0</div></div>
     </div>
   </div>
-  <div class="hint">Swipe to merge letters — build prefixes, complete words clear and score</div>
+  <div class="hint">Swipe to merge letters — build prefixes, complete words clear and score <span style="opacity:0.5">· v3</span></div>
   <div class="grid" id="grid">
     <div class="grid-cells" id="grid-cells"></div>
     <div class="toasts" id="toasts"></div>
@@ -754,8 +755,38 @@ $grid.addEventListener("mouseup", e => {
   else slide(dy > 0 ? "down" : "up");
 });
 
+// Explicit JS sizing so the grid is always a square even when CSS
+// aspect-ratio (iOS < 15.4) or 100dvh fall through.
+function sizeGame() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const game = document.querySelector(".game");
+  const grid = document.getElementById("grid");
+  if (!game || !grid) return;
+  const horizPad = 28;
+  const chrome = 200; // header + hint + footer + margins
+  const maxByWidth = Math.min(460, vw - horizPad);
+  const maxByHeight = vh - chrome;
+  const side = Math.max(240, Math.min(maxByWidth, maxByHeight));
+  game.style.width = side + "px";
+  game.style.maxWidth = side + "px";
+  grid.style.width = side + "px";
+  grid.style.height = side + "px";
+  // Reposition any existing tiles since the grid pixel size changed
+  if (typeof state !== "undefined" && state && state.grid) {
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        if (state.grid[r][c]) placeTile(state.grid[r][c], r, c);
+      }
+    }
+  }
+}
+window.addEventListener("resize", sizeGame);
+window.addEventListener("orientationchange", sizeGame);
+
 // Boot
 window.addEventListener("load", () => {
+  sizeGame();
   buildBackground();
   const start = () => { buildPrefixes(); newGame(); };
   if (!window.WORDS) {
