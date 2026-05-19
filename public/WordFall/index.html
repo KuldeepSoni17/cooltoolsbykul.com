@@ -319,7 +319,7 @@
       <div class="score-box"><div class="score-label">Best</div><div class="score-value" id="best">0</div></div>
     </div>
   </div>
-  <div class="hint">Tap arrows (or swipe) to merge letters into words <span style="opacity:0.5">· v4</span></div>
+  <div class="hint">Tap arrows or swipe — line up letters and watch them chain into words <span style="opacity:0.5">· v5</span></div>
   <div class="grid" id="grid">
     <div class="grid-cells" id="grid-cells"></div>
     <div class="toasts" id="toasts"></div>
@@ -521,13 +521,12 @@ function spawnRandom() {
   return true;
 }
 
-// Slide a single line of tiles. Each existing tile in `tiles` may be:
-//   - kept (placed at a new slot)
-//   - absorbed into a neighbor via merge (tiles concatenate in reading order)
-// A merged tile can NOT absorb another tile in the same swipe (one merge per tile per turn).
-// Returns: { line: array(SIZE) of tile|null, merges: [{ keeper, absorbed, newText, isWord }] }
+// Slide a single line of tiles with CHAIN cascading: a tile that has already
+// absorbed a neighbor can keep absorbing more, as long as each successive
+// combined string stays a valid prefix. So [H, A, R, D] -> "HARD" in a single
+// swipe. The keeper's text mutates in-place as the chain extends so the
+// PREFIXES check at each step uses the new (longer) string.
 function processLine(tiles, slideToEnd) {
-  tiles.forEach(t => { if (t) t.mergedThisTurn = false; });
   const result = Array(SIZE).fill(null);
   const merges = [];
 
@@ -538,17 +537,17 @@ function processLine(tiles, slideToEnd) {
       if (!tile) continue;
       if (slot > 0) {
         const prev = result[slot - 1];
-        if (prev && !prev.mergedThisTurn && !tile.mergedThisTurn) {
+        if (prev) {
           // prev is spatially LEFT of tile in this reading
           const candidate = prev.text + tile.text;
           if (PREFIXES.has(candidate.toLowerCase())) {
-            prev.mergedThisTurn = true;
             merges.push({
               keeper: prev,
               absorbed: tile,
               newText: candidate,
               isWord: window.WORDS.has(candidate.toLowerCase()) && candidate.length >= MIN_WORD
             });
+            prev.text = candidate; // chain: next iteration checks against longer prefix
             continue;
           }
         }
@@ -562,19 +561,17 @@ function processLine(tiles, slideToEnd) {
       if (!tile) continue;
       if (slot < SIZE - 1) {
         const prev = result[slot + 1];
-        if (prev && !prev.mergedThisTurn && !tile.mergedThisTurn) {
+        if (prev) {
           // tile (current iter) is spatially LEFT of prev
           const candidate = tile.text + prev.text;
-          if (PREFIXES.has(candidate)) {
-            prev.mergedThisTurn = true;
-            // Spatially the keeper position stays at prev's slot.
-            // Reading order: tile first, prev second.
+          if (PREFIXES.has(candidate.toLowerCase())) {
             merges.push({
               keeper: prev,
               absorbed: tile,
               newText: candidate,
-              isWord: window.WORDS.has(candidate) && candidate.length >= MIN_WORD
+              isWord: window.WORDS.has(candidate.toLowerCase()) && candidate.length >= MIN_WORD
             });
+            prev.text = candidate;
             continue;
           }
         }
@@ -651,22 +648,38 @@ function slide(dir) {
 }
 
 function completeSlide(allMerges) {
-  // Finalize merges: absorb DOM nodes, update keeper text, pulse, score words.
-  let totalGained = 0;
+  // Group by keeper so chain merges (e.g. H+A+R+D into "HARD") only score once.
+  // After processLine, each keeper.text holds the FINAL chained string.
+  const keepers = new Map(); // keeper -> { absorbedTiles, finalText, isWord }
   for (const m of allMerges) {
-    if (m.absorbed.el && m.absorbed.el.parentNode) m.absorbed.el.remove();
-    m.keeper.text = m.newText;
-    applyTileLook(m.keeper);
-    m.keeper.el.classList.add("merge-pulse");
-    setTimeout(() => m.keeper.el.classList.remove("merge-pulse"), 320);
+    if (!keepers.has(m.keeper)) keepers.set(m.keeper, { absorbedTiles: [] });
+    keepers.get(m.keeper).absorbedTiles.push(m.absorbed);
+  }
+  for (const [k, info] of keepers.entries()) {
+    info.finalText = k.text;
+    info.isWord = window.WORDS.has(k.text.toLowerCase()) && k.text.length >= MIN_WORD;
   }
 
-  const wordMerges = allMerges.filter(m => m.isWord);
-  if (wordMerges.length) {
-    for (const m of wordMerges) {
-      const gain = scoreFor(m.newText) * m.newText.length;
+  // Remove absorbed DOM nodes and refresh each keeper's visual to the final text
+  for (const m of allMerges) {
+    if (m.absorbed.el && m.absorbed.el.parentNode) m.absorbed.el.remove();
+  }
+  for (const k of keepers.keys()) {
+    applyTileLook(k);
+    k.el.classList.add("merge-pulse");
+    setTimeout(() => k.el.classList.remove("merge-pulse"), 320);
+  }
+
+  const wordKeepers = [...keepers.entries()].filter(([, info]) => info.isWord);
+  if (wordKeepers.length) {
+    let totalGained = 0;
+    for (const [, info] of wordKeepers) {
+      // Length bonus: words 4+ letters get a small multiplier so longer is more
+      // satisfying. (3 = ×1, 4 = ×1.5, 5 = ×2, 6+ = ×3)
+      const lenBonus = info.finalText.length >= 6 ? 3 : info.finalText.length >= 5 ? 2 : info.finalText.length >= 4 ? 1.5 : 1;
+      const gain = Math.round(scoreFor(info.finalText) * info.finalText.length * lenBonus);
       totalGained += gain;
-      showToast(m.newText.toUpperCase() + " +" + gain, false);
+      showToast(info.finalText.toUpperCase() + " +" + gain, info.finalText.length >= 5);
     }
     state.score += totalGained;
     $score.textContent = state.score;
@@ -680,15 +693,15 @@ function completeSlide(allMerges) {
     }
 
     setTimeout(() => {
-      for (const m of wordMerges) {
-        m.keeper.el.classList.add("scoring");
-      }
+      for (const [k] of wordKeepers) k.el.classList.add("scoring");
       setTimeout(() => {
-        for (const m of wordMerges) {
-          m.keeper.el.classList.add("clearing");
-          const el = m.keeper.el;
+        for (const [k] of wordKeepers) {
+          k.el.classList.add("clearing");
+          const el = k.el;
           setTimeout(() => el.remove(), 260);
-          if (m.pos) state.grid[m.pos.r][m.pos.c] = null;
+          for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+            if (state.grid[r][c] === k) state.grid[r][c] = null;
+          }
         }
         setTimeout(finishTurn, 280);
       }, 240);
