@@ -323,6 +323,54 @@ const BAG = [];
 for (const [l, n] of Object.entries(LETTER_FREQ)) for (let i = 0; i < n; i++) BAG.push(l);
 const rand = () => BAG[Math.floor(Math.random() * BAG.length)];
 
+// Common letters used to seed a fresh board, kept friendly so the early game
+// always has something to merge. Excludes J, Q, V, X, Z entirely; goes light
+// on K, W, Y, B, F, G.
+const STARTER_BAG = (() => {
+  const counts = { A:5, E:6, I:4, O:5, U:3, R:5, S:4, T:5, L:4, N:5, D:3, C:3, M:3, H:3, P:3, B:2, F:2, G:2, K:1, W:1, Y:2 };
+  const b = [];
+  for (const [l, n] of Object.entries(counts)) for (let i = 0; i < n; i++) b.push(l);
+  return b;
+})();
+
+// Returns a letter that, when added to the board, can form a valid prefix with
+// at least one existing tile (joining on either side). Falls back to common
+// letters if no current tile has an extension. Weighted by Scrabble frequency
+// so the bag still feels varied.
+function smartLetter() {
+  // Build a multiset of letters that extend SOME tile into a valid prefix
+  const useful = {};
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      const t = state.grid[r][c];
+      if (!t) continue;
+      const text = t.text.toLowerCase();
+      for (let i = 0; i < 26; i++) {
+        const lower = String.fromCharCode(97 + i);
+        const upper = String.fromCharCode(65 + i);
+        if (PREFIXES.has(text + lower) || PREFIXES.has(lower + text)) {
+          useful[upper] = (useful[upper] || 0) + (LETTER_FREQ[upper] || 1);
+        }
+      }
+    }
+  }
+  const keys = Object.keys(useful);
+  if (keys.length) {
+    // 80% of the time pick a useful letter, 20% wildcard from starter bag to keep variety
+    if (Math.random() < 0.8) {
+      let total = 0;
+      for (const k of keys) total += useful[k];
+      let r = Math.random() * total;
+      for (const k of keys) {
+        r -= useful[k];
+        if (r <= 0) return k;
+      }
+      return keys[0];
+    }
+  }
+  return STARTER_BAG[Math.floor(Math.random() * STARTER_BAG.length)];
+}
+
 const $grid = document.getElementById("grid");
 const $cells = document.getElementById("grid-cells");
 const $score = document.getElementById("score");
@@ -425,7 +473,11 @@ function spawnRandom() {
       if (!state.grid[r][c]) empties.push([r, c]);
   if (!empties.length) return false;
   const [r, c] = empties[Math.floor(Math.random() * empties.length)];
-  state.grid[r][c] = makeTile(rand(), r, c);
+  // If the board is empty, just pick from the friendly starter bag.
+  // Otherwise prefer letters that can combine with something already on the board.
+  const hasAnyTile = (25 - empties.length) > 0;
+  const letter = hasAnyTile ? smartLetter() : STARTER_BAG[Math.floor(Math.random() * STARTER_BAG.length)];
+  state.grid[r][c] = makeTile(letter, r, c);
   return true;
 }
 
@@ -533,6 +585,14 @@ function slide(dir) {
   }
 
   if (!moved) {
+    // Tiles couldn't slide AND no merge happened — give a visual nudge so the
+    // player sees the swipe was registered.
+    const sample = [];
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (state.grid[r][c]) sample.push(state.grid[r][c]);
+    for (const t of sample.slice(0, 6)) {
+      t.el.classList.add("shake");
+      setTimeout(() => t.el.classList.remove("shake"), 240);
+    }
     if (gridFull() && !anyMergePossible()) showGameOver();
     return;
   }
