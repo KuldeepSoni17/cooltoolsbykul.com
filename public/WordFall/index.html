@@ -227,8 +227,41 @@
     100% { transform: translateY(-36px); opacity: 0; }
   }
 
+  .dpad {
+    margin: 14px auto 0;
+    display: grid;
+    grid-template-columns: 64px 64px 64px;
+    grid-template-rows: 48px 48px;
+    gap: 6px;
+    justify-content: center;
+  }
+  .dpad button {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--grid);
+    border-radius: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    padding: 0;
+    line-height: 1;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+  }
+  .dpad button:active {
+    background: var(--grid);
+    transform: translateY(1px);
+    box-shadow: none;
+  }
+  .dpad .up    { grid-column: 2; grid-row: 1; }
+  .dpad .left  { grid-column: 1; grid-row: 2; }
+  .dpad .down  { grid-column: 2; grid-row: 2; }
+  .dpad .right { grid-column: 3; grid-row: 2; }
+
   .footer {
-    margin-top: 14px;
+    margin-top: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -286,7 +319,7 @@
       <div class="score-box"><div class="score-label">Best</div><div class="score-value" id="best">0</div></div>
     </div>
   </div>
-  <div class="hint">Swipe to merge letters — build prefixes, complete words clear and score <span style="opacity:0.5">· v3</span></div>
+  <div class="hint">Tap arrows (or swipe) to merge letters into words <span style="opacity:0.5">· v4</span></div>
   <div class="grid" id="grid">
     <div class="grid-cells" id="grid-cells"></div>
     <div class="toasts" id="toasts"></div>
@@ -296,6 +329,12 @@
       <div class="overlay-score" id="overlay-score">0</div>
       <button class="restart" onclick="reset()">Play again</button>
     </div>
+  </div>
+  <div class="dpad" aria-label="Direction controls">
+    <button class="up"    onclick="move('up')"    aria-label="Up">↑</button>
+    <button class="left"  onclick="move('left')"  aria-label="Left">←</button>
+    <button class="down"  onclick="move('down')"  aria-label="Down">↓</button>
+    <button class="right" onclick="move('right')" aria-label="Right">→</button>
   </div>
   <div class="footer">
     <div class="combo-display" id="combo"></div>
@@ -764,10 +803,10 @@ function sizeGame() {
   const grid = document.getElementById("grid");
   if (!game || !grid) return;
   const horizPad = 28;
-  const chrome = 200; // header + hint + footer + margins
+  const chrome = 320; // header + hint + d-pad + footer + margins
   const maxByWidth = Math.min(460, vw - horizPad);
   const maxByHeight = vh - chrome;
-  const side = Math.max(240, Math.min(maxByWidth, maxByHeight));
+  const side = Math.max(220, Math.min(maxByWidth, maxByHeight));
   game.style.width = side + "px";
   game.style.maxWidth = side + "px";
   grid.style.width = side + "px";
