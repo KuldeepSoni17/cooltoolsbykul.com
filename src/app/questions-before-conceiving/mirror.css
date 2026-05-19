@@ -1,0 +1,87 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap");
+
+.mirror-root {
+  --mirror-bg: #0e0e0e;
+  --mirror-surface: #161616;
+  --mirror-surface-2: #1f1f1f;
+  --mirror-border: #2a2a2a;
+  --mirror-text: #f2f0eb;
+  --mirror-text-secondary: #8a8680;
+  --mirror-text-muted: #4a4844;
+  --mirror-accent: #c8a97e;
+  --mirror-accent-light: #d4b896;
+  --mirror-accent-dim: #3d3026;
+  --mirror-danger: #c97e7e;
+  --mirror-success: #7eaf8a;
+  --mirror-font-display: "Playfair Display", Georgia, serif;
+  --mirror-font-body: "DM Sans", system-ui, sans-serif;
+  --mirror-font-mono: "DM Mono", ui-monospace, monospace;
+  background: var(--mirror-bg);
+  color: var(--mirror-text);
+  font-family: var(--mirror-font-body);
+  min-height: 100vh;
+}
+
+.mirror-grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image: radial-gradient(circle at center, #ffffff20 0.6px, transparent 0.7px);
+  background-size: 3px 3px;
+  z-index: 0;
+}
+
+.mirror-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  z-index: 50;
+}
+
+.mirror-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--mirror-accent), var(--mirror-accent-light));
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mirror-question {
+  font-family: var(--mirror-font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1.35;
+  max-width: 40rem;
+}
+
+.mirror-eyebrow {
+  font-family: var(--mirror-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--mirror-accent);
+}
+
+.mirror-num-bg {
+  font-family: var(--mirror-font-display);
+  font-weight: 700;
+  font-size: 7.5rem;
+  line-height: 1;
+  color: rgba(200, 169, 126, 0.08);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mirror-progress-fill,
+  .mirror-card {
+    transition: none !important;
+  }
+}
