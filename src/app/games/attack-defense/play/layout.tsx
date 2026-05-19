@@ -1,18 +1,26 @@
 import type { ReactNode } from "react";
-import "./theme.css";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { AdScopeProvider } from "@/components/attack-defense/AdScopeProvider";
+import "./_styles/colors.css";
+import "./_styles/tokens.css";
+import "./_styles/base.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-sans-ad",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-mono-ad",
+});
 
 export default function AttackDefensePlayLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="wf-root paper-bg">
-      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
-        <defs>
-          <filter id="wob">
-            <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves={2} seed="3" />
-            <feDisplacementMap in="SourceGraphic" scale="1.4" />
-          </filter>
-        </defs>
-      </svg>
-      {children}
+    <div className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <AdScopeProvider>{children}</AdScopeProvider>
     </div>
   );
 }

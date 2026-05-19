@@ -1,0 +1,200 @@
+
+.ad-scope {
+  --font-sans: var(--font-sans-ad, "Inter", ui-sans-serif, system-ui, sans-serif);
+  --font-mono: var(--font-mono-ad, "JetBrains Mono", ui-monospace, monospace);
+  --font-display: var(--font-sans-ad, "Inter", ui-sans-serif, system-ui, sans-serif);
+}
+/* ============================================================
+ * ATK//DEF — Design Tokens
+ * Type, spacing, radii, elevation, motion.
+ * Pair with colors.css. Use semantic tokens in components.
+ * ============================================================ */
+
+.ad-scope {
+  /* —— Type families ————————————————————————————— */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system,
+               "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo,
+               Consolas, monospace;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* —— Type scale (mobile-first; desktop bumps via media) ———— */
+  --t-2xs: 10px;
+  --t-xs:  11px;
+  --t-sm:  13px;
+  --t-base:15px;
+  --t-md:  17px;
+  --t-lg:  20px;
+  --t-xl:  26px;
+  --t-2xl: 34px;
+  --t-3xl: 44px;
+  --t-4xl: 60px;
+  --t-5xl: 84px;
+
+  /* —— Line heights ——————————————————————————— */
+  --lh-tight: 1.05;
+  --lh-snug:  1.2;
+  --lh-body:  1.45;
+  --lh-loose: 1.6;
+
+  /* —— Weights ————————————————————————————————— */
+  --w-regular: 400;
+  --w-medium:  500;
+  --w-semi:    600;
+  --w-bold:    700;
+  --w-black:   800;
+
+  /* —— Tracking ———————————————————————————————— */
+  --track-tight: -0.02em;
+  --track-snug:  -0.005em;
+  --track-normal: 0;
+  --track-wide:   0.04em;
+  --track-eyebrow:0.12em;
+
+  /* —— Spacing scale (4px base) ———————————————————— */
+  --s-0:  0px;
+  --s-px: 1px;
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-7:  32px;
+  --s-8:  40px;
+  --s-9:  56px;
+  --s-10: 72px;
+  --s-11: 96px;
+
+  /* —— Radii (rounded-soft brand) ———————————————— */
+  --r-1: 6px;     /* chips, small controls */
+  --r-2: 10px;    /* inputs, buttons       */
+  --r-3: 14px;    /* cards                 */
+  --r-4: 20px;    /* hero / panel          */
+  --r-5: 28px;    /* phone-shell / modal   */
+  --r-pill: 999px;
+
+  /* —— Borders ————————————————————————————————— */
+  --bw-1: 1px;
+  --bw-2: 1.5px;
+  --bw-3: 2px;
+  --bw-4: 3px;
+
+  /* —— Elevation ————————————————————————————— */
+  --sh-0: none;
+  --sh-1: 0 1px 0 rgba(26,26,26,0.06),
+          0 1px 2px rgba(26,26,26,0.06);
+  --sh-2: 0 2px 4px rgba(26,26,26,0.06),
+          0 8px 18px rgba(26,26,26,0.08);
+  --sh-3: 0 6px 14px rgba(26,26,26,0.10),
+          0 22px 40px rgba(26,26,26,0.12);
+  --sh-inset: inset 0 1px 0 rgba(255,255,255,0.6),
+              inset 0 -1px 0 rgba(26,26,26,0.06);
+  --sh-stamp: 2px 2px 0 var(--fg);   /* tactical printed shadow */
+  --sh-stamp-lg: 4px 4px 0 var(--fg);
+
+  /* —— Motion ————————————————————————————————— */
+  --ease-out:    cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in:     cubic-bezier(0.5, 0, 0.75, 0);
+  --ease-in-out: cubic-bezier(0.6, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);  /* punchy back-out */
+
+  --d-fast: 120ms;
+  --d-base: 180ms;
+  --d-slow: 280ms;
+  --d-very: 480ms;
+
+  /* —— Z-index ————————————————————————————————— */
+  --z-base:    1;
+  --z-sticky:  10;
+  --z-drawer:  40;
+  --z-overlay: 50;
+  --z-toast:   60;
+  --z-modal:   70;
+
+  /* —— Layout containers ———————————————————————— */
+  --c-mobile:  420px;
+  --c-tablet:  720px;
+  --c-desktop: 1180px;
+  --c-wide:    1440px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+
+  /* —— Touch targets ——————————————————————————— */
+  --tap-min: 44px;
+}
+
+/* Desktop bumps display sizes one notch */
+@media (min-width: 768px) {
+  .ad-scope {
+    --t-3xl: 56px;
+    --t-4xl: 80px;
+    --t-5xl: 120px;
+  }
+}
+
+/* ============================================================
+ * Type helper classes
+ * ============================================================ */
+.ad-scope .t-display {
+  font-family: var(--font-display);
+  font-weight: var(--w-black);
+  letter-spacing: var(--track-tight);
+  line-height: var(--lh-tight);
+}
+.ad-scope .t-h1     { font-size: var(--t-3xl); font-weight: var(--w-bold); letter-spacing: var(--track-tight); line-height: var(--lh-tight); }
+.ad-scope .t-h2     { font-size: var(--t-2xl); font-weight: var(--w-bold); letter-spacing: var(--track-snug);  line-height: var(--lh-snug);  }
+.ad-scope .t-h3     { font-size: var(--t-xl);  font-weight: var(--w-semi); letter-spacing: var(--track-snug);  line-height: var(--lh-snug);  }
+.ad-scope .t-body   { font-size: var(--t-base); line-height: var(--lh-body); }
+.ad-scope .t-body-sm{ font-size: var(--t-sm);   line-height: var(--lh-body); }
+.ad-scope .t-caption{ font-size: var(--t-xs);   line-height: var(--lh-snug);  color: var(--fg-mute); }
+.ad-scope .t-eyebrow{
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  font-weight: var(--w-medium);
+}
+.ad-scope .t-mono   { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.ad-scope .t-num    { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+/* ============================================================
+ * Motion classes — punchy springs
+ * ============================================================ */
+@keyframes atkdef-pop {
+  0%   { transform: scale(0.92); opacity: 0; }
+  60%  { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes atkdef-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-3px) rotate(-0.4deg); }
+  40%      { transform: translateX(3px)  rotate(0.4deg); }
+  60%      { transform: translateX(-2px); }
+  80%      { transform: translateX(2px); }
+}
+@keyframes atkdef-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%      { box-shadow: 0 0 0 6px transparent; }
+}
+@keyframes atkdef-tick {
+  from { transform: scale(1); }
+  50%  { transform: scale(1.08); }
+  to   { transform: scale(1); }
+}
+@keyframes atkdef-fadein {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ad-scope .anim-pop     { animation: atkdef-pop var(--d-base) var(--ease-spring) both; }
+.ad-scope .anim-shake   { animation: atkdef-shake 320ms var(--ease-out); }
+.ad-scope .anim-pulse   { animation: atkdef-pulse 1200ms var(--ease-in-out) infinite; }
+.ad-scope .anim-tick    { animation: atkdef-tick var(--d-fast) var(--ease-spring); }
+.ad-scope .anim-fadein  { animation: atkdef-fadein var(--d-base) var(--ease-out) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-pop, .anim-shake, .anim-pulse, .anim-tick, .anim-fadein { animation: none; }
+  .ad-scope * { transition-duration: 1ms !important; }
+}

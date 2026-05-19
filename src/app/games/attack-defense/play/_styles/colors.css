@@ -1,0 +1,262 @@
+/* ============================================================
+ * ATK//DEF — Color Theme
+ * Paper feel + tactical accents.
+ * Light by default · [data-theme="dark"] swaps the palette.
+ *
+ * Naming convention
+ *   --color-{role}-{shade}        raw palette (don't use directly in components)
+ *   --bg-* / --fg-* / --line-*    semantic surfaces & ink
+ *   --attack-* / --defense-*      semantic action colors
+ *   --energy-*                    semantic resource color
+ *   --state-{ok|warn|bad|info}    feedback states
+ *
+ * Always reach for SEMANTIC tokens in components.
+ * Raw palette is only for theme authors.
+ * ============================================================ */
+
+.ad-scope {
+  color-scheme: light;
+
+  /* ---------- RAW PALETTE (light) ---------- */
+
+  /* Paper neutrals — warm, low-chroma cream → ink */
+  --color-paper-50:  #fbf8f0;
+  --color-paper-100: #f6f3eb;   /* page bg                     */
+  --color-paper-200: #efe9d8;   /* card / sunken               */
+  --color-paper-300: #e7dfc6;   /* hover / pressed             */
+  --color-paper-400: #d6cdb1;
+  --color-paper-500: #b8ad8e;
+  --color-paper-600: #8a8276;
+  --color-paper-700: #6a6357;
+  --color-paper-800: #3a3a3a;
+  --color-paper-900: #1a1a1a;   /* ink                          */
+
+  /* Attack — red-orange (offense, danger, destroyed) */
+  --color-attack-50:  #fff1ec;
+  --color-attack-100: #ffd6cc;
+  --color-attack-200: #f6a892;
+  --color-attack-300: #e87a5a;
+  --color-attack-400: #d94a2b;  /* primary attack               */
+  --color-attack-500: #b53b21;
+  --color-attack-600: #8e2c18;
+  --color-attack-700: #5e1d10;
+
+  /* Defense — steel blue (defense, info, shielded) */
+  --color-defense-50:  #eaf3fb;
+  --color-defense-100: #cce0f0;
+  --color-defense-200: #9bc1de;
+  --color-defense-300: #5d96c4;
+  --color-defense-400: #2a6ea8;  /* primary defense             */
+  --color-defense-500: #1f5683;
+  --color-defense-600: #16415e;
+  --color-defense-700: #0d2b3f;
+
+  /* Energy — warm gold (energy, currency, you) */
+  --color-energy-50:  #fff8d8;
+  --color-energy-100: #fbecb1;
+  --color-energy-200: #f3d97a;
+  --color-energy-300: #ecc640;
+  --color-energy-400: #e6b400;  /* primary energy              */
+  --color-energy-500: #b78b00;
+  --color-energy-600: #836300;
+
+  /* State */
+  --color-ok-400:   #2f7d32;
+  --color-warn-400: #c77a18;
+  --color-bad-400:  #b3261e;
+  --color-info-400: var(--color-defense-400);
+
+  /* ---------- SEMANTIC (light) ---------- */
+
+  /* Surfaces */
+  --bg:           var(--color-paper-100);  /* app background          */
+  --bg-sunken:    var(--color-paper-200);  /* recessed area / inset   */
+  --bg-raised:    #ffffff;                 /* cards, drawers          */
+  --bg-raised-2:  var(--color-paper-50);   /* nested raised           */
+  --bg-overlay:   rgba(26,26,26,0.45);     /* modal scrim             */
+  --bg-hover:     var(--color-paper-200);
+  --bg-pressed:   var(--color-paper-300);
+  --bg-selected:  var(--color-paper-300);
+
+  /* Ink (text + foreground) */
+  --fg:           var(--color-paper-900);  /* primary text            */
+  --fg-soft:      var(--color-paper-800);  /* secondary               */
+  --fg-mute:      var(--color-paper-700);  /* tertiary, captions      */
+  --fg-faint:     var(--color-paper-600);  /* placeholders, dividers' labels */
+  --fg-on-accent: #ffffff;                 /* text over attack/defense fills */
+  --fg-on-energy: var(--color-paper-900);  /* gold needs dark text     */
+
+  /* Lines */
+  --line:         rgba(26,26,26,0.16);
+  --line-strong:  rgba(26,26,26,0.55);
+  --line-focus:   var(--color-defense-400);
+
+  /* Attack semantic */
+  --attack:        var(--color-attack-400);
+  --attack-hover:  var(--color-attack-500);
+  --attack-active: var(--color-attack-600);
+  --attack-soft:   var(--color-attack-100);
+  --attack-fg:     var(--color-attack-700); /* attack text on paper    */
+  --attack-on:     #ffffff;                 /* text on attack fill     */
+
+  /* Defense semantic */
+  --defense:        var(--color-defense-400);
+  --defense-hover:  var(--color-defense-500);
+  --defense-active: var(--color-defense-600);
+  --defense-soft:   var(--color-defense-100);
+  --defense-fg:     var(--color-defense-600);
+  --defense-on:     #ffffff;
+
+  /* Energy semantic */
+  --energy:         var(--color-energy-400);
+  --energy-hover:   var(--color-energy-500);
+  --energy-soft:    var(--color-energy-100);
+  --energy-fg:      var(--color-energy-600);
+  --energy-on:      var(--color-paper-900);
+
+  /* Feedback */
+  --ok:    var(--color-ok-400);
+  --warn:  var(--color-warn-400);
+  --bad:   var(--color-bad-400);
+  --info:  var(--color-info-400);
+
+  /* House (board) state colors — mapped to semantic for re-themability */
+  --house-bg:         var(--bg-raised);
+  --house-border:     var(--line-strong);
+  --house-damaged:    var(--color-attack-100);   /* fill of cracked house */
+  --house-shielded-ring: var(--defense);
+  --house-trapped-mark:  var(--energy);
+  --house-destroyed-bg:  repeating-linear-gradient(
+                            45deg,
+                            rgba(26,26,26,0.08) 0 6px,
+                            transparent 6px 12px);
+  --house-target-ring:   var(--attack);
+
+  /* Player slots */
+  --player-you:  var(--color-energy-200);
+  --player-opp1: var(--color-attack-100);
+  --player-opp2: var(--color-defense-100);
+
+  /* Selection rings & focus */
+  --ring-focus:  0 0 0 2px var(--bg), 0 0 0 4px var(--line-focus);
+  --ring-attack: 0 0 0 2px var(--bg), 0 0 0 4px var(--attack);
+  --ring-defense:0 0 0 2px var(--bg), 0 0 0 4px var(--defense);
+
+  /* Stamped / paper shadow for tactical accents */
+  --shadow-stamp: 2px 2px 0 var(--color-paper-900);
+}
+
+/* ============================================================
+ * DARK — supportive. Keeps paper warmth via warm dark neutrals
+ * (avoid cold #0f172a-style slate; we want "lit war room", not "tech app")
+ * ============================================================ */
+.ad-scope[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg:           #14130f;
+  --bg-sunken:    #1c1b16;
+  --bg-raised:    #1f1d18;
+  --bg-raised-2:  #25241d;
+  --bg-overlay:   rgba(0,0,0,0.6);
+  --bg-hover:     #25241d;
+  --bg-pressed:   #2e2c24;
+  --bg-selected:  #2e2c24;
+
+  /* Ink */
+  --fg:           #f1ecdf;
+  --fg-soft:      #d6cfbe;
+  --fg-mute:      #a39c8a;
+  --fg-faint:     #6f6857;
+  --fg-on-accent: #ffffff;
+  --fg-on-energy: #14130f;
+
+  /* Lines */
+  --line:         rgba(241,236,223,0.16);
+  --line-strong:  rgba(241,236,223,0.45);
+  --line-focus:   #6ea8d6;
+
+  /* Attack — lifted to stay legible on dark paper */
+  --attack:        #ef6a4a;
+  --attack-hover:  #f48468;
+  --attack-active: #d94a2b;
+  --attack-soft:   #3a1a12;
+  --attack-fg:     #f6a892;
+  --attack-on:     #1a1a1a;
+
+  /* Defense */
+  --defense:        #6ea8d6;
+  --defense-hover:  #8bbde2;
+  --defense-active: #2a6ea8;
+  --defense-soft:   #112538;
+  --defense-fg:     #9bc1de;
+  --defense-on:     #14130f;
+
+  /* Energy */
+  --energy:        #f0c533;
+  --energy-hover:  #f6d05a;
+  --energy-soft:   #3a2e07;
+  --energy-fg:     #f3d97a;
+  --energy-on:     #14130f;
+
+  /* Feedback */
+  --ok:   #6abf6d;
+  --warn: #e3a352;
+  --bad:  #e85a52;
+  --info: var(--defense);
+
+  /* House state on dark */
+  --house-bg:         var(--bg-raised);
+  --house-border:     var(--line-strong);
+  --house-damaged:    rgba(239,106,74,0.18);
+  --house-shielded-ring: var(--defense);
+  --house-trapped-mark:  var(--energy);
+  --house-destroyed-bg:  repeating-linear-gradient(
+                            45deg,
+                            rgba(241,236,223,0.08) 0 6px,
+                            transparent 6px 12px);
+  --house-target-ring:   var(--attack);
+
+  --player-you:  rgba(240,197,51,0.25);
+  --player-opp1: rgba(239,106,74,0.20);
+  --player-opp2: rgba(110,168,214,0.22);
+
+  --ring-focus:  0 0 0 2px var(--bg), 0 0 0 4px var(--line-focus);
+  --ring-attack: 0 0 0 2px var(--bg), 0 0 0 4px var(--attack);
+  --ring-defense:0 0 0 2px var(--bg), 0 0 0 4px var(--defense);
+
+  --shadow-stamp: 2px 2px 0 #000;
+}
+
+/* Auto-dark when no explicit theme is set */
+/* ={3,}
+ * Quick-reference utility classes
+ * Optional — components should reference variables directly,
+ * but these help during prototyping and inline styles.
+ * ============================================================ */
+.ad-scope .bg-app        { background: var(--bg); }
+.ad-scope .bg-sunken     { background: var(--bg-sunken); }
+.ad-scope .bg-raised     { background: var(--bg-raised); }
+.ad-scope .bg-attack     { background: var(--attack);  color: var(--attack-on); }
+.ad-scope .bg-attack-soft{ background: var(--attack-soft);  color: var(--attack-fg); }
+.ad-scope .bg-defense    { background: var(--defense); color: var(--defense-on); }
+.ad-scope .bg-defense-soft{background: var(--defense-soft); color: var(--defense-fg); }
+.ad-scope .bg-energy     { background: var(--energy);  color: var(--energy-on); }
+.ad-scope .bg-energy-soft{ background: var(--energy-soft);  color: var(--energy-fg); }
+
+.fg            { color: var(--fg); }
+.ad-scope .fg-soft       { color: var(--fg-soft); }
+.ad-scope .fg-mute       { color: var(--fg-mute); }
+.ad-scope .fg-faint      { color: var(--fg-faint); }
+.ad-scope .fg-attack     { color: var(--attack-fg); }
+.ad-scope .fg-defense    { color: var(--defense-fg); }
+.ad-scope .fg-energy     { color: var(--energy-fg); }
+
+.ad-scope .border-line       { border: 1px solid var(--line); }
+.ad-scope .border-strong     { border: 1.5px solid var(--line-strong); }
+.ad-scope .border-attack     { border: 1.5px solid var(--attack); }
+.ad-scope .border-defense    { border: 1.5px solid var(--defense); }
+
+.ad-scope .ring-focus   { box-shadow: var(--ring-focus); }
+.ad-scope .ring-attack  { box-shadow: var(--ring-attack); }
+.ad-scope .ring-defense { box-shadow: var(--ring-defense); }

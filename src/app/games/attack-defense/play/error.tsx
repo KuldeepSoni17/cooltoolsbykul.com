@@ -1,6 +1,6 @@
 "use client";
 
-import { WBtn } from "@/components/attack-defense/wf-primitives";
+import { Btn } from "@/components/attack-defense/ui/Btn";
 
 export default function AttackDefensePlayError({
   error,
@@ -10,20 +10,24 @@ export default function AttackDefensePlayError({
   reset: () => void;
 }) {
   return (
-    <main className="wf-container wf-pad-3">
-      <section className="sketchy wf-pad-3 wf-col wf-gap-3">
-        <span className="stamp">error</span>
-        <h1 className="hand" style={{ fontSize: 36 }}>
+    <div className="ad-ad-page">
+      <section className="ad-card ad-card--raised ad-stack">
+        <span className="ad-eyebrow" style={{ color: "var(--attack-fg)" }}>
+          error
+        </span>
+        <h1 className="t-h2" style={{ margin: 0 }}>
           Game screen hit a snag
         </h1>
-        <p className="scribble wf-small wf-muted">A runtime issue interrupted rendering. Retry once, or refresh the page.</p>
-        <p className="mono wf-xs" style={{ color: "var(--accent)" }}>
+        <p className="t-body-sm" style={{ color: "var(--fg-mute)" }}>
+          A runtime issue interrupted rendering. Retry once, or refresh the page.
+        </p>
+        <p className="tk-mono t-caption" style={{ color: "var(--bad)" }}>
           {error.message}
         </p>
-        <WBtn variant="primary" onClick={reset}>
+        <Btn variant="primary" onClick={reset}>
           Retry screen
-        </WBtn>
+        </Btn>
       </section>
-    </main>
+    </div>
   );
 }
