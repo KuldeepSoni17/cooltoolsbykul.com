@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TimelineRacer — Create Stunning Timeline Videos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #080C10;
+      --surface:     #0E1520;
+      --surface2:    #131D2E;
+      --surface3:    #1A2540;
+      --border:      #1E2D45;
+      --border2:     #2A3F5C;
+      --accent:      #FF6B6B;
+      --accent2:     #4ECDC4;
+      --accent3:     #A78BFA;
+      --text:        #E8F0FE;
+      --text-muted:  #7A90B0;
+      --text-dim:    #4A6080;
+      --success:     #34D399;
+      --warning:     #FBBF24;
+      --error:       #F87171;
+      --radius:      12px;
+      --radius-lg:   20px;
+      --transition:  0.2s ease;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    /* ── Header ── */
+    header {
+      background: rgba(8, 12, 16, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo {
+      font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; white-space: nowrap;
+    }
+    .logo-sub { font-size: 0.68rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+
+    nav { margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+    .nav-btn {
+      padding: 0.4rem 0.85rem; border-radius: 8px; font-size: 0.82rem; font-weight: 500;
+      border: 1px solid var(--border2); background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: all var(--transition); white-space: nowrap;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      background: var(--surface3); color: var(--text); border-color: var(--accent2);
+    }
+
+    /* ── Pages ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Landing ── */
+    .landing {
+      min-height: calc(100vh - 60px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 3rem 1.5rem;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(78,205,196,0.08) 0%, transparent 70%),
+                  radial-gradient(ellipse 60% 50% at 80% 100%, rgba(167,139,250,0.06) 0%, transparent 60%);
+    }
+    .landing-hero { text-align: center; max-width: 760px; margin-bottom: 3rem; }
+    .landing-badge {
+      display: inline-block; padding: 0.3rem 1rem;
+      background: rgba(78,205,196,0.1); border: 1px solid rgba(78,205,196,0.3);
+      border-radius: 100px; font-size: 0.75rem; font-weight: 600; color: var(--accent2);
+      letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 1.25rem;
+    }
+    .landing-title {
+      font-size: clamp(1.9rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.1;
+      letter-spacing: -1.5px; margin-bottom: 1.1rem;
+    }
+    .landing-title span { background: linear-gradient(135deg, var(--accent), #FF9A6B, var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .landing-desc { font-size: 1rem; color: var(--text-muted); max-width: 520px; margin: 0 auto 2rem; }
+
+    .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; max-width: 820px; width: 100%; }
+
+    .mode-card {
+      position: relative; overflow: hidden;
+      border-radius: var(--radius-lg); border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 2rem 1.75rem 1.75rem;
+      cursor: pointer; transition: all 0.3s ease;
+      text-align: left;
+    }
+    .mode-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: var(--card-glow, transparent); opacity: 0; transition: opacity 0.3s;
+    }
+    .mode-card:hover { border-color: var(--card-border, var(--accent)); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+    .mode-card:hover::before { opacity: 1; }
+
+    .mode-card.race { --card-glow: radial-gradient(ellipse at 0% 0%, rgba(255,107,107,0.12) 0%, transparent 60%); --card-border: var(--accent); }
+    .mode-card.timeline { --card-glow: radial-gradient(ellipse at 100% 0%, rgba(167,139,250,0.12) 0%, transparent 60%); --card-border: var(--accent3); }
+
+    .card-icon {
+      width: 52px; height: 52px; border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; margin-bottom: 1rem;
+    }
+    .mode-card.race .card-icon { background: rgba(255,107,107,0.15); }
+    .mode-card.timeline .card-icon { background: rgba(167,139,250,0.15); }
+
+    .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.45rem; letter-spacing: -0.3px; }
+    .card-desc { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.6; }
+
+    .card-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1.5rem; }
+    .tag {
+      padding: 0.2rem 0.65rem; border-radius: 100px; font-size: 0.71rem; font-weight: 500;
+      background: var(--surface3); border: 1px solid var(--border2); color: var(--text-muted);
+    }
+
+    .card-cta {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 1.3rem; border-radius: 8px; font-size: 0.86rem; font-weight: 600;
+      border: none; cursor: pointer; transition: all var(--transition);
+    }
+    .mode-card.race .card-cta { background: var(--accent); color: white; }
+    .mode-card.race .card-cta:hover { background: #FF5252; }
+    .mode-card.timeline .card-cta { background: var(--accent3); color: white; }
+    .mode-card.timeline .card-cta:hover { background: #9061F9; }
+
+    /* ── App shell ── */
+    .app-shell {
+      max-width: 1100px; margin: 0 auto; padding: 1.75rem 1.25rem 4rem;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.83rem; color: var(--text-muted); cursor: pointer;
+      border: none; background: none; padding: 0.5rem 0; margin-bottom: 1.5rem;
+      transition: color var(--transition);
+    }
+    .back-btn:hover { color: var(--text); }
+
+    .page-header { margin-bottom: 2rem; }
+    .page-header h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
+    .page-header p { color: var(--text-muted); margin-top: 0.35rem; font-size: 0.92rem; }
+
+    /* ── Two-column layout ── */
+    .layout { display: grid; grid-template-columns: 1fr 360px; gap: 1.75rem; align-items: start; }
+    @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+    /* ── Drop zone ── */
+    .drop-zone {
+      border: 2px dashed var(--border2); border-radius: var(--radius-lg);
+      background: var(--surface); padding: 2rem;
+      text-align: center; cursor: pointer; transition: all var(--transition);
+      position: relative; overflow: hidden;
+    }
+    .drop-zone.dragging, .drop-zone:hover { border-color: var(--accent2); background: var(--surface2); }
+    .drop-zone.has-file { border-color: var(--success); border-style: solid; }
+
+    .drop-icon { font-size: 2.2rem; margin-bottom: 0.6rem; }
+    .drop-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .drop-hint { font-size: 0.8rem; color: var(--text-muted); }
+    .drop-file-name { font-size: 0.88rem; color: var(--success); font-weight: 500; margin-top: 0.4rem; }
+    .drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 1; }
+
+    /* Edit CSV button (sits on top of drop zone) */
+    .csv-edit-btn {
+      position: relative; z-index: 2; display: none;
+      margin-top: 0.6rem;
+      padding: 0.35rem 0.9rem; border-radius: 7px; font-size: 0.78rem; font-weight: 600;
+      background: rgba(78,205,196,0.12); border: 1px solid rgba(78,205,196,0.3); color: var(--accent2);
+      cursor: pointer; transition: all var(--transition);
+    }
+    .csv-edit-btn:hover { background: rgba(78,205,196,0.22); }
+    .csv-edit-btn.visible { display: inline-flex; align-items: center; gap: 0.35rem; }
+
+    /* ── Config card ── */
+    .config-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1.5rem;
+    }
+    .config-card + .config-card { margin-top: 1.1rem; }
+    .config-card h3 { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 1.1rem; }
+
+    .field + .field { margin-top: 0.9rem; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+
+    label { display: block; font-size: 0.78rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.3rem; }
+    input[type=text], input[type=number], select, textarea {
+      width: 100%; padding: 0.52rem 0.8rem; border-radius: 8px;
+      background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
+      font-size: 0.86rem; font-family: inherit; transition: border-color var(--transition);
+      -webkit-appearance: none; appearance: none;
+    }
+    input[type=text]:focus, input[type=number]:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--accent2);
+    }
+    select option { background: var(--surface2); }
+
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; min-height: 36px; }
+    .toggle-row label { margin: 0; font-size: 0.86rem; color: var(--text); font-weight: 400; }
+    .toggle {
+      position: relative; width: 42px; height: 24px;
+      display: inline-block; flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: var(--border2); border-radius: 24px; transition: var(--transition);
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: white; left: 3px; bottom: 3px; transition: var(--transition);
+    }
+    .toggle input:checked + .toggle-slider { background: var(--accent2); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    /* ── Sidebar ── */
+    .sidebar { position: sticky; top: 70px; }
+
+    /* ── Render card ── */
+    .render-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1.5rem;
+    }
+    .render-btn {
+      width: 100%; padding: 0.85rem; border-radius: 10px;
+      font-size: 1rem; font-weight: 700; border: none; cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), #FF9A6B);
+      color: white; transition: all var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      min-height: 48px;
+    }
+    .render-btn.timeline-btn {
+      background: linear-gradient(135deg, var(--accent3), #7C3AED);
+    }
+    .render-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 25px rgba(255,107,107,0.3); }
+    .render-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ── Progress ── */
+    .progress-section { margin-top: 1.1rem; display: none; }
+    .progress-section.visible { display: block; }
+    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .progress-label { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+    .progress-pct { font-size: 0.8rem; font-weight: 600; color: var(--accent2); }
+    .progress-bar-bg { height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent2), var(--accent3)); transition: width 0.4s ease; }
+    .progress-msg { font-size: 0.76rem; color: var(--text-dim); margin-top: 0.4rem; }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.25rem 0.65rem; border-radius: 100px; font-size: 0.76rem; font-weight: 500;
+    }
+    .status-badge.running   { background: rgba(78,205,196,0.1);  color: var(--accent2); }
+    .status-badge.completed { background: rgba(52,211,153,0.1);  color: var(--success); }
+    .status-badge.failed    { background: rgba(248,113,113,0.1); color: var(--error); }
+    .status-badge.queued    { background: rgba(251,191,36,0.1);  color: var(--warning); }
+    .status-badge.pending   { background: rgba(251,191,36,0.1);  color: var(--warning); }
+    .status-badge.cancelled { background: rgba(74,96,128,0.15);  color: var(--text-dim); }
+
+    .dot-pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1.2s ease infinite; flex-shrink: 0; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* ── Download ── */
+    .download-btn {
+      display: none; width: 100%; padding: 0.7rem;
+      border-radius: 10px; font-size: 0.88rem; font-weight: 600;
+      background: var(--surface3); border: 1px solid var(--border2); color: var(--text);
+      cursor: pointer; transition: all var(--transition); margin-top: 0.75rem;
+      align-items: center; justify-content: center; gap: 0.5rem; min-height: 44px;
+    }
+    .download-btn:hover { background: var(--surface2); border-color: var(--success); color: var(--success); }
+    .download-btn.visible { display: flex; }
+
+    /* ── Attribution ── */
+    .attribution-box {
+      display: none; margin-top: 0.9rem; padding: 0.8rem;
+      background: rgba(52,211,153,0.06); border: 1px solid rgba(52,211,153,0.2);
+      border-radius: 8px; font-size: 0.73rem; color: var(--text-muted); line-height: 1.6;
+    }
+    .attribution-box.visible { display: block; }
+
+    /* ── Schema hint ── */
+    .schema-hint {
+      margin-top: 1.25rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.1rem 1.25rem;
+    }
+    .schema-hint h4 { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 0.65rem; }
+    pre {
+      font-size: 0.75rem; color: var(--accent2); overflow-x: auto;
+      background: var(--surface2); border-radius: 8px; padding: 0.8rem 0.9rem; line-height: 1.7;
+    }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+
+    /* ── Queue panel ── */
+    .queue-panel {
+      position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 200;
+      width: 320px; background: var(--surface); border: 1px solid var(--border2);
+      border-radius: var(--radius-lg); box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+      overflow: hidden; transition: all 0.3s ease;
+    }
+    .queue-panel.hidden { display: none; }
+    .queue-header {
+      padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.5rem;
+      border-bottom: 1px solid var(--border); cursor: pointer; user-select: none;
+    }
+    .queue-header:hover { background: var(--surface2); }
+    .queue-title { font-size: 0.83rem; font-weight: 600; flex: 1; }
+    .queue-badge {
+      padding: 0.12rem 0.5rem; border-radius: 100px; font-size: 0.7rem; font-weight: 700;
+      background: var(--accent2); color: #000;
+    }
+    .queue-collapse-btn { font-size: 0.78rem; color: var(--text-muted); transition: transform 0.2s; }
+    .queue-panel.collapsed .queue-collapse-btn { transform: rotate(180deg); }
+    .queue-body { max-height: 360px; overflow-y: auto; }
+    .queue-panel.collapsed .queue-body { display: none; }
+
+    .queue-job {
+      padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 0.65rem;
+    }
+    .queue-job:last-child { border-bottom: none; }
+    .queue-job-icon { font-size: 1.05rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .queue-job-info { flex: 1; min-width: 0; }
+    .queue-job-title { font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .queue-job-status { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.12rem; }
+    .queue-job-bar-bg { height: 3px; background: var(--border2); border-radius: 2px; margin-top: 0.4rem; overflow: hidden; }
+    .queue-job-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+    .queue-cancel-btn {
+      border: none; background: none; color: var(--text-dim); cursor: pointer;
+      font-size: 1rem; padding: 0.1rem 0.25rem; border-radius: 4px; flex-shrink: 0;
+      transition: color var(--transition); min-width: 28px; min-height: 28px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .queue-cancel-btn:hover { color: var(--error); }
+
+    /* ── Music player ── */
+    .music-player { margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.9rem; }
+    .music-player-title { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 0.65rem; }
+    .music-tracks { display: flex; flex-direction: column; gap: 0.4rem; }
+    .music-track {
+      display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.65rem;
+      border-radius: 8px; background: var(--surface2); border: 1px solid var(--border);
+      cursor: pointer; transition: all var(--transition); user-select: none;
+    }
+    .music-track:hover { border-color: var(--border2); background: var(--surface3); }
+    .music-track.playing { border-color: var(--accent2); background: rgba(78,205,196,0.06); }
+    .music-track-play {
+      width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      background: var(--surface3); border: 1px solid var(--border2); font-size: 0.75rem; flex-shrink: 0;
+      transition: all var(--transition);
+    }
+    .music-track.playing .music-track-play { background: var(--accent2); border-color: var(--accent2); color: #000; }
+    .music-track-info { flex: 1; min-width: 0; }
+    .music-track-name { font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .music-track-meta { font-size: 0.68rem; color: var(--text-dim); }
+    .music-track-mood {
+      font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 100px;
+      background: var(--surface3); border: 1px solid var(--border2); color: var(--text-muted);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .music-audio-bar {
+      height: 2px; background: var(--border2); border-radius: 1px; margin-top: 0.3rem; overflow: hidden; display: none;
+    }
+    .music-track.playing .music-audio-bar { display: block; }
+    .music-audio-progress { height: 100%; background: var(--accent2); border-radius: 1px; width: 0%; transition: width 0.5s linear; }
+
+    /* ── CSV Editor Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(6px);
+      align-items: flex-start; justify-content: center; padding: 1.5rem;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: var(--radius-lg); width: 100%; max-width: 1000px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+      animation: slideUp 0.2s ease;
+      margin: auto;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-header {
+      padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .modal-title { font-size: 1rem; font-weight: 700; flex: 1; }
+    .modal-close {
+      border: none; background: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;
+      padding: 0.25rem; border-radius: 6px; transition: color var(--transition); min-width: 32px; min-height: 32px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { color: var(--text); background: var(--surface3); }
+    .modal-body { padding: 1.25rem 1.4rem; overflow-x: auto; }
+    .modal-footer {
+      padding: 0.9rem 1.4rem; border-top: 1px solid var(--border);
+      display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center;
+    }
+
+    /* CSV table */
+    .csv-table-wrap { overflow-x: auto; max-height: 55vh; border-radius: 8px; border: 1px solid var(--border); }
+    table.csv-table { border-collapse: collapse; width: 100%; font-size: 0.78rem; }
+    table.csv-table th {
+      background: var(--surface2); color: var(--text-muted); font-weight: 600; text-transform: uppercase;
+      font-size: 0.68rem; letter-spacing: 0.5px; padding: 0.5rem 0.65rem; border-bottom: 1px solid var(--border);
+      white-space: nowrap; position: sticky; top: 0; z-index: 1;
+    }
+    table.csv-table td { padding: 0.3rem 0.4rem; border-bottom: 1px solid rgba(30,45,69,0.5); vertical-align: middle; }
+    table.csv-table tr:last-child td { border-bottom: none; }
+    table.csv-table tr:hover td { background: rgba(26,37,64,0.4); }
+    table.csv-table td input {
+      width: 100%; padding: 0.3rem 0.45rem; background: transparent; border: 1px solid transparent;
+      border-radius: 5px; color: var(--text); font-size: 0.78rem; font-family: inherit;
+      min-width: 80px; transition: border-color var(--transition);
+    }
+    table.csv-table td input:focus { outline: none; border-color: var(--accent2); background: var(--surface3); }
+    .csv-row-num { color: var(--text-dim); font-size: 0.68rem; text-align: right; padding-right: 0.65rem; width: 32px; user-select: none; }
+    .csv-del-btn {
+      border: none; background: none; color: var(--text-dim); cursor: pointer; font-size: 0.85rem;
+      padding: 0.2rem 0.35rem; border-radius: 4px; transition: color var(--transition);
+    }
+    .csv-del-btn:hover { color: var(--error); }
+
+    .modal-action-btn {
+      padding: 0.55rem 1.1rem; border-radius: 8px; font-size: 0.84rem; font-weight: 600;
+      border: 1px solid var(--border2); background: var(--surface2); color: var(--text);
+      cursor: pointer; transition: all var(--transition); display: inline-flex; align-items: center; gap: 0.4rem;
+      min-height: 40px;
+    }
+    .modal-action-btn:hover { background: var(--surface3); border-color: var(--accent2); }
+    .modal-action-btn.primary { background: var(--accent2); border-color: var(--accent2); color: #000; }
+    .modal-action-btn.primary:hover { opacity: 0.88; }
+    .modal-action-btn.danger { color: var(--error); }
+    .modal-action-btn.danger:hover { border-color: var(--error); background: rgba(248,113,113,0.08); }
+    .modal-info { font-size: 0.75rem; color: var(--text-dim); margin-left: auto; }
+
+    /* ── Mobile ── */
+    @media (max-width: 640px) {
+      .mode-cards { grid-template-columns: 1fr; }
+      .queue-panel { left: 0.75rem; right: 0.75rem; width: auto; bottom: 0.75rem; }
+      header { padding: 0.65rem 1rem; }
+      .modal-overlay { padding: 0.75rem; }
+      .modal-footer { flex-direction: column; align-items: stretch; }
+      .modal-action-btn { justify-content: center; }
+      .modal-info { margin-left: 0; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .field-row { grid-template-columns: 1fr; }
+      nav { gap: 0.25rem; }
+      .nav-btn { padding: 0.38rem 0.65rem; font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div>
+    <div class="logo">⚡ TimelineRacer</div>
+    <div class="logo-sub">Video Generator</div>
+  </div>
+  <nav>
+    <button class="nav-btn active" id="nav-home" onclick="showPage('landing')">Home</button>
+    <button class="nav-btn" id="nav-race" onclick="showPage('race')">📊 Bar Race</button>
+    <button class="nav-btn" id="nav-timeline" onclick="showPage('timeline')">📅 Timeline</button>
+    <a href="./docs" target="_blank"><button class="nav-btn">API</button></a>
+  </nav>
+</header>
+
+<!-- ════════════════════════════════════════════
+     PAGE: LANDING
+     ════════════════════════════════════════════ -->
+<div id="page-landing" class="page active">
+  <section class="landing">
+    <div class="landing-hero">
+      <div class="landing-badge">✦ Open Source · Local · No upload limits</div>
+      <h1 class="landing-title">Create <span>Stunning<br>Timeline Videos</span> from CSV</h1>
+      <p class="landing-desc">Turn raw data into cinematic, shareable MP4 videos — bar chart races or event timelines — ready for YouTube, Reels, and X.</p>
+    </div>
+
+    <div class="mode-cards">
+      <!-- Bar Chart Race -->
+      <div class="mode-card race" onclick="showPage('race')">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Bar Chart Race</div>
+        <div class="card-desc">Animated ranking race between competing entities — countries, companies, athletes, cities — over time. Perfect for showing who led when.</div>
+        <div class="card-tags">
+          <span class="tag">Rankings</span>
+          <span class="tag">Comparison</span>
+          <span class="tag">Time series</span>
+          <span class="tag">Sports</span>
+          <span class="tag">Finance</span>
+        </div>
+        <button class="card-cta">Get started →</button>
+      </div>
+
+      <!-- Event Timeline -->
+      <div class="mode-card timeline" onclick="showPage('timeline')">
+        <div class="card-icon">📅</div>
+        <div class="card-title">Event Timeline</div>
+        <div class="card-desc">Cinematic walkthrough of key events — biographies, company histories, milestones — with dates, descriptions, images, and chapters.</div>
+        <div class="card-tags">
+          <span class="tag">Biography</span>
+          <span class="tag">History</span>
+          <span class="tag">Milestones</span>
+          <span class="tag">Storytelling</span>
+          <span class="tag">Education</span>
+        </div>
+        <button class="card-cta">Get started →</button>
+      </div>
+    </div>
+
+    <div style="margin-top:2.5rem; display:flex; gap:2rem; flex-wrap:wrap; align-items:center; justify-content:center; opacity:0.5; font-size:0.8rem; color:var(--text-muted);">
+      <span>📁 CSV → MP4 in minutes</span>
+      <span>🎨 10 visual themes</span>
+      <span>🎵 CC-licensed music</span>
+      <span>📐 Any resolution</span>
+    </div>
+  </section>
+</div>
+
+<!-- ════════════════════════════════════════════
+     PAGE: BAR CHART RACE
+     ════════════════════════════════════════════ -->
+<div id="page-race" class="page">
+  <div class="app-shell">
+    <button class="back-btn" onclick="showPage('landing')">← Back to Home</button>
+    <div class="page-header">
+      <h1>📊 Bar Chart Race</h1>
+      <p>Upload a long-format CSV and render an animated ranking video.</p>
+    </div>
+
+    <div class="layout">
+      <!-- Left: config -->
+      <div>
+        <!-- Drop zone -->
+        <div class="drop-zone" id="race-drop" ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'race-drop')" ondrop="onDrop(event,'race-file','race-drop')">
+          <input type="file" accept=".csv" id="race-file" onchange="onFileSelect(this,'race-drop','race')" />
+          <div class="drop-icon">📂</div>
+          <div class="drop-title">Drop your CSV here</div>
+          <div class="drop-hint">or click to browse · long-format CSV required</div>
+          <div class="drop-file-name" id="race-file-name"></div>
+        </div>
+        <div style="text-align:center">
+          <button class="csv-edit-btn" id="race-csv-edit-btn" onclick="openCsvEditor('race')">✏️ View / Edit CSV</button>
+        </div>
+
+        <!-- Labels -->
+        <div class="config-card" style="margin-top:1.1rem">
+          <h3>📝 Labels</h3>
+          <div class="field">
+            <label>Video Title</label>
+            <input type="text" id="race-title" placeholder="e.g. Most Test Runs in Cricket History" />
+          </div>
+          <div class="field">
+            <label>Subtitle</label>
+            <input type="text" id="race-subtitle" placeholder="e.g. 1990 – 2024" />
+          </div>
+          <div class="field">
+            <label>Watermark</label>
+            <input type="text" id="race-watermark" placeholder="@yourhandle" />
+          </div>
+        </div>
+
+        <!-- Visual -->
+        <div class="config-card">
+          <h3>🎨 Visual</h3>
+          <div class="field">
+            <label>Theme</label>
+            <select id="race-theme">
+              <optgroup label="Broadcast">
+                <option value="broadcast" selected>Broadcast — Navy, professional</option>
+                <option value="editorial">Editorial — Pure black, magazine</option>
+                <option value="minimal_pro">Minimal Pro — Clean white</option>
+                <option value="noir">Noir — Dark &amp; moody</option>
+                <option value="executive">Executive — Corporate slate</option>
+              </optgroup>
+              <optgroup label="Vibrant">
+                <option value="neon">Neon — Synthwave purple</option>
+                <option value="tropical">Tropical — Teal &amp; coral</option>
+                <option value="candy">Candy — Pastel pop</option>
+                <option value="sunset">Sunset — Warm amber</option>
+                <option value="forest">Forest — Deep green</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field">
+            <label>Resolution</label>
+            <select id="race-resolution">
+              <option value="1920x1080" selected>1920×1080 — Full HD (YouTube, X)</option>
+              <option value="1280x720">1280×720 — HD 720p</option>
+              <option value="3840x2160">3840×2160 — 4K</option>
+              <option value="1080x1920">1080×1920 — Vertical (Reels / TikTok)</option>
+              <option value="1080x1080">1080×1080 — Square (Instagram)</option>
+            </select>
+          </div>
+          <div class="field field-row">
+            <div>
+              <label>Top N Bars</label>
+              <input type="number" id="race-top-n" value="10" min="3" max="20" />
+            </div>
+            <div>
+              <label>FPS</label>
+              <input type="number" id="race-fps" value="30" min="12" max="60" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Duration (seconds)</label>
+            <input type="number" id="race-duration" value="60" min="10" max="600" />
+          </div>
+        </div>
+
+        <!-- Audio -->
+        <div class="config-card">
+          <h3>🎵 Music</h3>
+          <div class="field">
+            <label>Music Mood</label>
+            <select id="race-music-mood">
+              <option value="">Random</option>
+              <option value="energetic">Energetic — Heroic Age</option>
+              <option value="cinematic">Cinematic — Impact Moderato</option>
+              <option value="dramatic">Dramatic — Essential Energy</option>
+              <option value="chill">Chill — Local Forecast Slower</option>
+              <option value="fun">Fun — Fun Day</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="toggle-row">
+              <label>Disable music</label>
+              <label class="toggle"><input type="checkbox" id="race-no-music" /><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="toggle-row">
+              <label>Show entity images / avatars</label>
+              <label class="toggle"><input type="checkbox" id="race-show-images" checked /><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <!-- Inline music player -->
+          <div class="music-player" id="race-music-player">
+            <div class="music-player-title">🎧 Preview tracks</div>
+            <div class="music-tracks" id="race-tracks-list"><div style="font-size:0.75rem;color:var(--text-dim)">Loading tracks…</div></div>
+          </div>
+        </div>
+
+        <!-- Schema hint -->
+        <div class="schema-hint">
+          <h4>📄 CSV Schema</h4>
+          <pre>date,name,value,category,image_url
+1990-12-31,Sachin Tendulkar,1016,India,
+1991-12-31,Sachin Tendulkar,1987,India,
+1990-12-31,Brian Lara,498,West Indies,</pre>
+          <p style="font-size:0.76rem;color:var(--text-dim);margin-top:0.5rem">Columns: <code>date</code> (YYYY/YYYY-MM/YYYY-MM-DD) · <code>name</code> · <code>value</code> · <code>category</code> (optional) · <code>image_url</code> (optional)</p>
+        </div>
+      </div>
+
+      <!-- Right: sidebar -->
+      <div class="sidebar">
+        <div class="render-card">
+          <button class="render-btn" id="race-render-btn" onclick="submitRace()">🎬 Render Video</button>
+
+          <div class="progress-section" id="race-progress">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.65rem;">
+              <div class="status-badge pending" id="race-status-badge"><span class="dot-pulse"></span> <span>Queued</span></div>
+              <span class="progress-pct" id="race-pct">0%</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="race-bar" style="width:0%"></div></div>
+            <div class="progress-msg" id="race-msg">Waiting…</div>
+          </div>
+
+          <button class="download-btn" id="race-download-btn" onclick="downloadJob('race')">⬇ Download MP4</button>
+          <div class="attribution-box" id="race-attribution"></div>
+        </div>
+
+        <div style="margin-top:0.9rem;padding:0.9rem 1.1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-size:0.78rem;color:var(--text-muted);">
+          <strong style="color:var(--text);display:block;margin-bottom:0.35rem;">📋 Sample files</strong>
+          Grab <code>examples/cricket_runs.csv</code> or <code>examples/tech_market_cap.csv</code> from the repo to try right away.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     PAGE: EVENT TIMELINE
+     ════════════════════════════════════════════ -->
+<div id="page-timeline" class="page">
+  <div class="app-shell">
+    <button class="back-btn" onclick="showPage('landing')">← Back to Home</button>
+    <div class="page-header">
+      <h1>📅 Event Timeline</h1>
+      <p>Upload an events CSV and generate a cinematic story-driven video.</p>
+    </div>
+
+    <div class="layout">
+      <!-- Left: config -->
+      <div>
+        <!-- Drop zone -->
+        <div class="drop-zone" id="tl-drop" ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'tl-drop')" ondrop="onDrop(event,'tl-file','tl-drop')">
+          <input type="file" accept=".csv" id="tl-file" onchange="onFileSelect(this,'tl-drop','tl')" />
+          <div class="drop-icon">📂</div>
+          <div class="drop-title">Drop your events CSV here</div>
+          <div class="drop-hint">or click to browse · events CSV required</div>
+          <div class="drop-file-name" id="tl-file-name"></div>
+        </div>
+        <div style="text-align:center">
+          <button class="csv-edit-btn" id="tl-csv-edit-btn" onclick="openCsvEditor('tl')">✏️ View / Edit CSV</button>
+        </div>
+
+        <!-- Labels -->
+        <div class="config-card" style="margin-top:1.1rem">
+          <h3>📝 Labels</h3>
+          <div class="field">
+            <label>Video Title</label>
+            <input type="text" id="tl-title" placeholder="e.g. The Life of Narendra Modi" />
+          </div>
+          <div class="field">
+            <label>Subtitle</label>
+            <input type="text" id="tl-subtitle" placeholder="e.g. 1950 – Present" />
+          </div>
+          <div class="field">
+            <label>Watermark</label>
+            <input type="text" id="tl-watermark" placeholder="@yourhandle" />
+          </div>
+        </div>
+
+        <!-- Visual style -->
+        <div class="config-card">
+          <h3>🎨 Visual Style</h3>
+          <div class="field">
+            <label>Style</label>
+            <select id="tl-style">
+              <option value="journey" selected>🚀 Journey — Scrolling 2D platform timeline (NEW)</option>
+              <option value="cinematic">🎬 Cinematic — Dramatic full-screen with Ken Burns</option>
+              <option value="cards">🃏 Cards — Stacked modern card deck</option>
+              <option value="paper">📰 Paper — Vintage newspaper / scrapbook</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Theme</label>
+            <select id="tl-theme">
+              <optgroup label="Broadcast">
+                <option value="broadcast" selected>Broadcast — Navy, professional</option>
+                <option value="editorial">Editorial — Pure black, magazine</option>
+                <option value="minimal_pro">Minimal Pro — Clean white</option>
+                <option value="noir">Noir — Dark &amp; moody</option>
+                <option value="executive">Executive — Corporate slate</option>
+              </optgroup>
+              <optgroup label="Vibrant">
+                <option value="neon">Neon — Synthwave purple</option>
+                <option value="tropical">Tropical — Teal &amp; coral</option>
+                <option value="candy">Candy — Pastel pop</option>
+                <option value="sunset">Sunset — Warm amber</option>
+                <option value="forest">Forest — Deep green</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field">
+            <label>Resolution</label>
+            <select id="tl-resolution">
+              <option value="1920x1080" selected>1920×1080 — Full HD (YouTube, X)</option>
+              <option value="1280x720">1280×720 — HD 720p</option>
+              <option value="3840x2160">3840×2160 — 4K</option>
+              <option value="1080x1920">1080×1920 — Vertical (Reels / TikTok)</option>
+              <option value="1080x1080">1080×1080 — Square (Instagram)</option>
+            </select>
+          </div>
+          <div class="field field-row">
+            <div>
+              <label>FPS</label>
+              <input type="number" id="tl-fps" value="30" min="12" max="60" />
+            </div>
+            <div>
+              <label>Target Duration (s)</label>
+              <input type="number" id="tl-duration" value="120" min="20" max="900" />
+            </div>
+          </div>
+          <div class="field">
+            <div class="toggle-row">
+              <label>Show chapter cards between sections</label>
+              <label class="toggle"><input type="checkbox" id="tl-chapter-cards" checked /><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio -->
+        <div class="config-card">
+          <h3>🎵 Music</h3>
+          <div class="field">
+            <label>Music Mood</label>
+            <select id="tl-music-mood">
+              <option value="">Random</option>
+              <option value="cinematic" selected>Cinematic — Impact Moderato</option>
+              <option value="dramatic">Dramatic — Essential Energy</option>
+              <option value="energetic">Energetic — Heroic Age</option>
+              <option value="chill">Chill — Local Forecast Slower</option>
+              <option value="fun">Fun — Fun Day</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="toggle-row">
+              <label>Disable music</label>
+              <label class="toggle"><input type="checkbox" id="tl-no-music" /><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <!-- Inline music player -->
+          <div class="music-player" id="tl-music-player">
+            <div class="music-player-title">🎧 Preview tracks</div>
+            <div class="music-tracks" id="tl-tracks-list"><div style="font-size:0.75rem;color:var(--text-dim)">Loading tracks…</div></div>
+          </div>
+        </div>
+
+        <!-- Schema hint -->
+        <div class="schema-hint">
+          <h4>📄 CSV Schema</h4>
+          <pre>date,title,description,category,image_url,chapter,wikipedia_entity
+1950-09-17,Born in Vadnagar,"Born in Gujarat",Early Life,,Early Life,Narendra Modi
+2014-05-16,Prime Minister,"Historic BJP victory",PM,,Prime Minister,Narendra Modi</pre>
+          <p style="font-size:0.76rem;color:var(--text-dim);margin-top:0.5rem">Columns: <code>date</code> · <code>title</code> · <code>description</code> · <code>category</code> · <code>image_url</code> · <code>chapter</code> · <code>wikipedia_entity</code> (optional, auto-fetches image)</p>
+        </div>
+      </div>
+
+      <!-- Right: sidebar -->
+      <div class="sidebar">
+        <div class="render-card">
+          <button class="render-btn timeline-btn" id="tl-render-btn" onclick="submitTimeline()">🎬 Render Timeline</button>
+
+          <div class="progress-section" id="tl-progress">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.65rem;">
+              <div class="status-badge pending" id="tl-status-badge"><span class="dot-pulse"></span> <span>Queued</span></div>
+              <span class="progress-pct" id="tl-pct">0%</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="tl-bar" style="width:0%"></div></div>
+            <div class="progress-msg" id="tl-msg">Waiting…</div>
+          </div>
+
+          <button class="download-btn" id="tl-download-btn" onclick="downloadJob('timeline')">⬇ Download MP4</button>
+          <div class="attribution-box" id="tl-attribution"></div>
+        </div>
+
+        <div style="margin-top:0.9rem;padding:0.9rem 1.1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-size:0.78rem;color:var(--text-muted);">
+          <strong style="color:var(--text);display:block;margin-bottom:0.35rem;">📋 Sample files</strong>
+          Try <code>examples/modi_timeline.csv</code>, <code>examples/apple_history.csv</code>, or <code>examples/internet_history.csv</code> from the repo.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CSV Editor Modal ── -->
+<div class="modal-overlay" id="csv-modal" onclick="closeCsvEditorIfBg(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="csv-modal-title">📄 CSV Editor</span>
+      <button class="modal-close" onclick="closeCsvEditor()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="csv-table-wrap">
+        <table class="csv-table" id="csv-editor-table"><tbody></tbody></table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-action-btn" onclick="addCsvRow()">＋ Add Row</button>
+      <button class="modal-action-btn" onclick="downloadEditedCsv()">⬇ Download CSV</button>
+      <button class="modal-action-btn primary" onclick="applyEditedCsv()">✓ Use This CSV</button>
+      <div class="modal-info" id="csv-modal-info"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Global Queue Panel ── -->
+<div class="queue-panel hidden" id="queue-panel">
+  <div class="queue-header" onclick="toggleQueuePanel()">
+    <span>🎬</span>
+    <span class="queue-title">Render Queue</span>
+    <span class="queue-badge" id="queue-count">0</span>
+    <span class="queue-collapse-btn">▲</span>
+  </div>
+  <div class="queue-body" id="queue-body"></div>
+</div>
+
+<!-- Hidden audio element for music preview -->
+<audio id="music-audio" preload="none"></audio>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   Base URL (injected by server for subpath deployments)
+   ══════════════════════════════════════════════════════════ */
+window.TLR_BASE = '';
+function apiUrl(path) { return (window.TLR_BASE || '') + path; }
+
+/* ══════════════════════════════════════════════════════════
+   State
+   ══════════════════════════════════════════════════════════ */
+const state = {
+  race:     { jobId: null, sse: null },
+  timeline: { jobId: null, sse: null },
+};
+
+// All jobs ever submitted this session, for the queue panel
+const allJobs = {};   // jobId → { id, kind, title, status, progress, message, queue_position }
+let queuePollTimer = null;
+
+// CSV editor state
+const csvState = { prefix: null, headers: [], rows: [], filename: 'upload.csv' };
+
+// Music player state
+let musicTracks = [];
+let currentTrackId = null;
+const audioEl = document.getElementById('music-audio');
+
+/* ══════════════════════════════════════════════════════════
+   Page routing
+   ══════════════════════════════════════════════════════════ */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const navBtn = document.getElementById('nav-' + name);
+  if (navBtn) navBtn.classList.add('active');
+}
+
+/* ══════════════════════════════════════════════════════════
+   Drag & drop
+   ══════════════════════════════════════════════════════════ */
+function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dragging'); }
+function onDragLeave(e, id) { document.getElementById(id).classList.remove('dragging'); }
+function onDrop(e, fileInputId, dropId) {
+  e.preventDefault();
+  document.getElementById(dropId).classList.remove('dragging');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const dt = new DataTransfer(); dt.items.add(file);
+  const input = document.getElementById(fileInputId);
+  input.files = dt.files;
+  const prefix = dropId.replace('-drop', '');
+  onFileSelect(input, dropId, prefix);
+}
+function onFileSelect(input, dropId, prefix) {
+  const drop = document.getElementById(dropId);
+  const nameId = dropId.replace('-drop', '-file-name');
+  if (input.files.length) {
+    drop.classList.add('has-file');
+    document.getElementById(nameId).textContent = '✓ ' + input.files[0].name;
+    const editBtn = document.getElementById(prefix + '-csv-edit-btn');
+    if (editBtn) editBtn.classList.add('visible');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   CSV Editor
+   ══════════════════════════════════════════════════════════ */
+async function openCsvEditor(prefix) {
+  const fileInput = document.getElementById(prefix + '-file');
+  if (!fileInput || !fileInput.files.length) { alert('Please select a CSV file first.'); return; }
+
+  const file = fileInput.files[0];
+  const fd = new FormData();
+  fd.append('file', file);
+
+  try {
+    const res = await fetch(apiUrl('/api/csv/parse'), { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    csvState.prefix = prefix;
+    csvState.headers = data.headers;
+    csvState.rows = data.rows;
+    csvState.filename = data.filename || file.name;
+    renderCsvTable();
+    document.getElementById('csv-modal-title').textContent = '📄 ' + (file.name || 'CSV Editor');
+    document.getElementById('csv-modal').classList.add('open');
+    document.getElementById('csv-modal-info').textContent = `${data.rows.length} rows · ${data.headers.length} columns`;
+  } catch (err) {
+    alert('Could not parse CSV: ' + err.message);
+  }
+}
+
+function renderCsvTable() {
+  const table = document.getElementById('csv-editor-table');
+  const { headers, rows } = csvState;
+
+  let html = '<thead><tr><th class="csv-row-num">#</th>';
+  headers.forEach(h => { html += `<th>${escHtml(h)}</th>`; });
+  html += '<th style="width:30px"></th></tr></thead><tbody>';
+
+  rows.forEach((row, ri) => {
+    html += `<tr data-row="${ri}"><td class="csv-row-num">${ri + 1}</td>`;
+    headers.forEach(h => {
+      const val = row[h] || '';
+      html += `<td><input type="text" value="${escHtmlAttr(val)}" onchange="csvCellChange(${ri},'${escHtmlAttr(h)}',this.value)" /></td>`;
+    });
+    html += `<td><button class="csv-del-btn" onclick="deleteCsvRow(${ri})" title="Delete row">🗑</button></td></tr>`;
+  });
+
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function csvCellChange(rowIdx, col, val) {
+  if (csvState.rows[rowIdx]) csvState.rows[rowIdx][col] = val;
+}
+
+function addCsvRow() {
+  const newRow = {};
+  csvState.headers.forEach(h => { newRow[h] = ''; });
+  csvState.rows.push(newRow);
+  renderCsvTable();
+  // Scroll to bottom
+  const wrap = document.querySelector('.csv-table-wrap');
+  if (wrap) wrap.scrollTop = wrap.scrollHeight;
+  document.getElementById('csv-modal-info').textContent = `${csvState.rows.length} rows · ${csvState.headers.length} columns`;
+}
+
+function deleteCsvRow(ri) {
+  csvState.rows.splice(ri, 1);
+  renderCsvTable();
+  document.getElementById('csv-modal-info').textContent = `${csvState.rows.length} rows · ${csvState.headers.length} columns`;
+}
+
+function downloadEditedCsv() {
+  const csv = buildCsvString();
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = csvState.filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function applyEditedCsv() {
+  // Convert current table data back to a File and assign it to the file input
+  const csv = buildCsvString();
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const file = new File([blob], csvState.filename, { type: 'text/csv' });
+  const prefix = csvState.prefix;
+  const fileInput = document.getElementById(prefix + '-file');
+  const dt = new DataTransfer(); dt.items.add(file);
+  fileInput.files = dt.files;
+  const drop = document.getElementById(prefix + '-drop');
+  if (drop) { drop.classList.add('has-file'); }
+  const nameEl = document.getElementById(prefix + '-file-name');
+  if (nameEl) nameEl.textContent = '✓ ' + file.name + ' (edited)';
+  closeCsvEditor();
+}
+
+function buildCsvString() {
+  const { headers, rows } = csvState;
+  const escape = v => {
+    const s = String(v == null ? '' : v);
+    return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  let out = headers.map(escape).join(',') + '\n';
+  rows.forEach(row => {
+    out += headers.map(h => escape(row[h] || '')).join(',') + '\n';
+  });
+  return out;
+}
+
+function closeCsvEditor() {
+  document.getElementById('csv-modal').classList.remove('open');
+}
+function closeCsvEditorIfBg(e) {
+  if (e.target === document.getElementById('csv-modal')) closeCsvEditor();
+}
+
+function escHtmlAttr(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ══════════════════════════════════════════════════════════
+   Music Player
+   ══════════════════════════════════════════════════════════ */
+async function loadMusicTracks() {
+  try {
+    const res = await fetch(apiUrl('/api/music'));
+    if (!res.ok) return;
+    musicTracks = await res.json();
+    renderMusicPlayer('race');
+    renderMusicPlayer('tl');
+  } catch (_) {}
+}
+
+function renderMusicPlayer(prefix) {
+  const container = document.getElementById(prefix + '-tracks-list');
+  if (!container) return;
+  if (!musicTracks.length) { container.innerHTML = '<div style="font-size:0.75rem;color:var(--text-dim)">No tracks found.</div>'; return; }
+
+  container.innerHTML = musicTracks.map(t => `
+    <div class="music-track" id="${prefix}-track-${t.id}" onclick="toggleTrack('${t.id}')">
+      <div class="music-track-play" id="${prefix}-play-${t.id}">▶</div>
+      <div class="music-track-info">
+        <div class="music-track-name">${escHtml(t.title)}</div>
+        <div class="music-track-meta">${escHtml(t.artist)} · ${t.bpm} BPM · ${Math.round(t.duration_seconds/60)}m</div>
+        <div class="music-audio-bar" id="${prefix}-bar-${t.id}">
+          <div class="music-audio-progress" id="${prefix}-prog-${t.id}"></div>
+        </div>
+      </div>
+      <span class="music-track-mood">${escHtml(t.mood)}</span>
+    </div>
+  `).join('');
+}
+
+function toggleTrack(trackId) {
+  if (currentTrackId === trackId && !audioEl.paused) {
+    // Pause
+    audioEl.pause();
+    updateMusicUI(trackId, false);
+    currentTrackId = null;
+  } else {
+    // Stop previous
+    if (currentTrackId) {
+      updateMusicUI(currentTrackId, false);
+    }
+    currentTrackId = trackId;
+    audioEl.src = apiUrl('/api/music/' + trackId + '/audio');
+    audioEl.play().catch(() => {});
+    updateMusicUI(trackId, true);
+  }
+}
+
+function updateMusicUI(trackId, playing) {
+  // Update all instances (race + tl)
+  ['race', 'tl'].forEach(prefix => {
+    const trackEl = document.getElementById(prefix + '-track-' + trackId);
+    const playEl  = document.getElementById(prefix + '-play-' + trackId);
+    if (trackEl) trackEl.classList.toggle('playing', playing);
+    if (playEl)  playEl.textContent = playing ? '⏸' : '▶';
+  });
+}
+
+// Update progress bars during playback
+audioEl.addEventListener('timeupdate', () => {
+  if (!currentTrackId || !audioEl.duration) return;
+  const pct = (audioEl.currentTime / audioEl.duration) * 100;
+  ['race', 'tl'].forEach(prefix => {
+    const prog = document.getElementById(prefix + '-prog-' + currentTrackId);
+    if (prog) prog.style.width = pct + '%';
+  });
+});
+
+audioEl.addEventListener('ended', () => {
+  if (currentTrackId) { updateMusicUI(currentTrackId, false); currentTrackId = null; }
+});
+
+/* ══════════════════════════════════════════════════════════
+   Submit Race
+   ══════════════════════════════════════════════════════════ */
+async function submitRace() {
+  const file = document.getElementById('race-file').files[0];
+  if (!file) { alert('Please select a CSV file first.'); return; }
+  const btn = document.getElementById('race-render-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Submitting…';
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('title',       document.getElementById('race-title').value);
+  fd.append('subtitle',    document.getElementById('race-subtitle').value);
+  fd.append('watermark',   document.getElementById('race-watermark').value);
+  fd.append('theme',       document.getElementById('race-theme').value);
+  fd.append('resolution',  document.getElementById('race-resolution').value);
+  fd.append('top_n',       document.getElementById('race-top-n').value);
+  fd.append('fps',         document.getElementById('race-fps').value);
+  fd.append('duration',    document.getElementById('race-duration').value);
+  fd.append('music_mood',  document.getElementById('race-music-mood').value);
+  fd.append('no_music',    document.getElementById('race-no-music').checked);
+  fd.append('show_images', document.getElementById('race-show-images').checked);
+  try {
+    const res = await fetch(apiUrl('/api/render'), { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    state.race.jobId = data.id || data.job_id;
+    const label = document.getElementById('race-title').value || file.name;
+    trackJob(data.id || data.job_id, 'race', label);
+    startProgress('race', data.id || data.job_id);
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = '🎬 Render Video';
+    alert('Error: ' + err.message);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   Submit Timeline
+   ══════════════════════════════════════════════════════════ */
+async function submitTimeline() {
+  const file = document.getElementById('tl-file').files[0];
+  if (!file) { alert('Please select an events CSV file first.'); return; }
+  const btn = document.getElementById('tl-render-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Submitting…';
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('title',              document.getElementById('tl-title').value);
+  fd.append('subtitle',           document.getElementById('tl-subtitle').value);
+  fd.append('watermark',          document.getElementById('tl-watermark').value);
+  fd.append('style',              document.getElementById('tl-style').value);
+  fd.append('theme',              document.getElementById('tl-theme').value);
+  fd.append('resolution',         document.getElementById('tl-resolution').value);
+  fd.append('fps',                document.getElementById('tl-fps').value);
+  fd.append('duration',           document.getElementById('tl-duration').value);
+  fd.append('music_mood',         document.getElementById('tl-music-mood').value);
+  fd.append('no_music',           document.getElementById('tl-no-music').checked);
+  fd.append('show_chapter_cards', document.getElementById('tl-chapter-cards').checked);
+  try {
+    const res = await fetch(apiUrl('/api/timeline/render'), { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    const jobId = data.id || data.job_id;
+    state.timeline.jobId = jobId;
+    const label = document.getElementById('tl-title').value || file.name;
+    trackJob(jobId, 'timeline', label);
+    startProgress('timeline', jobId);
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = '🎬 Render Timeline';
+    alert('Error: ' + err.message);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   Job tracking + queue panel
+   ══════════════════════════════════════════════════════════ */
+function trackJob(jobId, kind, label) {
+  allJobs[jobId] = { id: jobId, kind, label, status: 'queued', progress: 0, message: 'Waiting in queue…', queue_position: 99 };
+  renderQueuePanel();
+  if (!queuePollTimer) {
+    queuePollTimer = setInterval(pollQueue, 2000);
+  }
+}
+
+async function pollQueue() {
+  try {
+    const res = await fetch(apiUrl('/api/queue'));
+    const data = await res.json();
+    const active = data.jobs.filter(j => ['queued','running'].includes(j.status));
+    if (active.length === 0) { clearInterval(queuePollTimer); queuePollTimer = null; }
+    data.jobs.forEach(j => { if (allJobs[j.id]) Object.assign(allJobs[j.id], j); });
+    renderQueuePanel();
+  } catch (_) {}
+}
+
+function renderQueuePanel() {
+  const panel = document.getElementById('queue-panel');
+  const body  = document.getElementById('queue-body');
+  const countEl = document.getElementById('queue-count');
+  const jobList = Object.values(allJobs).sort((a, b) => (a.created_at||'').localeCompare(b.created_at||''));
+  if (jobList.length === 0) { panel.classList.add('hidden'); return; }
+  panel.classList.remove('hidden');
+  const active = jobList.filter(j => ['queued','running'].includes(j.status)).length;
+  countEl.textContent = active;
+
+  body.innerHTML = [...jobList].reverse().map(j => {
+    const icon  = j.kind === 'timeline' ? '📅' : '📊';
+    const color = j.status === 'completed' ? 'var(--success)'
+                : j.status === 'running'   ? 'var(--accent2)'
+                : j.status === 'failed'    ? 'var(--error)'
+                : j.status === 'cancelled' ? 'var(--text-dim)'
+                : 'var(--warning)';
+    let statusText = j.message || j.status;
+    if (j.status === 'queued' && j.queue_position > 0) statusText = `Position #${j.queue_position} in queue`;
+    else if (j.status === 'running') statusText = `${j.progress}% — ${j.message}`;
+    const showCancel = j.status === 'queued';
+    const showDl     = j.status === 'completed';
+    return `
+      <div class="queue-job" id="qjob-${j.id}">
+        <div class="queue-job-icon">${icon}</div>
+        <div class="queue-job-info">
+          <div class="queue-job-title">${escHtml(j.label || j.id.slice(0,8))}</div>
+          <div class="queue-job-status" style="color:${color}">${escHtml(statusText)}</div>
+          ${j.status === 'running' ? `
+            <div class="queue-job-bar-bg">
+              <div class="queue-job-bar-fill" style="width:${j.progress}%;background:${color}"></div>
+            </div>` : ''}
+          ${showDl ? `<button onclick="window.location.href=apiUrl('/api/jobs/${j.id}/download')"
+            style="margin-top:0.3rem;font-size:0.7rem;padding:0.2rem 0.55rem;background:var(--surface3);
+            border:1px solid var(--border2);color:var(--success);border-radius:6px;cursor:pointer;min-height:30px">
+            ⬇ Download</button>` : ''}
+        </div>
+        ${showCancel ? `<button class="queue-cancel-btn" title="Cancel job" onclick="cancelJob('${j.id}')">✕</button>` : ''}
+      </div>`;
+  }).join('');
+}
+
+async function cancelJob(jobId) {
+  try {
+    const res = await fetch(apiUrl('/api/jobs/' + jobId), { method: 'DELETE' });
+    if (!res.ok) { const e = await res.json(); alert(e.detail); return; }
+    if (allJobs[jobId]) allJobs[jobId].status = 'cancelled';
+    renderQueuePanel();
+    ['race','timeline'].forEach(type => {
+      if (state[type].jobId === jobId) {
+        const prefix = type === 'race' ? 'race' : 'tl';
+        setStatus(prefix, 'cancelled', 'Cancelled');
+        const btn = document.getElementById(prefix + '-render-btn');
+        btn.disabled = false;
+        btn.innerHTML = type === 'race' ? '🎬 Render Video' : '🎬 Render Timeline';
+      }
+    });
+  } catch (err) { alert('Cancel failed: ' + err.message); }
+}
+
+function toggleQueuePanel() {
+  document.getElementById('queue-panel').classList.toggle('collapsed');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ══════════════════════════════════════════════════════════
+   Progress via SSE (inline card)
+   ══════════════════════════════════════════════════════════ */
+function startProgress(type, jobId) {
+  const prefix = type === 'race' ? 'race' : 'tl';
+  const btnId  = prefix + '-render-btn';
+
+  document.getElementById(prefix + '-progress').classList.add('visible');
+  document.getElementById(prefix + '-download-btn').classList.remove('visible');
+  document.getElementById(prefix + '-attribution').classList.remove('visible');
+  setStatus(prefix, 'queued', 'Waiting in queue…');
+
+  if (state[type].sse) state[type].sse.close();
+  const sse = new EventSource(apiUrl('/api/jobs/' + jobId + '/progress'));
+  state[type].sse = sse;
+
+  sse.onmessage = (e) => {
+    const d = JSON.parse(e.data);
+    if (allJobs[jobId]) Object.assign(allJobs[jobId], d);
+    renderQueuePanel();
+
+    document.getElementById(prefix + '-bar').style.width = d.progress + '%';
+    document.getElementById(prefix + '-pct').textContent = d.progress + '%';
+
+    if (d.status === 'queued') {
+      const pos = d.queue_position > 0 ? `Position #${d.queue_position} in queue` : 'Waiting in queue…';
+      document.getElementById(prefix + '-msg').textContent = pos;
+      setStatus(prefix, 'queued', pos);
+    } else if (d.status === 'running') {
+      document.getElementById(prefix + '-msg').textContent = d.message;
+      setStatus(prefix, 'running', 'Rendering');
+    } else if (d.status === 'completed') {
+      setStatus(prefix, 'completed', 'Complete');
+      sse.close();
+      onJobComplete(type, prefix, jobId);
+    } else if (d.status === 'failed') {
+      document.getElementById(prefix + '-msg').textContent = d.message;
+      setStatus(prefix, 'failed', 'Failed');
+      document.getElementById(btnId).disabled = false;
+      document.getElementById(btnId).innerHTML = type === 'race' ? '🎬 Render Video' : '🎬 Render Timeline';
+      sse.close();
+    } else if (d.status === 'cancelled') {
+      setStatus(prefix, 'cancelled', 'Cancelled');
+      document.getElementById(btnId).disabled = false;
+      document.getElementById(btnId).innerHTML = type === 'race' ? '🎬 Render Video' : '🎬 Render Timeline';
+      sse.close();
+    }
+  };
+
+  sse.onerror = () => {
+    setTimeout(() => checkJobFinal(type, prefix, jobId), 1000);
+    sse.close();
+  };
+}
+
+function setStatus(prefix, cls, label) {
+  const badge = document.getElementById(prefix + '-status-badge');
+  badge.className = 'status-badge ' + cls;
+  badge.innerHTML = `<span class="dot-pulse"></span> <span>${escHtml(label)}</span>`;
+}
+
+async function checkJobFinal(type, prefix, jobId) {
+  try {
+    const res = await fetch(apiUrl('/api/jobs/' + jobId));
+    const d = await res.json();
+    if (allJobs[jobId]) Object.assign(allJobs[jobId], d);
+    renderQueuePanel();
+    if (d.status === 'completed') { setStatus(prefix, 'completed', 'Complete'); onJobComplete(type, prefix, jobId); }
+    else if (d.status === 'failed') { setStatus(prefix, 'failed', d.error || 'Failed'); }
+    else if (d.status === 'cancelled') { setStatus(prefix, 'cancelled', 'Cancelled'); }
+  } catch (_) {}
+}
+
+async function onJobComplete(type, prefix, jobId) {
+  document.getElementById(prefix + '-bar').style.width = '100%';
+  document.getElementById(prefix + '-pct').textContent = '100%';
+  document.getElementById(prefix + '-msg').textContent = 'Render complete!';
+  const btn = document.getElementById(prefix + '-render-btn');
+  btn.disabled = false;
+  btn.innerHTML = '🎬 Render Again';
+  const dlBtn = document.getElementById(prefix + '-download-btn');
+  dlBtn.classList.add('visible');
+  dlBtn._jobId = jobId;
+  try {
+    const res = await fetch(apiUrl('/api/jobs/' + jobId));
+    const d = await res.json();
+    if (d.attribution) {
+      const attrBox = document.getElementById(prefix + '-attribution');
+      attrBox.innerHTML = '<strong style="color:var(--success)">🎵 Music credit (add to description):</strong><br><br>' + escHtml(d.attribution).replace(/\n/g,'<br>');
+      attrBox.classList.add('visible');
+    }
+  } catch (_) {}
+}
+
+/* ══════════════════════════════════════════════════════════
+   Download
+   ══════════════════════════════════════════════════════════ */
+function downloadJob(type) {
+  const prefix = type === 'race' ? 'race' : 'tl';
+  const btn = document.getElementById(prefix + '-download-btn');
+  const jobId = btn._jobId || (type === 'race' ? state.race.jobId : state.timeline.jobId);
+  if (jobId) window.location.href = apiUrl('/api/jobs/' + jobId + '/download');
+}
+
+/* ══════════════════════════════════════════════════════════
+   Init
+   ══════════════════════════════════════════════════════════ */
+loadMusicTracks();
+</script>
+</body>
+</html>

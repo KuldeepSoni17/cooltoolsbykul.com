@@ -24,6 +24,21 @@ const nextConfig: NextConfig = {
         source: "/StorageWar",
         destination: "/StorageWar/index.html",
       },
+      // Echo Garden — Phaser game in public/echo-garden
+      {
+        source: "/echo-garden",
+        destination: "/echo-garden/index.html",
+      },
+      // Harry Potter platformer in public/harrypotter
+      {
+        source: "/harrypotter",
+        destination: "/harrypotter/index.html",
+      },
+      // Timeline Racer landing in public/timeline
+      {
+        source: "/timeline",
+        destination: "/timeline/index.html",
+      },
       // Bare /echo with no trailing slash
       {
         source: "/echo",

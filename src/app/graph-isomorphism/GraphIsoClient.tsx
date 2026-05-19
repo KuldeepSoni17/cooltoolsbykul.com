@@ -13,7 +13,7 @@ import {
   GITHUB_LINKS,
 } from "@/lib/graph-isomorphism/samples";
 
-type Tab = "overview" | "checker" | "results";
+type Tab = "overview" | "checker" | "results" | "proof";
 
 const DEFAULT_MATRIX_A = `0 1 1 1 0
 1 0 1 0 1
@@ -77,6 +77,7 @@ export default function GraphIsoClient() {
     { id: "overview", label: "Overview" },
     { id: "checker", label: "Quick checker" },
     { id: "results", label: "Result explorer" },
+    { id: "proof", label: "Mathematical proof" },
   ];
 
   return (
@@ -289,6 +290,8 @@ export default function GraphIsoClient() {
           </section>
         )}
 
+        {tab === "proof" && <ProofSection />}
+
         <footer className="mt-14 border-t border-zinc-800 pt-6 text-sm text-zinc-500">
           Graph Isomorphism · Layers approach · Kuldeep Soni
         </footer>
@@ -323,5 +326,362 @@ function MatrixInput({
         spellCheck={false}
       />
     </div>
+  );
+}
+
+function Chip({
+  children,
+  color = "indigo",
+}: {
+  children: React.ReactNode;
+  color?: "indigo" | "emerald" | "amber" | "blue" | "violet" | "rose";
+}) {
+  const palette: Record<string, string> = {
+    indigo: "bg-indigo-950/60 border-indigo-800/50 text-indigo-300",
+    emerald: "bg-emerald-950/60 border-emerald-800/50 text-emerald-300",
+    amber: "bg-amber-950/60 border-amber-800/50 text-amber-300",
+    blue: "bg-blue-950/60 border-blue-800/50 text-blue-300",
+    violet: "bg-violet-950/60 border-violet-800/50 text-violet-300",
+    rose: "bg-rose-950/60 border-rose-800/50 text-rose-300",
+  };
+  return (
+    <span
+      className={`inline-block rounded-full border px-3 py-0.5 text-xs font-bold uppercase tracking-wider ${palette[color]}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+function ProofSection() {
+  return (
+    <section className="mt-8 grid gap-6 lg:grid-cols-2">
+
+      {/* ── 1. Formal Definition ── */}
+      <article className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 lg:col-span-2">
+        <Chip>Definition</Chip>
+        <h2 className="mt-3 text-xl font-semibold text-white">Formal Problem Statement</h2>
+        <div className="mt-4 rounded-xl border border-zinc-700/50 bg-zinc-950/80 p-5 font-mono text-sm leading-8 text-zinc-200">
+          <p>
+            <span className="font-bold text-indigo-300">GI</span>: Given undirected graphs
+            G&nbsp;=&nbsp;(V,&nbsp;E) and H&nbsp;=&nbsp;(V&prime;,&nbsp;E&prime;) with
+            |V|&nbsp;=&nbsp;|V&prime;|&nbsp;=&nbsp;n,
+          </p>
+          <p className="mt-1">
+            decide whether{" "}
+            <span className="text-emerald-300">
+              &exist;&thinsp;&phi;: V &rarr; V&prime;
+            </span>{" "}
+            (bijection) such that
+          </p>
+          <p className="mt-1 border-l-2 border-indigo-700 pl-4">
+            &forall;&thinsp;u,&thinsp;v &isin; V:{" "}
+            &#123;u,&thinsp;v&#125; &isin; E{" "}
+            &hArr;{" "}
+            &#123;&phi;(u),&thinsp;&phi;(v)&#125; &isin; E&prime;
+          </p>
+        </div>
+        <p className="mt-4 text-sm leading-7 text-zinc-400">
+          &phi; is an <span className="font-medium text-zinc-200">isomorphism</span>;
+          G&nbsp;&cong;&nbsp;H if one exists, G&nbsp;&#8775;&nbsp;H otherwise. With n nodes there
+          are n! candidate bijections — intractable to enumerate for large n, yet the decision
+          problem sits in a surprisingly mild complexity class.
+        </p>
+      </article>
+
+      {/* ── 2. GI ∈ NP ── */}
+      <article className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6">
+        <Chip color="emerald">Theorem</Chip>
+        <h2 className="mt-3 text-xl font-semibold text-white">GI &isin; NP</h2>
+        <p className="mt-3 text-sm leading-7 text-zinc-300">
+          A bijection &phi;: V &rarr; V&prime; is a polynomial-time verifiable certificate.
+        </p>
+        <div className="mt-4 space-y-1 text-sm text-zinc-400">
+          <p className="font-semibold text-zinc-300">Verification in O(n&sup2;):</p>
+          <ol className="mt-2 space-y-1 list-decimal list-inside">
+            <li>Check |V|&nbsp;=&nbsp;|V&prime;| and &phi; is a valid bijection</li>
+            <li>
+              For all pairs (u,&thinsp;v): verify
+              &#123;u,v&#125;&nbsp;&isin;&nbsp;E &hArr;
+              &#123;&phi;(u),&phi;(v)&#125;&nbsp;&isin;&nbsp;E&prime;
+            </li>
+          </ol>
+        </div>
+        <p className="mt-4 text-sm text-zinc-500">
+          This is immediate — GI is unambiguously in NP.
+        </p>
+      </article>
+
+      {/* ── 3. GI ∈ co-AM ── */}
+      <article className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6">
+        <Chip color="blue">Theorem</Chip>
+        <h2 className="mt-3 text-xl font-semibold text-white">GI &isin; co-AM</h2>
+        <p className="mt-3 text-sm leading-7 text-zinc-300">
+          The complement GNI (Graph Non-Isomorphism) is in AM via an interactive proof
+          (Goldwasser-Sipser 1986):
+        </p>
+        <div className="mt-3 space-y-1.5 text-sm text-zinc-400">
+          <p className="font-semibold text-zinc-300">Protocol (one round):</p>
+          <ol className="mt-1 space-y-1 list-decimal list-inside">
+            <li>
+              Verifier picks b&nbsp;&isin;&nbsp;&#123;0,1&#125; uniformly at random,
+              samples random permutation &pi;, sends &pi;(G&#8346;) to Prover
+            </li>
+            <li>Prover returns a guess b&prime;</li>
+            <li>Verifier accepts iff b&prime;&nbsp;=&nbsp;b</li>
+          </ol>
+          <div className="mt-3 rounded-lg bg-zinc-950/60 p-3 font-mono text-xs space-y-1">
+            <p>
+              G&nbsp;&cong;&nbsp;H &rArr; Pr[b&prime;&nbsp;=&nbsp;b]&nbsp;=&nbsp;&frac12;{" "}
+              <span className="text-zinc-500">// both graphs look identical after &pi;</span>
+            </p>
+            <p>
+              G&nbsp;&#8775;&nbsp;H &rArr; Pr[b&prime;&nbsp;=&nbsp;b]&nbsp;=&nbsp;1{" "}
+              <span className="text-zinc-500">// Prover identifies origin graph perfectly</span>
+            </p>
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-zinc-500">
+          &there4; GNI &isin; AM, so GI &isin; co-AM.
+        </p>
+      </article>
+
+      {/* ── 4. NPC Barrier ── */}
+      <article className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 lg:col-span-2">
+        <Chip color="amber">Key Barrier</Chip>
+        <h2 className="mt-3 text-xl font-semibold text-white">
+          GI is almost certainly not NP-complete
+        </h2>
+        <p className="mt-3 text-sm leading-7 text-zinc-300">
+          <span className="font-semibold text-white">
+            Theorem (Boppana-H&aring;stad-Zachos 1987):
+          </span>{" "}
+          If GI is NP-complete, then the Polynomial Hierarchy collapses to &Sigma;&#8322;&#7510;.
+        </p>
+        <div className="mt-4 rounded-xl border border-zinc-700/40 bg-zinc-950/60 p-4 font-mono text-sm text-zinc-300 space-y-1.5">
+          <p>
+            GI &isin; co-AM{" "}
+            <span className="text-zinc-500">// proved above (Goldwasser-Sipser)</span>
+          </p>
+          <p>
+            GI is NP-complete &rArr; NP &sube; co-AM{" "}
+            <span className="text-zinc-500">// every NP problem reduces to GI</span>
+          </p>
+          <p>
+            NP &sube; co-AM &rArr; NP = AM = co-AM{" "}
+            <span className="text-zinc-500">// NP &sube; AM always holds</span>
+          </p>
+          <p>
+            NP = co-AM &rArr; PH = &Sigma;&#8322;&#7510;{" "}
+            <span className="text-zinc-500">// Sch&ouml;ning / BHZ 1987</span>
+          </p>
+        </div>
+        <p className="mt-4 text-sm leading-7 text-zinc-400">
+          Collapse of the Polynomial Hierarchy is widely conjectured impossible, placing GI in
+          a &ldquo;complexity island&rdquo; between P and NP-complete — analogous to integer
+          factoring. This is consistent with Ladner&rsquo;s theorem: if P&nbsp;&ne;&nbsp;NP, then
+          NP-intermediate problems must exist, and GI is a natural candidate.
+        </p>
+      </article>
+
+      {/* ── 5. Babai's Theorem ── */}
+      <article className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 lg:col-span-2">
+        <Chip color="violet">Best Known Algorithm</Chip>
+        <h2 className="mt-3 text-xl font-semibold text-white">
+          Bab&aacute;i&rsquo;s Quasipolynomial Result (2016)
+        </h2>
+        <div className="mt-4 rounded-xl border border-indigo-800/40 bg-indigo-950/30 p-5 text-center">
+          <p className="font-mono text-xl text-indigo-200">
+            GI &isin; DTIME(2<sup>O((log&thinsp;n)&sup3;)</sup>)
+          </p>
+          <p className="mt-1 text-xs text-zinc-400">
+            quasipolynomial time — superpolynomial yet deeply subexponential
+          </p>
+        </div>
+        <div className="mt-5 grid gap-4 text-sm sm:grid-cols-3">
+          <div className="rounded-xl border border-zinc-700/50 bg-zinc-950/40 p-4">
+            <p className="font-semibold text-zinc-200">Key idea</p>
+            <p className="mt-1 text-zinc-400">
+              Reduce GI to <em>string isomorphism</em> over groups with bounded-order generators,
+              then recurse using group structure.
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-700/50 bg-zinc-950/40 p-4">
+            <p className="font-semibold text-zinc-200">Split-or-Johnson lemma</p>
+            <p className="mt-1 text-zinc-400">
+              At each recursion, either partition into tractable sub-problems or detect a
+              Johnson-scheme structure that admits a canonical form.
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-700/50 bg-zinc-950/40 p-4">
+            <p className="font-semibold text-zinc-200">Depth bound</p>
+            <p className="mt-1 text-zinc-400">
+              t-CR-boundedness of the automorphism group constrains recursion to depth
+              O((log&thinsp;n)&sup3;), yielding the quasipolynomial bound.
+            </p>
+          </div>
+        </div>
+        <p className="mt-4 text-sm text-zinc-500">
+          Prior best (Bab&aacute;i-Luks 1983): 2<sup>O(&radic;(n&thinsp;log&thinsp;n))</sup>.
+          Bab&aacute;i 2016 is exponentially faster. A gap in the original argument was identified
+          and corrected by Bab&aacute;i in early 2017; the theorem stands unchanged.
+        </p>
+      </article>
+
+      {/* ── 6. Special Cases in P ── */}
+      <article className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6">
+        <Chip color="emerald">Polynomial Cases</Chip>
+        <h2 className="mt-3 text-xl font-semibold text-white">Graph Families in P</h2>
+        <p className="mt-3 text-sm text-zinc-400">
+          GI is polynomial-time decidable on many restricted families:
+        </p>
+        <ul className="mt-3 space-y-2.5 text-sm">
+          {[
+            ["O(n log n)", "Trees — Jordan center canonical form"],
+            ["O(n log n)", "Planar graphs — Hopcroft-Wong 1974"],
+            ["O(n^k)", "Graphs of max degree k — Luks 1982"],
+            ["poly", "Bounded tree-width — Bodlaender 1990"],
+            ["poly", "Bounded genus — Miller 1980"],
+            ["poly", "Interval, chordal, permutation graphs"],
+            ["poly", "Partial k-trees (fixed k)"],
+          ].map(([complexity, label]) => (
+            <li key={label} className="flex gap-3">
+              <span className="shrink-0 rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-emerald-400">
+                {complexity}
+              </span>
+              <span className="text-zinc-300">{label}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 text-sm text-zinc-500">
+          Each family uses structural properties that allow pruning n!&thinsp; candidates to
+          a polynomial number.
+        </p>
+      </article>
+
+      {/* ── 7. WL / Layers Limitations ── */}
+      <article className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6">
+        <Chip color="amber">Completeness Barrier</Chip>
+        <h2 className="mt-3 text-xl font-semibold text-white">
+          The Layers Approach &amp; Weisfeiler-Leman
+        </h2>
+        <p className="mt-3 text-sm leading-7 text-zinc-300">
+          The layers algorithm builds structural labels from k-hop neighborhoods — equivalent
+          to the k-dimensional Weisfeiler-Leman (k-WL) color refinement test.
+        </p>
+        <div className="mt-4 rounded-xl border border-amber-800/30 bg-amber-950/20 p-4 text-sm">
+          <p className="font-semibold text-amber-300">
+            Theorem (Cai-F&uuml;rer-Immerman 1992):
+          </p>
+          <p className="mt-2 text-zinc-300 leading-6">
+            For every fixed k&nbsp;&ge;&nbsp;1, there exist non-isomorphic n-node graphs
+            of bounded degree that k-WL cannot distinguish. Moreover, no first-order logic
+            formula with k variables can separate them.
+          </p>
+        </div>
+        <p className="mt-4 text-sm leading-6 text-zinc-400">
+          <span className="text-white font-medium">Consequence:</span> No finite-dimensional WL
+          refinement — and no layers-based labeling scheme — is a{" "}
+          <span className="text-white">complete</span> decision procedure for GI.
+        </p>
+        <div className="mt-4 space-y-1 text-sm text-zinc-500">
+          <p className="font-medium text-zinc-300">Known hard instances for WL:</p>
+          <p>• Strongly regular graphs with identical parameters</p>
+          <p>• CFI gadget graphs (lattice-based constructions)</p>
+          <p>• Paley graphs of matching orders</p>
+          <p>• Miyazaki graphs (adversarial for backtrack solvers)</p>
+        </div>
+      </article>
+
+      {/* ── 8. Open Problem Status ── */}
+      <article className="rounded-2xl border border-zinc-700/60 bg-zinc-900/60 p-6 lg:col-span-2">
+        <Chip color="rose">Open Problem</Chip>
+        <h2 className="mt-3 text-xl font-semibold text-white">Is GI &isin; P?</h2>
+        <p className="mt-3 text-sm leading-7 text-zinc-300">
+          Whether Graph Isomorphism can be decided in polynomial time is one of the most
+          celebrated open problems in theoretical computer science. The full picture as of 2026:
+        </p>
+
+        <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
+          <div className="rounded-xl border border-emerald-800/40 bg-emerald-950/20 p-4">
+            <p className="font-semibold text-emerald-300">Definitely true</p>
+            <ul className="mt-2 space-y-1 text-zinc-400">
+              <li>GI &isin; NP</li>
+              <li>GI &isin; co-AM</li>
+              <li>GI &notin; NPC (unless PH collapses)</li>
+              <li>GI &isin; DTIME(2<sup>O((log n)&sup3;)</sup>)</li>
+            </ul>
+          </div>
+          <div className="rounded-xl border border-amber-800/40 bg-amber-950/20 p-4">
+            <p className="font-semibold text-amber-300">Unknown</p>
+            <ul className="mt-2 space-y-1 text-zinc-400">
+              <li>GI &isin; P ?</li>
+              <li>GI &isin; NPC ?</li>
+              <li>GI &isin; ZPP ?</li>
+              <li>P = NP ? (implies GI &isin; P)</li>
+            </ul>
+          </div>
+          <div className="rounded-xl border border-zinc-700/40 bg-zinc-950/30 p-4">
+            <p className="font-semibold text-zinc-300">Believed false</p>
+            <ul className="mt-2 space-y-1 text-zinc-400">
+              <li>GI is NP-complete</li>
+              <li>PH collapses</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-xl border border-zinc-700/50 bg-zinc-950/40 p-5 space-y-4 text-sm leading-7 text-zinc-400">
+          <div>
+            <p className="font-semibold text-zinc-200">
+              What would a proof of GI &isin; P require?
+            </p>
+            <p className="mt-1">
+              A complete polynomial algorithm must handle{" "}
+              <em>all</em> graph families, including those that defeat WL refinement (CFI graphs,
+              strongly regular graphs). Viable routes are:
+            </p>
+            <ol className="mt-2 list-decimal list-inside space-y-1">
+              <li>
+                <span className="text-zinc-300">Group-theoretic pruning</span> — extend
+                Bab&aacute;i&rsquo;s approach to eliminate the quasipolynomial overhead
+              </li>
+              <li>
+                <span className="text-zinc-300">New polynomial invariant</span> — find a
+                canonical form computable in poly time that separates all non-isomorphic pairs
+              </li>
+              <li>
+                <span className="text-zinc-300">Bounded backtracking</span> — prove that
+                backtrack search on the layers-labeled candidate space terminates in poly steps
+                on all inputs
+              </li>
+            </ol>
+          </div>
+          <div>
+            <p className="font-semibold text-zinc-200">
+              The layers algorithm&rsquo;s status
+            </p>
+            <p className="mt-1">
+              The layers approach documented here handles 470,000+ benchmark instances correctly.
+              However, the CFI theorem establishes that no WL-style local refinement is complete
+              for all graphs. A correctness proof for the general case would require either
+              (a)&nbsp;demonstrating that the specific label construction goes beyond standard k-WL,
+              or (b)&nbsp;combining it with a backtracking phase provably bounded by a polynomial.
+              Until such a proof exists, the algorithm is an empirically powerful heuristic, not a
+              polynomial-time decision procedure.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-indigo-800/30 bg-indigo-950/20 p-4 text-sm text-zinc-300">
+          <span className="font-semibold text-indigo-300">Summary: </span>
+          GI sits strictly between P and NP-complete in the complexity landscape — confirmed by
+          the co-AM membership and the BHZ collapse theorem. The best proven upper bound is
+          Bab&aacute;i&rsquo;s 2<sup>O((log n)&sup3;)</sup> quasipolynomial. Whether this gap to
+          P can be closed remains open. A proof in either direction would be a landmark result
+          in complexity theory.
+        </div>
+      </article>
+
+    </section>
   );
 }
