@@ -35,6 +35,14 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* Unlock app shell (see src/app/unlock/layout.tsx) */
 .unlock-app {
   --unlock-glow: rgba(245, 230, 66, 0.08);

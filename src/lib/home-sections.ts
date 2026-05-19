@@ -1,263 +1,118 @@
+/** Bright palette — one accent per category, reused everywhere in that block. */
+export const CATEGORY_THEME = {
+  games: {
+    label: "Games",
+    description: "Playable worlds — arcade, strategy, and chaos.",
+    color: "#FF5722",
+    bg: "#FFF3EE",
+  },
+  tools: {
+    label: "Tools",
+    description: "Utilities that save time and sharpen decisions.",
+    color: "#0066FF",
+    bg: "#EEF4FF",
+  },
+  mirrors: {
+    label: "Life mirrors",
+    description: "Honest readiness checks before big decisions.",
+    color: "#FF9800",
+    bg: "#FFF8EE",
+  },
+  creative: {
+    label: "Creative",
+    description: "Stories, sound, merch, and rabbit holes.",
+    color: "#E91E63",
+    bg: "#FFF0F5",
+  },
+  lab: {
+    label: "The lab",
+    description: "Experiments not ready for prime time.",
+    color: "#607D8B",
+    bg: "#ECEFF1",
+  },
+} as const;
+
+export type CategoryId = keyof typeof CATEGORY_THEME;
+
 export type HomeTool = {
   id: string;
   title: string;
   tagline: string;
   href?: string;
   featured?: boolean;
-  emoji: string;
 };
 
 export type HomeCategory = {
-  id: string;
-  label: string;
-  description: string;
-  accent: string;
+  id: CategoryId;
   tools: HomeTool[];
 };
 
 export const HOME_CATEGORIES: HomeCategory[] = [
   {
     id: "games",
-    label: "Games",
-    description: "Playable worlds — arcade, strategy, and chaos.",
-    accent: "from-lime-400/20 to-emerald-600/5",
     tools: [
-      {
-        id: "tagrush",
-        title: "TagRush",
-        tagline: "Daily tag-chain battles with neon arcade energy.",
-        href: "/tag-app",
-        featured: true,
-        emoji: "⚡",
-      },
-      {
-        id: "telepath",
-        title: "Telepath",
-        tagline: "3-player mind game — secret transfers & powers.",
-        href: "/games/telepath",
-        featured: true,
-        emoji: "🧠",
-      },
-      {
-        id: "attack-defense",
-        title: "Attack-Defense",
-        tagline: "Real-time 3-player strategy arena.",
-        href: "/games/attack-defense",
-        emoji: "🛡️",
-      },
-      {
-        id: "wordfall",
-        title: "WordFall",
-        tagline: "Chain-merge words, chase high scores.",
-        href: "/WordFall",
-        emoji: "📝",
-      },
-      {
-        id: "storage-war",
-        title: "Storage War",
-        tagline: "Bid, extract treasures, complete collections.",
-        href: "/StorageWar",
-        emoji: "📦",
-      },
-      {
-        id: "echo-garden",
-        title: "Echo Garden",
-        tagline: "Grow and explore a living Phaser garden.",
-        href: "/echo-garden",
-        emoji: "🌱",
-      },
-      {
-        id: "wandwork",
-        title: "Wandwork",
-        tagline: "Wizarding platformer — spells & bosses.",
-        href: "/harrypotter",
-        emoji: "🪄",
-      },
+      { id: "tagrush", title: "TagRush", tagline: "Daily tag-chain battles.", href: "/tag-app", featured: true },
+      { id: "telepath", title: "Telepath", tagline: "3-player mind game.", href: "/games/telepath", featured: true },
+      { id: "attack-defense", title: "Attack-Defense", tagline: "Real-time 3-player strategy.", href: "/games/attack-defense" },
+      { id: "wordfall", title: "WordFall", tagline: "Chain-merge words.", href: "/WordFall" },
+      { id: "storage-war", title: "Storage War", tagline: "Bid and collect treasures.", href: "/StorageWar" },
+      { id: "echo-garden", title: "Echo Garden", tagline: "Grow a living Phaser garden.", href: "/echo-garden" },
+      { id: "wandwork", title: "Wandwork", tagline: "Wizarding platformer.", href: "/harrypotter" },
     ],
   },
   {
     id: "tools",
-    label: "Tools",
-    description: "Utilities that save time and sharpen decisions.",
-    accent: "from-cyan-400/20 to-blue-600/5",
     tools: [
-      {
-        id: "unlock",
-        title: "Unlock",
-        tagline: "Surface perks and features you already pay for.",
-        href: "/unlock",
-        featured: true,
-        emoji: "🔓",
-      },
-      {
-        id: "vacancybible",
-        title: "VacancyBible",
-        tagline: "PM jobs scraped live from company career pages.",
-        href: "/vacancybible",
-        featured: true,
-        emoji: "💼",
-      },
-      {
-        id: "worth-it",
-        title: "WorthIt?",
-        tagline: "Does this worry deserve your mental energy?",
-        href: "/worth-it",
-        emoji: "🌿",
-      },
-      {
-        id: "whos-responsible",
-        title: "Who's Responsible",
-        tagline: "Find the right department for civic issues.",
-        href: "/whos-responsible",
-        emoji: "🏛️",
-      },
-      {
-        id: "graph-iso",
-        title: "Graph Isomorphism",
-        tagline: "470k+ benchmark runs & small-graph checker.",
-        href: "/graph-isomorphism",
-        emoji: "◇",
-      },
-      {
-        id: "italian-coach",
-        title: "Italian Coach",
-        tagline: "Grammar-first Italian with mastery tracking.",
-        href: "/italian-coach",
-        emoji: "🇮🇹",
-      },
-      {
-        id: "summary",
-        title: "Summary Engine",
-        tagline: "One evidence-weighted truth from many sources.",
-        href: "/summary",
-        emoji: "📡",
-      },
-      {
-        id: "onestopai",
-        title: "OneStopAI",
-        tagline: "Multi-provider AI chat — spec & blueprint.",
-        href: "/onestopai",
-        emoji: "🤖",
-      },
+      { id: "unlock", title: "Unlock", tagline: "Perks you already have.", href: "/unlock", featured: true },
+      { id: "vacancybible", title: "VacancyBible", tagline: "Live PM job search.", href: "/vacancybible", featured: true },
+      { id: "worth-it", title: "WorthIt?", tagline: "Worry less, reflect more.", href: "/worth-it" },
+      { id: "whos-responsible", title: "Who's Responsible", tagline: "Civic accountability lookup.", href: "/whos-responsible" },
+      { id: "graph-iso", title: "Graph Isomorphism", tagline: "470k+ benchmark explorer.", href: "/graph-isomorphism" },
+      { id: "italian-coach", title: "Italian Coach", tagline: "Grammar-first Italian.", href: "/italian-coach" },
+      { id: "summary", title: "Summary Engine", tagline: "One truth from many sources.", href: "/summary" },
+      { id: "onestopai", title: "OneStopAI", tagline: "Multi-provider AI blueprint.", href: "/onestopai" },
     ],
   },
   {
     id: "mirrors",
-    label: "Life mirrors",
-    description: "Honest readiness checks before big decisions.",
-    accent: "from-amber-400/20 to-orange-600/5",
     tools: [
-      {
-        id: "before-you-decide",
-        title: "Before You Decide",
-        tagline: "Hub for marriage, home, job & life mirrors.",
-        href: "/before-you-decide",
-        featured: true,
-        emoji: "🪞",
-      },
-      {
-        id: "conceiving",
-        title: "Before Conceiving",
-        tagline: "Deep readiness mirror for parenthood.",
-        href: "/questions-before-conceiving",
-        emoji: "🌅",
-      },
-      {
-        id: "pet",
-        title: "Before Adopting a Pet",
-        tagline: "Readiness + rescue-first breed matcher.",
-        href: "/questions-before-adopting-pet",
-        emoji: "🐾",
-      },
-      {
-        id: "norm-tionary",
-        title: "Norm-tionary",
-        tagline: "Dysfunctions we normalized — swipeable truths.",
-        href: "/norm-tionary",
-        emoji: "📖",
-      },
+      { id: "before-you-decide", title: "Before You Decide", tagline: "Life decision mirrors.", href: "/before-you-decide", featured: true },
+      { id: "conceiving", title: "Before Conceiving", tagline: "Parenthood readiness.", href: "/questions-before-conceiving" },
+      { id: "pet", title: "Before Adopting a Pet", tagline: "Rescue-first matcher.", href: "/questions-before-adopting-pet" },
+      { id: "norm-tionary", title: "Norm-tionary", tagline: "Normalized dysfunctions.", href: "/norm-tionary" },
     ],
   },
   {
     id: "creative",
-    label: "Creative",
-    description: "Stories, sound, merch, and rabbit holes.",
-    accent: "from-fuchsia-400/20 to-purple-600/5",
     tools: [
-      {
-        id: "songwriter",
-        title: "AI Songwriting Studio",
-        tagline: "Lyrics & humming → chords & production packs.",
-        href: "/songwriter",
-        emoji: "🎵",
-      },
-      {
-        id: "poems",
-        title: "Poems & Stories",
-        tagline: "Raw words, rhythm, and imagination.",
-        href: "/poems",
-        emoji: "✒️",
-      },
-      {
-        id: "timeline",
-        title: "Timeline Racer",
-        tagline: "CSV timelines → cinematic video.",
-        href: "/timeline",
-        emoji: "🎬",
-      },
-      {
-        id: "tshirt",
-        title: "The T-Shirt Project",
-        tagline: "Indie apparel collections & cart.",
-        href: "/thetshirtproject",
-        emoji: "👕",
-      },
-      {
-        id: "mysteries",
-        title: "Mysteries",
-        tagline: "Cold cases, serial files & rabbit holes.",
-        href: "/mysteries",
-        emoji: "🔍",
-      },
-      {
-        id: "divergence",
-        title: "Divergence",
-        tagline: "What-if scenario exploration.",
-        href: "/divergence",
-        emoji: "⑂",
-      },
+      { id: "songwriter", title: "AI Songwriting Studio", tagline: "Lyrics to production packs.", href: "/songwriter" },
+      { id: "poems", title: "Poems & Stories", tagline: "Words and imagination.", href: "/poems" },
+      { id: "timeline", title: "Timeline Racer", tagline: "CSV to cinematic video.", href: "/timeline" },
+      { id: "tshirt", title: "The T-Shirt Project", tagline: "Indie apparel shop.", href: "/thetshirtproject" },
+      { id: "mysteries", title: "Mysteries", tagline: "Cold cases and rabbit holes.", href: "/mysteries" },
+      { id: "divergence", title: "Divergence", tagline: "What-if scenarios.", href: "/divergence" },
     ],
   },
   {
     id: "lab",
-    label: "The lab",
-    description: "Experiments not ready for prime time.",
-    accent: "from-zinc-400/10 to-zinc-600/5",
     tools: [
-      {
-        id: "radical",
-        title: "Radical Ideas",
-        tagline: "Spicy product bets & thought experiments.",
-        emoji: "💡",
-      },
-      {
-        id: "nonsense",
-        title: "Non-Sense Stuffs",
-        tagline: "Weird builds that shouldn't work — sometimes do.",
-        emoji: "🎪",
-      },
-      {
-        id: "area51",
-        title: "Area 51",
-        tagline: "Classified prototypes & moonshots.",
-        emoji: "👽",
-      },
+      { id: "radical", title: "Radical Ideas", tagline: "Spicy product bets." },
+      { id: "nonsense", title: "Non-Sense Stuffs", tagline: "Weird experiments." },
+      { id: "area51", title: "Area 51", tagline: "Classified prototypes." },
     ],
   },
 ];
 
+export const BRAND = {
+  primary: "#0066FF",
+  primaryHover: "#0052CC",
+  pageBg: "#F0F4FF",
+  text: "#0F172A",
+  textMuted: "#475569",
+} as const;
+
 export const ALL_TOOLS = HOME_CATEGORIES.flatMap((c) =>
-  c.tools.map((t) => ({ ...t, category: c.label, categoryId: c.id }))
+  c.tools.map((t) => ({ ...t, categoryId: c.id }))
 );
 
 export const FEATURED_TOOLS = ALL_TOOLS.filter((t) => t.featured && t.href);
