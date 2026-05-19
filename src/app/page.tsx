@@ -136,12 +136,60 @@ export default function Home() {
       href: "/onestopai",
     },
     {
+      title: "WordFall",
+      description:
+        "Chain-cascade word merges with length-bonus scoring — a quick daily brain warm-up.",
+      vibe: "Stack words",
+      accent: "from-cyan-300/30 via-blue-600/20 to-transparent",
+      href: "/WordFall",
+    },
+    {
       title: "Storage War",
       description:
         "Bid on abandoned storage units, extract hidden stamps and coins, appraise treasures, and complete legendary collections.",
       vibe: "Bid · Extract · Collect",
       accent: "from-amber-300/30 via-yellow-600/20 to-transparent",
       href: "/StorageWar",
+    },
+    {
+      title: "Echo Garden",
+      description:
+        "A Phaser-powered garden game — grow, explore, and experiment in a living little world.",
+      vibe: "Grow & explore",
+      accent: "from-emerald-300/30 via-green-600/20 to-transparent",
+      href: "/echo-garden",
+    },
+    {
+      title: "Wandwork",
+      description:
+        "A wizarding platformer: spells, enemies, bosses, and side-scrolling chaos.",
+      vibe: "Cast & dash",
+      accent: "from-violet-300/30 via-purple-600/20 to-transparent",
+      href: "/harrypotter",
+    },
+    {
+      title: "Timeline Racer",
+      description:
+        "Turn CSV timelines into cinematic animated videos — fast, polished, shareable.",
+      vibe: "Race through time",
+      accent: "from-rose-300/30 via-red-600/20 to-transparent",
+      href: "/timeline",
+    },
+    {
+      title: "The T-Shirt Project",
+      description:
+        "Browse collections, customize designs, and build a cart for indie apparel drops.",
+      vibe: "Wear the art",
+      accent: "from-orange-300/30 via-amber-600/20 to-transparent",
+      href: "/thetshirtproject",
+    },
+    {
+      title: "Divergence",
+      description:
+        "Scenario analytics and divergence exploration for what-if thinking.",
+      vibe: "Branch reality",
+      accent: "from-indigo-300/30 via-blue-600/20 to-transparent",
+      href: "/divergence",
     },
     {
       title: "VacancyBible",
