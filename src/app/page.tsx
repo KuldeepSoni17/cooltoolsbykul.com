@@ -80,11 +80,27 @@ export default function Home() {
       href: "/whos-responsible",
     },
     {
-      title: "Questions Before Conceiving",
+      title: "Before You Decide",
       description:
-        "A deep readiness assessment concept for people considering parenthood.",
+        "Readiness mirrors for hard decisions — conceiving, pet adoption, marriage, moving in, home buying, and more.",
       vibe: "Reflect deeply",
       accent: "from-yellow-300/30 via-amber-500/20 to-transparent",
+      href: "/before-you-decide",
+    },
+    {
+      title: "Questions Before Adopting a Pet",
+      description:
+        "Readiness assessment plus an honest breed matcher — rescue-first.",
+      vibe: "Adopt wisely",
+      accent: "from-emerald-300/30 via-lime-500/20 to-transparent",
+      href: "/questions-before-adopting-pet",
+    },
+    {
+      title: "Questions Before Conceiving",
+      description:
+        "A deep readiness mirror for people considering parenthood.",
+      vibe: "Reflect deeply",
+      accent: "from-amber-300/30 via-orange-500/20 to-transparent",
       href: "/questions-before-conceiving",
     },
     {

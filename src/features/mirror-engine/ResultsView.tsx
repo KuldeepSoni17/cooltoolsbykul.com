@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { AssessmentConfig, AssessmentResults } from "./types";
 import { bandColor } from "./score";
-import { loadResults } from "./persistence";
+import { loadResultHistory } from "./history";
+import { loadResults, savePartnerResults } from "./persistence";
+import { buildShareUrl, encodeShareResults } from "./share";
 import { RadarChart } from "./RadarChart";
 
 type Props = {
@@ -21,11 +23,20 @@ export function ResultsView({
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [hardTruths, setHardTruths] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [shareMsg, setShareMsg] = useState<string | null>(null);
+  const [showDiff, setShowDiff] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- read client-only results once on mount
     setResults(loadResults(`${config.storageKey}-results`));
   }, [config.storageKey]);
+
+  const previous = useMemo(() => {
+    const history = loadResultHistory(config.storageKey);
+    if (!results || history.length < 2) return null;
+    return history.find((h) => h.results.completedAt !== results.completedAt)
+      ?.results;
+  }, [config.storageKey, results]);
 
   if (!results) {
     return (
@@ -243,12 +254,102 @@ export function ResultsView({
           )}
         </section>
 
+        <section className="mt-12 rounded-2xl border border-[var(--mirror-border)] bg-[var(--mirror-surface)] p-6">
+          <h3 className="text-lg font-semibold">Share & compare</h3>
+          <p className="mt-2 text-sm text-[var(--mirror-text-secondary)]">
+            Profile summary only — no raw answers. Encoded in the link, not on our servers.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                const token = encodeShareResults(results, config.id);
+                const url = buildShareUrl(`${landingPath}/results`, token);
+                void navigator.clipboard.writeText(url).then(() => {
+                  setShareMsg("Link copied.");
+                  setTimeout(() => setShareMsg(null), 4000);
+                });
+              }}
+              className="rounded-full border border-[var(--mirror-border)] px-5 py-2.5 text-sm font-medium hover:border-[var(--mirror-accent)]"
+            >
+              Copy share link
+            </button>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="rounded-full border border-[var(--mirror-border)] px-5 py-2.5 text-sm font-medium hover:border-[var(--mirror-accent)]"
+            >
+              Print / save PDF
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                savePartnerResults(config.storageKey, results);
+                setShareMsg("Saved as Partner A — partner completes, then open Couple compare.");
+              }}
+              className="rounded-full border border-[var(--mirror-border)] px-5 py-2.5 text-sm font-medium hover:border-[var(--mirror-accent)]"
+            >
+              Save as Partner A
+            </button>
+            <Link
+              href={`/before-you-decide/compare?mirror=${config.storageKey}`}
+              className="rounded-full border border-[var(--mirror-accent)]/50 px-5 py-2.5 text-sm font-medium text-[var(--mirror-accent)]"
+            >
+              Couple compare →
+            </Link>
+          </div>
+          {shareMsg && (
+            <p className="mt-3 text-sm text-[var(--mirror-accent)]">{shareMsg}</p>
+          )}
+        </section>
+
+        {previous && (
+          <section className="mt-8">
+            <button
+              type="button"
+              onClick={() => setShowDiff((v) => !v)}
+              className="text-sm font-medium text-[var(--mirror-accent)]"
+            >
+              {showDiff ? "Hide retake comparison ↑" : "Compare to your last attempt →"}
+            </button>
+            {showDiff && (
+              <ul className="mt-4 space-y-2 text-sm text-[var(--mirror-text-secondary)]">
+                {results.domains.map((d) => {
+                  const prev = previous.domains.find((x) => x.domainId === d.domainId);
+                  const delta = prev ? d.percent - prev.percent : 0;
+                  return (
+                    <li key={d.domainId}>
+                      {d.domainName}: {prev?.percent ?? "—"}% → {d.percent}%
+                      {delta !== 0 && (
+                        <span className={delta > 0 ? " text-[var(--mirror-success)]" : " text-[#c97e7e]"}>
+                          {" "}
+                          ({delta > 0 ? "+" : ""}
+                          {delta})
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+                <li className="pt-2 text-[var(--mirror-text-muted)]">
+                  Profile: {previous.profile.name} → {results.profile.name}
+                </li>
+              </ul>
+            )}
+          </section>
+        )}
+
         <div className="mt-12 flex flex-wrap gap-4">
           <Link
             href={assessmentPath}
             className="rounded-full border border-[var(--mirror-border)] px-6 py-3 text-sm font-semibold text-[var(--mirror-text-secondary)] hover:border-[var(--mirror-accent)]"
           >
             Retake assessment
+          </Link>
+          <Link
+            href="/before-you-decide"
+            className="rounded-full border border-[var(--mirror-border)] px-6 py-3 text-sm font-semibold text-[var(--mirror-text-secondary)]"
+          >
+            All mirrors
           </Link>
           <Link
             href="/"

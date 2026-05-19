@@ -122,6 +122,12 @@ export type ProfileBand = {
   guidance: string;
 };
 
+export type MirrorTheme = {
+  accent: string;
+  accentLight: string;
+  accentDim: string;
+};
+
 export type ResearchPanel = {
   domainId: string;
   title: string;
@@ -153,4 +159,7 @@ export type AssessmentConfig = {
   steps: AssessmentStep[];
   profiles: ProfileBand[];
   research: ResearchPanel[];
+  theme?: MirrorTheme;
+  resultsPath?: string;
+  comparePath?: string;
 };

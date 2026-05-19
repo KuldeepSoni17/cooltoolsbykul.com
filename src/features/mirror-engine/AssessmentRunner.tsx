@@ -8,6 +8,7 @@ import type {
   AssessmentStep,
 } from "./types";
 import { computeResults } from "./score";
+import { saveResultHistory } from "./history";
 import {
   clearProgress,
   loadProgress,
@@ -116,6 +117,7 @@ export function AssessmentRunner({ config, resultsPath }: Props) {
     if (stepIndex >= config.steps.length - 1) {
       const results = computeResults(config, answers);
       saveResults(resultsKey, results);
+      saveResultHistory(config.storageKey, results);
       clearProgress(progressKey);
       router.push(resultsPath);
       return;
