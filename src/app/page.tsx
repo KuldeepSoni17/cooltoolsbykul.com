@@ -56,6 +56,14 @@ export default function Home() {
       accent: "from-pink-400/30 via-rose-500/20 to-transparent",
     },
     {
+      title: "Telepath",
+      description:
+        "The original Conqueror mind-game: 3 players, colored containers, secret transfers, and four one-time powers.",
+      vibe: "Read minds",
+      accent: "from-violet-300/30 via-purple-500/20 to-transparent",
+      href: "/games/telepath",
+    },
+    {
       title: "Attack-Defense Game",
       description:
         "Real-time 3-player strategy battleground where timing, targeting, and defense choices decide who survives.",
@@ -126,6 +134,14 @@ export default function Home() {
       vibe: "Your song, clearer",
       accent: "from-fuchsia-300/30 via-purple-500/20 to-transparent",
       href: "/songwriter",
+    },
+    {
+      title: "Graph Isomorphism",
+      description:
+        "Layers-based graph isomorphism research with 470k+ benchmark runs, result explorer, and small-graph checker.",
+      vibe: "Same graph, new labels",
+      accent: "from-indigo-300/30 via-violet-500/20 to-transparent",
+      href: "/graph-isomorphism",
     },
   ];
 
