@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
         source: "/WordFall",
         destination: "/WordFall/index.html",
       },
+      // Storage War — storage auction game in public/StorageWar
+      {
+        source: "/StorageWar",
+        destination: "/StorageWar/index.html",
+      },
       // Bare /echo with no trailing slash
       {
         source: "/echo",

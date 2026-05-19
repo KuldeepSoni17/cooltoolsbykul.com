@@ -136,6 +136,14 @@ export default function Home() {
       href: "/onestopai",
     },
     {
+      title: "Storage War",
+      description:
+        "Bid on abandoned storage units, extract hidden stamps and coins, appraise treasures, and complete legendary collections.",
+      vibe: "Bid · Extract · Collect",
+      accent: "from-amber-300/30 via-yellow-600/20 to-transparent",
+      href: "/StorageWar",
+    },
+    {
       title: "VacancyBible",
       description:
         "Search PM jobs directly from company career pages with live progress and field-level confidence labels.",
