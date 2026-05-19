@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
         source: "/tag-app-play",
         destination: "/tag-app-play/index.html",
       },
+      // Wordfall — static word game in public/WordFall
+      {
+        source: "/WordFall",
+        destination: "/WordFall/index.html",
+      },
       // Bare /echo with no trailing slash
       {
         source: "/echo",

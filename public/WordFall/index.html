@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f1424">
+<title>Wordfall</title>
+<style>
+  :root {
+    --bg: #0f1424;
+    --panel: #1a2138;
+    --grid: #232b47;
+    --tile: #f1e4cc;
+    --tile-text: #1a1a2e;
+    --rare: #d4a644;
+    --clear: #4ade80;
+    --accent: #ef476f;
+    --text: #f5f5f5;
+    --muted: #94a3b8;
+    --shadow: 0 2px 0 rgba(0,0,0,0.2), 0 6px 14px rgba(0,0,0,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 14px;
+    padding-top: max(14px, env(safe-area-inset-top));
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
+    touch-action: none;
+  }
+
+  .game {
+    width: 100%;
+    max-width: min(460px, calc(100dvh - 170px));
+    margin-top: clamp(8px, 4vh, 40px);
+  }
+
+  @media (min-height: 760px) {
+    body { align-items: center; }
+    .game { margin-top: 0; }
+  }
+
+  @media (max-height: 480px) {
+    body { padding: 8px; }
+    .game { margin-top: 0; max-width: min(420px, calc(100dvh - 110px)); }
+    .header { margin-bottom: 6px; }
+    .hint { display: none; }
+    .footer { margin-top: 8px; }
+    .title { font-size: 22px; }
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+
+  .title {
+    font-size: clamp(26px, 8.5vw, 38px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .title .accent { color: var(--accent); }
+
+  .scores { display: flex; gap: 6px; }
+
+  .score-box {
+    background: var(--panel);
+    padding: 6px 10px;
+    border-radius: 9px;
+    min-width: 64px;
+    text-align: center;
+  }
+  .score-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    font-weight: 700;
+  }
+  .score-value {
+    font-size: 20px;
+    font-weight: 800;
+    margin-top: 1px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .score-value.bump { animation: bump 360ms ease; }
+  @keyframes bump {
+    0% { transform: scale(1); color: var(--text); }
+    40% { transform: scale(1.18); color: var(--clear); }
+    100% { transform: scale(1); color: var(--text); }
+  }
+
+  .hint {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 12px;
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+
+  .grid {
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 10px;
+    position: relative;
+    aspect-ratio: 1;
+    box-shadow: var(--shadow);
+  }
+
+  .grid-cells { position: relative; width: 100%; height: 100%; }
+
+  .cell-bg, .tile {
+    position: absolute;
+    border-radius: 8px;
+    transition: left 140ms cubic-bezier(.25,.7,.3,1), top 140ms cubic-bezier(.25,.7,.3,1),
+                transform 220ms ease, opacity 220ms ease, background 200ms ease;
+  }
+
+  .cell-bg { background: var(--grid); }
+
+  .tile {
+    background: var(--tile);
+    color: var(--tile-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+    font-family: "SF Pro Display", system-ui, sans-serif;
+  }
+  .tile.rare { color: var(--rare); }
+  .tile.scoring {
+    background: var(--clear);
+    color: white;
+    transform: scale(1.05);
+  }
+  .tile.clearing {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  .tile.spawn { animation: spawn 260ms cubic-bezier(.2,.8,.4,1.2); }
+  @keyframes spawn {
+    0% { transform: scale(0.2); opacity: 0; }
+    70% { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .toasts {
+    position: absolute;
+    top: -8px;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    z-index: 5;
+  }
+  .toast {
+    background: var(--accent);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    animation: toast 1.4s ease forwards;
+    box-shadow: 0 4px 14px rgba(239,71,111,0.4);
+  }
+  .toast.combo { background: var(--rare); box-shadow: 0 4px 14px rgba(212,166,68,0.4); }
+  @keyframes toast {
+    0% { transform: translateY(24px); opacity: 0; }
+    18% { transform: translateY(0); opacity: 1; }
+    78% { transform: translateY(-8px); opacity: 1; }
+    100% { transform: translateY(-36px); opacity: 0; }
+  }
+
+  .footer {
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 36px;
+  }
+  .combo-display {
+    color: var(--rare);
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .restart {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+  }
+  .restart:active { transform: translateY(1px); box-shadow: none; }
+
+  .overlay {
+    position: absolute;
+    inset: 10px;
+    background: rgba(15, 20, 36, 0.94);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 10px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 10;
+  }
+  .overlay.show { display: flex; }
+  .overlay-title { font-size: 28px; font-weight: 800; }
+  .overlay-sub { color: var(--muted); font-size: 14px; }
+  .overlay-score { color: var(--rare); font-size: 32px; font-weight: 800; }
+
+  .loading { color: var(--muted); text-align: center; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="game">
+  <div class="header">
+    <div class="title">Word<span class="accent">fall</span></div>
+    <div class="scores">
+      <div class="score-box"><div class="score-label">Score</div><div class="score-value" id="score">0</div></div>
+      <div class="score-box"><div class="score-label">Best</div><div class="score-value" id="best">0</div></div>
+    </div>
+  </div>
+  <div class="hint">Swipe or arrow keys — slide tiles to form words across rows or columns</div>
+  <div class="grid" id="grid">
+    <div class="grid-cells" id="grid-cells"></div>
+    <div class="toasts" id="toasts"></div>
+    <div class="overlay" id="overlay">
+      <div class="overlay-title" id="overlay-title">No moves left</div>
+      <div class="overlay-sub">Final score</div>
+      <div class="overlay-score" id="overlay-score">0</div>
+      <button class="restart" onclick="reset()">Play again</button>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="combo-display" id="combo"></div>
+    <button class="restart" onclick="reset()">New game</button>
+  </div>
+</div>
+<script src="words.js"></script>
+<script>
+"use strict";
+
+const SIZE = 5;
+const GAP_PCT = 2.6; // % of grid-cells width between cells
+const CELL_PCT = (100 - (SIZE - 1) * GAP_PCT) / SIZE;
+
+// Scrabble-ish letter distribution
+const LETTER_FREQ = {
+  A:9, B:2, C:2, D:4, E:12, F:2, G:3, H:2, I:9, J:1, K:1, L:4, M:2,
+  N:6, O:8, P:2, Q:1, R:6, S:4, T:6, U:4, V:2, W:2, X:1, Y:2, Z:1
+};
+const RARE = new Set(["J","K","Q","V","X","Z"]);
+const LETTER_SCORE = {
+  A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,
+  N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10
+};
+const BAG = [];
+for (const [l, n] of Object.entries(LETTER_FREQ)) for (let i = 0; i < n; i++) BAG.push(l);
+const rand = () => BAG[Math.floor(Math.random() * BAG.length)];
+
+const $grid = document.getElementById("grid");
+const $cells = document.getElementById("grid-cells");
+const $score = document.getElementById("score");
+const $best = document.getElementById("best");
+const $combo = document.getElementById("combo");
+const $toasts = document.getElementById("toasts");
+const $overlay = document.getElementById("overlay");
+const $overlayScore = document.getElementById("overlay-score");
+
+let state, animating = false, lastDir = "down";
+
+function pctPos(r, c) {
+  return {
+    left: c * (CELL_PCT + GAP_PCT),
+    top:  r * (CELL_PCT + GAP_PCT)
+  };
+}
+
+function buildBackground() {
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      const p = pctPos(r, c);
+      const bg = document.createElement("div");
+      bg.className = "cell-bg";
+      bg.style.left = p.left + "%";
+      bg.style.top = p.top + "%";
+      bg.style.width = CELL_PCT + "%";
+      bg.style.height = CELL_PCT + "%";
+      $cells.appendChild(bg);
+    }
+  }
+}
+
+function makeTile(letter, r, c) {
+  const el = document.createElement("div");
+  el.className = "tile spawn" + (RARE.has(letter) ? " rare" : "");
+  el.textContent = letter;
+  const p = pctPos(r, c);
+  el.style.left = p.left + "%";
+  el.style.top = p.top + "%";
+  el.style.width = CELL_PCT + "%";
+  el.style.height = CELL_PCT + "%";
+  el.style.fontSize = "clamp(22px, 7.5vw, 36px)";
+  $cells.appendChild(el);
+  setTimeout(() => el.classList.remove("spawn"), 280);
+  return { letter, el };
+}
+
+function placeTile(tile, r, c) {
+  const p = pctPos(r, c);
+  tile.el.style.left = p.left + "%";
+  tile.el.style.top = p.top + "%";
+}
+
+function newGame() {
+  state = {
+    grid: Array.from({ length: SIZE }, () => Array(SIZE).fill(null)),
+    score: 0,
+    best: Number(localStorage.getItem("wordfall_best") || 0)
+  };
+  Array.from($cells.querySelectorAll(".tile")).forEach(n => n.remove());
+  // Initial sprinkle
+  for (let i = 0; i < 8; i++) spawnRandom();
+  $score.textContent = 0;
+  $best.textContent = state.best;
+  $combo.textContent = "";
+  $overlay.classList.remove("show");
+  animating = false;
+}
+
+function spawnRandom() {
+  const empties = [];
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++)
+      if (!state.grid[r][c]) empties.push([r, c]);
+  if (!empties.length) return false;
+  const [r, c] = empties[Math.floor(Math.random() * empties.length)];
+  state.grid[r][c] = makeTile(rand(), r, c);
+  return true;
+}
+
+function slide(dir) {
+  if (animating) return;
+  const g = state.grid;
+  let moved = false;
+
+  const compact = (line, toEnd) => {
+    const filled = line.filter(x => x);
+    const out = Array(SIZE).fill(null);
+    if (!toEnd) for (let i = 0; i < filled.length; i++) out[i] = filled[i];
+    else        for (let i = 0; i < filled.length; i++) out[SIZE - filled.length + i] = filled[i];
+    return out;
+  };
+
+  if (dir === "left" || dir === "right") {
+    for (let r = 0; r < SIZE; r++) {
+      const newRow = compact(g[r], dir === "right");
+      for (let c = 0; c < SIZE; c++) {
+        if (newRow[c] !== g[r][c]) moved = true;
+        g[r][c] = newRow[c];
+      }
+    }
+  } else {
+    for (let c = 0; c < SIZE; c++) {
+      const col = [];
+      for (let r = 0; r < SIZE; r++) col.push(g[r][c]);
+      const newCol = compact(col, dir === "down");
+      for (let r = 0; r < SIZE; r++) {
+        if (newCol[r] !== g[r][c]) moved = true;
+        g[r][c] = newCol[r];
+      }
+    }
+  }
+
+  if (!moved) {
+    // No motion. Still check if grid is full → game over.
+    if (gridFull()) showGameOver();
+    return;
+  }
+
+  lastDir = dir;
+  animating = true;
+
+  // Reposition tiles based on new grid state
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++)
+      if (g[r][c]) placeTile(g[r][c], r, c);
+
+  setTimeout(() => processCascade(0), 160);
+}
+
+function findWords() {
+  const matches = [];
+  const WORDS = window.WORDS;
+  if (!WORDS) return matches;
+
+  const processLine = (cells) => {
+    // cells: array of {r,c,letter} or null
+    let i = 0;
+    while (i < cells.length) {
+      if (!cells[i]) { i++; continue; }
+      let j = i;
+      while (j < cells.length && cells[j]) j++;
+      const run = cells.slice(i, j);
+      const str = run.map(x => x.letter.toLowerCase()).join("");
+      // Greedy longest-first, non-overlapping
+      const used = Array(run.length).fill(false);
+      for (let len = run.length; len >= 3; len--) {
+        for (let s = 0; s + len <= run.length; s++) {
+          if (used.slice(s, s + len).some(Boolean)) continue;
+          const sub = str.slice(s, s + len);
+          if (WORDS.has(sub)) {
+            matches.push({ word: sub, cells: run.slice(s, s + len).map(x => [x.r, x.c]) });
+            for (let k = s; k < s + len; k++) used[k] = true;
+          }
+        }
+      }
+      i = j;
+    }
+  };
+
+  for (let r = 0; r < SIZE; r++) {
+    const line = [];
+    for (let c = 0; c < SIZE; c++) line.push(state.grid[r][c] ? { r, c, letter: state.grid[r][c].letter } : null);
+    processLine(line);
+  }
+  for (let c = 0; c < SIZE; c++) {
+    const line = [];
+    for (let r = 0; r < SIZE; r++) line.push(state.grid[r][c] ? { r, c, letter: state.grid[r][c].letter } : null);
+    processLine(line);
+  }
+
+  // Dedupe by cell set (same word found via row+col shouldn't double-count; in practice this won't happen since rows and cols don't share runs)
+  return matches;
+}
+
+function clearMatches(matches, multiplier) {
+  let total = 0;
+  const cleared = new Set();
+
+  for (const m of matches) {
+    let base = 0;
+    for (const [r, c] of m.cells) base += LETTER_SCORE[state.grid[r][c].letter] || 1;
+    const gain = base * m.word.length * multiplier;
+    total += gain;
+    showToast(m.word.toUpperCase() + " +" + gain, multiplier > 1);
+    for (const [r, c] of m.cells) cleared.add(r * SIZE + c);
+  }
+
+  // Flash scoring tiles, then remove
+  for (const k of cleared) {
+    const r = Math.floor(k / SIZE), c = k % SIZE;
+    const t = state.grid[r][c];
+    if (!t) continue;
+    t.el.classList.add("scoring");
+  }
+  setTimeout(() => {
+    for (const k of cleared) {
+      const r = Math.floor(k / SIZE), c = k % SIZE;
+      const t = state.grid[r][c];
+      if (!t) continue;
+      t.el.classList.remove("scoring");
+      t.el.classList.add("clearing");
+      const el = t.el;
+      setTimeout(() => el.remove(), 240);
+      state.grid[r][c] = null;
+    }
+  }, 220);
+
+  state.score += total;
+  $score.textContent = state.score;
+  $score.classList.remove("bump");
+  void $score.offsetWidth;
+  $score.classList.add("bump");
+  if (state.score > state.best) {
+    state.best = state.score;
+    localStorage.setItem("wordfall_best", state.best);
+    $best.textContent = state.best;
+  }
+  return cleared.size;
+}
+
+function settleAfterClear() {
+  // Compact remaining tiles in the direction of last slide so gaps appear at the opposite edge,
+  // then we'll spawn new tiles into those edges.
+  const g = state.grid;
+  if (lastDir === "left" || lastDir === "right") {
+    for (let r = 0; r < SIZE; r++) {
+      const filled = g[r].filter(x => x);
+      const out = Array(SIZE).fill(null);
+      if (lastDir === "left") for (let i = 0; i < filled.length; i++) out[i] = filled[i];
+      else                    for (let i = 0; i < filled.length; i++) out[SIZE - filled.length + i] = filled[i];
+      for (let c = 0; c < SIZE; c++) g[r][c] = out[c];
+    }
+  } else {
+    for (let c = 0; c < SIZE; c++) {
+      const col = [];
+      for (let r = 0; r < SIZE; r++) col.push(g[r][c]);
+      const filled = col.filter(x => x);
+      const out = Array(SIZE).fill(null);
+      if (lastDir === "up")   for (let i = 0; i < filled.length; i++) out[i] = filled[i];
+      else                    for (let i = 0; i < filled.length; i++) out[SIZE - filled.length + i] = filled[i];
+      for (let r = 0; r < SIZE; r++) g[r][c] = out[r];
+    }
+  }
+  // Re-position
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++)
+      if (g[r][c]) placeTile(g[r][c], r, c);
+}
+
+function processCascade(comboLevel) {
+  const matches = findWords();
+  if (matches.length > 0) {
+    const mult = comboLevel + 1;
+    if (mult > 1) {
+      $combo.textContent = "Combo ×" + mult;
+      showToast("COMBO ×" + mult, true);
+    }
+    clearMatches(matches, mult);
+    // wait for clear animation, settle, then re-check
+    setTimeout(() => {
+      settleAfterClear();
+      setTimeout(() => processCascade(mult), 200);
+    }, 480);
+    return;
+  }
+
+  // No more words to clear. Spawn 2 new tiles (or whatever fits).
+  const spawned = spawnRandom() + spawnRandom();
+  if (spawned === 0 && gridFull()) {
+    showGameOver();
+    animating = false;
+    return;
+  }
+
+  // After spawn, check if new tiles caused new words (edge case)
+  setTimeout(() => {
+    const newMatches = findWords();
+    if (newMatches.length > 0) {
+      clearMatches(newMatches, 1);
+      setTimeout(() => {
+        settleAfterClear();
+        setTimeout(() => processCascade(0), 200);
+      }, 480);
+    } else {
+      $combo.textContent = "";
+      animating = false;
+      if (gridFull() && !canMove()) showGameOver();
+    }
+  }, 280);
+}
+
+function gridFull() {
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++)
+      if (!state.grid[r][c]) return false;
+  return true;
+}
+
+function canMove() {
+  // Any swipe would compact tiles to an edge. If grid is fully packed in all 4 directions, no move helps.
+  // With our compacting rule, "no move" = grid is full (every cell occupied), because then every direction
+  // leaves the grid unchanged.
+  return !gridFull();
+}
+
+function showGameOver() {
+  $overlayScore.textContent = state.score;
+  $overlay.classList.add("show");
+}
+
+function showToast(text, isCombo) {
+  const t = document.createElement("div");
+  t.className = "toast" + (isCombo ? " combo" : "");
+  t.textContent = text;
+  $toasts.appendChild(t);
+  setTimeout(() => t.remove(), 1500);
+}
+
+function reset() { newGame(); }
+window.reset = reset;
+window.move = slide;
+
+// Keyboard
+document.addEventListener("keydown", e => {
+  const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
+                w: "up", s: "down", a: "left", d: "right",
+                W: "up", S: "down", A: "left", D: "right" };
+  const dir = map[e.key];
+  if (dir) { e.preventDefault(); slide(dir); }
+});
+
+// Touch swipe on grid
+let touchStart = null;
+$grid.addEventListener("touchstart", e => {
+  if (e.touches.length === 1) {
+    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+}, { passive: true });
+$grid.addEventListener("touchend", e => {
+  if (!touchStart || !e.changedTouches[0]) return;
+  const dx = e.changedTouches[0].clientX - touchStart.x;
+  const dy = e.changedTouches[0].clientY - touchStart.y;
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  touchStart = null;
+  if (Math.max(ax, ay) < 22) return;
+  if (ax > ay) slide(dx > 0 ? "right" : "left");
+  else slide(dy > 0 ? "down" : "up");
+}, { passive: true });
+
+// Mouse swipe (desktop without keyboard)
+let mouseStart = null;
+$grid.addEventListener("mousedown", e => {
+  mouseStart = { x: e.clientX, y: e.clientY };
+});
+$grid.addEventListener("mouseup", e => {
+  if (!mouseStart) return;
+  const dx = e.clientX - mouseStart.x;
+  const dy = e.clientY - mouseStart.y;
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  mouseStart = null;
+  if (Math.max(ax, ay) < 28) return;
+  if (ax > ay) slide(dx > 0 ? "right" : "left");
+  else slide(dy > 0 ? "down" : "up");
+});
+
+// Boot
+window.addEventListener("load", () => {
+  buildBackground();
+  if (!window.WORDS) {
+    // Wait briefly for words.js
+    const wait = setInterval(() => {
+      if (window.WORDS) { clearInterval(wait); newGame(); }
+    }, 50);
+  } else {
+    newGame();
+  }
+});
+</script>
+</body>
+</html>
