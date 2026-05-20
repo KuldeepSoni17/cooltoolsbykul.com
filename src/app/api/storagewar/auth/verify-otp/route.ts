@@ -22,42 +22,86 @@ export async function POST(req: NextRequest) {
   if (!phone) return jsonError("Invalid phone number.");
   if (code.length < 4) return jsonError("Enter the verification code.");
 
-  const valid = await verifyOtp(phone, code);
+  const otpToken = typeof body.otpToken === "string" ? body.otpToken : undefined;
+  const valid = await verifyOtp(phone, code, otpToken);
   if (!valid) return jsonError("Invalid or expired code.");
 
-  let { data: user } = await supabaseAdmin
-    .from("sw_users")
-    .select("id, phone, display_name, coins, reward_points, game_state")
-    .eq("phone", phone)
-    .maybeSingle();
+  let user: {
+    id: string;
+    phone: string;
+    display_name: string | null;
+    coins: number;
+    reward_points: number;
+    game_state: Record<string, unknown>;
+  } | null = null;
 
-  if (!user) {
-    const { data: created, error } = await supabaseAdmin
+  try {
+    const { data } = await supabaseAdmin
       .from("sw_users")
-      .insert({
-        phone,
-        display_name: displayName,
-        coins: INITIAL_COINS,
-        reward_points: 0,
-        game_state: {},
-      })
       .select("id, phone, display_name, coins, reward_points, game_state")
-      .single();
-    if (error || !created) return jsonError("Could not create account.", 500);
-    user = created;
-  } else if (displayName && displayName !== "Collector") {
-    await supabaseAdmin
-      .from("sw_users")
-      .update({ display_name: displayName, updated_at: new Date().toISOString() })
-      .eq("id", user.id);
-    user = { ...user, display_name: displayName };
+      .eq("phone", phone)
+      .maybeSingle();
+    user = data;
+  } catch (e) {
+    console.error("[StorageWar] verify-otp user lookup", e);
+    return jsonError(
+      "Account database unavailable. Run scripts/storagewar-schema.sql in Supabase and check env vars.",
+      503,
+    );
   }
 
-  const token = await createSession(user.id);
-  const opts = sessionCookieOptions(token);
-  const res = jsonOk({ user });
-  res.cookies.set(opts);
-  return res;
+  if (!user) {
+    try {
+      const { data: created, error } = await supabaseAdmin
+        .from("sw_users")
+        .insert({
+          phone,
+          display_name: displayName,
+          coins: INITIAL_COINS,
+          reward_points: 0,
+          game_state: {},
+        })
+        .select("id, phone, display_name, coins, reward_points, game_state")
+        .single();
+      if (error || !created) {
+        console.error("[StorageWar] create user", error);
+        return jsonError(
+          error?.code === "42P01"
+            ? "Run scripts/storagewar-schema.sql in Supabase first."
+            : "Could not create account.",
+          500,
+        );
+      }
+      user = created;
+    } catch (e) {
+      console.error("[StorageWar] create user", e);
+      return jsonError("Could not create account. Check Supabase connection.", 503);
+    }
+  } else if (displayName && displayName !== "Collector") {
+    try {
+      await supabaseAdmin
+        .from("sw_users")
+        .update({ display_name: displayName, updated_at: new Date().toISOString() })
+        .eq("id", user.id);
+      user = { ...user, display_name: displayName };
+    } catch {
+      /* non-fatal */
+    }
+  }
+
+  try {
+    const token = await createSession(user.id);
+    const opts = sessionCookieOptions(token);
+    const res = jsonOk({ user });
+    res.cookies.set(opts);
+    return res;
+  } catch (e) {
+    console.error("[StorageWar] create session", e);
+    return jsonError(
+      "Could not create session. Run scripts/storagewar-schema.sql in Supabase.",
+      503,
+    );
+  }
 }
 
 export async function DELETE() {

@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
         ? "Enter the code shown below (SMS not configured yet)."
         : "Verification code sent to your phone.",
       devCode: result.devCode,
+      otpToken: result.otpToken,
     });
   } catch (e) {
     console.error("[StorageWar] send-otp", e);
