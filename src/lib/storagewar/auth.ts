@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { supabaseAdmin, hasSupabaseAdminConfig } from "@/lib/supabase-server";
 import { SESSION_COOKIE, SESSION_DAYS } from "./constants";
+import { createSignedSession, parseSignedSession } from "./session-signed";
 import { randomBytes } from "crypto";
 
 export type SwUser = {
@@ -17,42 +18,57 @@ export function hasStorageWarBackend(): boolean {
 }
 
 export async function getSessionUser(): Promise<SwUser | null> {
-  if (!hasSupabaseAdminConfig()) return null;
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  const { data: session } = await supabaseAdmin
-    .from("sw_sessions")
-    .select("user_id, expires_at")
-    .eq("token", token)
-    .maybeSingle();
+  const signed = parseSignedSession(token);
+  if (signed) return signed;
 
-  if (!session || new Date(session.expires_at) < new Date()) {
+  if (!hasSupabaseAdminConfig()) return null;
+
+  try {
+    const { data: session } = await supabaseAdmin
+      .from("sw_sessions")
+      .select("user_id, expires_at")
+      .eq("token", token)
+      .maybeSingle();
+
+    if (!session || new Date(session.expires_at) < new Date()) return null;
+
+    const { data: user } = await supabaseAdmin
+      .from("sw_users")
+      .select("id, phone, display_name, coins, reward_points, game_state")
+      .eq("id", session.user_id)
+      .maybeSingle();
+
+    return user as SwUser | null;
+  } catch {
     return null;
   }
-
-  const { data: user } = await supabaseAdmin
-    .from("sw_users")
-    .select("id, phone, display_name, coins, reward_points, game_state")
-    .eq("id", session.user_id)
-    .maybeSingle();
-
-  return user as SwUser | null;
 }
 
-export async function createSession(userId: string): Promise<string> {
-  const token = randomBytes(32).toString("hex");
-  const expires = new Date();
-  expires.setDate(expires.getDate() + SESSION_DAYS);
+export async function createSession(user: SwUser): Promise<string> {
+  if (hasSupabaseAdminConfig()) {
+    try {
+      const token = randomBytes(32).toString("hex");
+      const expires = new Date();
+      expires.setDate(expires.getDate() + SESSION_DAYS);
 
-  await supabaseAdmin.from("sw_sessions").insert({
-    token,
-    user_id: userId,
-    expires_at: expires.toISOString(),
-  });
+      const { error } = await supabaseAdmin.from("sw_sessions").insert({
+        token,
+        user_id: user.id,
+        expires_at: expires.toISOString(),
+      });
 
-  return token;
+      if (!error) return token;
+      console.warn("[StorageWar] DB session insert failed, using signed session", error);
+    } catch (e) {
+      console.warn("[StorageWar] DB session unavailable, using signed session", e);
+    }
+  }
+
+  return createSignedSession(user);
 }
 
 export function sessionCookieOptions(token: string) {
@@ -72,7 +88,13 @@ export function sessionCookieOptions(token: string) {
 export async function clearSession(): Promise<void> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
-  if (token) {
+  if (!token || token.startsWith("sig.")) return;
+
+  if (!hasSupabaseAdminConfig()) return;
+
+  try {
     await supabaseAdmin.from("sw_sessions").delete().eq("token", token);
+  } catch {
+    /* ignore */
   }
 }

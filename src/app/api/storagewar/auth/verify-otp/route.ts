@@ -4,10 +4,49 @@ import {
   createSession,
   hasStorageWarBackend,
   sessionCookieOptions,
+  type SwUser,
 } from "@/lib/storagewar/auth";
 import { INITIAL_COINS, normalizePhone } from "@/lib/storagewar/constants";
 import { verifyOtp } from "@/lib/storagewar/otp";
+import { buildFallbackUser, userIdFromPhone } from "@/lib/storagewar/session-signed";
 import { supabaseAdmin } from "@/lib/supabase-server";
+
+async function loadOrCreateDbUser(phone: string, displayName: string): Promise<SwUser | null> {
+  const { data: existing } = await supabaseAdmin
+    .from("sw_users")
+    .select("id, phone, display_name, coins, reward_points, game_state")
+    .eq("phone", phone)
+    .maybeSingle();
+
+  if (existing) {
+    if (displayName && displayName !== "Collector" && displayName !== existing.display_name) {
+      await supabaseAdmin
+        .from("sw_users")
+        .update({ display_name: displayName, updated_at: new Date().toISOString() })
+        .eq("id", existing.id);
+      return { ...existing, display_name: displayName };
+    }
+    return existing as SwUser;
+  }
+
+  const { data: created, error } = await supabaseAdmin
+    .from("sw_users")
+    .insert({
+      phone,
+      display_name: displayName,
+      coins: INITIAL_COINS,
+      reward_points: 0,
+      game_state: {},
+    })
+    .select("id, phone, display_name, coins, reward_points, game_state")
+    .single();
+
+  if (error || !created) {
+    console.error("[StorageWar] create user", error);
+    return null;
+  }
+  return created as SwUser;
+}
 
 export async function POST(req: NextRequest) {
   if (!hasStorageWarBackend()) {
@@ -26,81 +65,36 @@ export async function POST(req: NextRequest) {
   const valid = await verifyOtp(phone, code, otpToken);
   if (!valid) return jsonError("Invalid or expired code.");
 
-  let user: {
-    id: string;
-    phone: string;
-    display_name: string | null;
-    coins: number;
-    reward_points: number;
-    game_state: Record<string, unknown>;
-  } | null = null;
+  let user: SwUser | null = null;
+  let usedFallback = false;
 
   try {
-    const { data } = await supabaseAdmin
-      .from("sw_users")
-      .select("id, phone, display_name, coins, reward_points, game_state")
-      .eq("phone", phone)
-      .maybeSingle();
-    user = data;
+    user = await loadOrCreateDbUser(phone, displayName);
   } catch (e) {
-    console.error("[StorageWar] verify-otp user lookup", e);
-    return jsonError(
-      "Account database unavailable. Run scripts/storagewar-schema.sql in Supabase and check env vars.",
-      503,
-    );
+    console.warn("[StorageWar] Supabase user ops failed, signed-session fallback", e);
   }
 
   if (!user) {
-    try {
-      const { data: created, error } = await supabaseAdmin
-        .from("sw_users")
-        .insert({
-          phone,
-          display_name: displayName,
-          coins: INITIAL_COINS,
-          reward_points: 0,
-          game_state: {},
-        })
-        .select("id, phone, display_name, coins, reward_points, game_state")
-        .single();
-      if (error || !created) {
-        console.error("[StorageWar] create user", error);
-        return jsonError(
-          error?.code === "42P01"
-            ? "Run scripts/storagewar-schema.sql in Supabase first."
-            : "Could not create account.",
-          500,
-        );
-      }
-      user = created;
-    } catch (e) {
-      console.error("[StorageWar] create user", e);
-      return jsonError("Could not create account. Check Supabase connection.", 503);
-    }
-  } else if (displayName && displayName !== "Collector") {
-    try {
-      await supabaseAdmin
-        .from("sw_users")
-        .update({ display_name: displayName, updated_at: new Date().toISOString() })
-        .eq("id", user.id);
-      user = { ...user, display_name: displayName };
-    } catch {
-      /* non-fatal */
-    }
+    user = buildFallbackUser(phone, displayName);
+    usedFallback = true;
+    console.log("[StorageWar] Signed-session login for", userIdFromPhone(phone));
   }
 
   try {
-    const token = await createSession(user.id);
+    const token = await createSession(user);
     const opts = sessionCookieOptions(token);
-    const res = jsonOk({ user });
+    const res = jsonOk({
+      user,
+      mode: usedFallback ? "signed" : "database",
+      notice: usedFallback
+        ? "Playing in cloud-lite mode. Run scripts/storagewar-schema.sql in Supabase for full multiplayer sync."
+        : undefined,
+    });
     res.cookies.set(opts);
     return res;
   } catch (e) {
     console.error("[StorageWar] create session", e);
-    return jsonError(
-      "Could not create session. Run scripts/storagewar-schema.sql in Supabase.",
-      503,
-    );
+    return jsonError("Could not start session.", 500);
   }
 }
 
