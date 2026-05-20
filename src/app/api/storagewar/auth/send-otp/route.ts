@@ -14,11 +14,13 @@ export async function POST(req: NextRequest) {
   if (!phone) return jsonError("Enter a valid phone number with country code.");
 
   const result = await sendOtp(phone);
-  if (!result.ok) return jsonError("Could not send verification code.", 500);
+  if (!result.ok) return jsonError(result.error ?? "Could not send verification code.", 500);
 
   return jsonOk({
     ok: true,
-    message: "Verification code sent.",
+    message: result.devCode
+      ? "Enter the code shown below (SMS not configured yet)."
+      : "Verification code sent to your phone.",
     devCode: result.devCode,
   });
 }
