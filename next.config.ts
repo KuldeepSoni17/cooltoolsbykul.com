@@ -39,6 +39,15 @@ const nextConfig: NextConfig = {
         source: "/timeline",
         destination: "/timeline/index.html",
       },
+      // Divergence — scenario analytics (separate Vercel project)
+      {
+        source: "/divergence",
+        destination: "https://divergence-navy.vercel.app/divergence",
+      },
+      {
+        source: "/divergence/:path*",
+        destination: "https://divergence-navy.vercel.app/divergence/:path*",
+      },
       // Bare /echo with no trailing slash
       {
         source: "/echo",
