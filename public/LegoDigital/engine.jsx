@@ -157,7 +157,66 @@ function buildCoveredCells(bricks) {
 }
 
 function paintOrder(bricks) {
-  return [...bricks].sort((a, b) => (a.x + a.y + a.z) - (b.x + b.y + b.z));
+  const n = bricks.length;
+  if (n <= 1) return [...bricks];
+
+  // For axis-aligned non-overlapping boxes in iso view (camera at +x_far, -y_far,
+  // +z_far looking at origin), A is in front of B (A drawn after B) iff A is
+  // separated from B along one of these axes in the "front" direction AND they
+  // overlap in the other two axes' screen projection:
+  //   - A is above B in z       (A.z_min >= B.z_max)
+  //   - A is in front in y      (A.y_max <= B.y_min)   // smaller y is camera-side
+  //   - A is to the right in x  (A.x_min >= B.x_max)   // larger x is camera-side
+  function inFrontOf(a, b) {
+    const ax = a.x, ay = a.y, az = a.z, aw = a.w, ad = a.d, ah = a.h ?? 1;
+    const bx = b.x, by = b.y, bz = b.z, bw = b.w, bd = b.d, bh = b.h ?? 1;
+    if (az >= bz + bh
+        && ax < bx + bw && bx < ax + aw
+        && ay < by + bd && by < ay + ad) return true;
+    if (ay + ad <= by
+        && ax < bx + bw && bx < ax + aw
+        && az < bz + bh && bz < az + ah) return true;
+    if (ax >= bx + bw
+        && ay < by + bd && by < ay + ad
+        && az < bz + bh && bz < az + ah) return true;
+    return false;
+  }
+
+  // Build dependency graph and run Kahn's algorithm.
+  const deps = new Array(n).fill(0);
+  const rev = Array.from({ length: n }, () => []);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      if (i === j) continue;
+      if (inFrontOf(bricks[i], bricks[j])) {
+        deps[i]++;
+        rev[j].push(i);
+      }
+    }
+  }
+  const queue = [];
+  for (let i = 0; i < n; i++) if (deps[i] === 0) queue.push(i);
+  const out = [];
+  while (queue.length) {
+    // Pop the candidate with the lowest "depth proxy" (z then x+y descending)
+    // so the order is deterministic and matches intuition when there are ties.
+    let bestIdx = 0;
+    for (let k = 1; k < queue.length; k++) {
+      const a = bricks[queue[k]], b = bricks[queue[bestIdx]];
+      if (a.z !== b.z) { if (a.z < b.z) bestIdx = k; }
+      else if ((a.x + a.y) !== (b.x + b.y)) { if ((a.x + a.y) > (b.x + b.y)) bestIdx = k; }
+    }
+    const i = queue.splice(bestIdx, 1)[0];
+    out.push(bricks[i]);
+    for (const j of rev[i]) {
+      if (--deps[j] === 0) queue.push(j);
+    }
+  }
+  if (out.length < n) {
+    // Shouldn't happen for non-overlapping boxes — fall back so we never lose pieces.
+    for (let i = 0; i < n; i++) if (!out.includes(bricks[i])) out.push(bricks[i]);
+  }
+  return out;
 }
 
 function unproject(sx, sy, z) {
@@ -314,11 +373,8 @@ function ConeShape({ brick, origin, selected, ghost, dim }) {
   const leftTri  = [g.c000, g.c010, apex]; // back-left face (will be drawn behind)
   return (
     <g opacity={opacity}>
-      <polygon points={toStr(leftTri)} fill={darken(hex, 0.4)} stroke={stroke} strokeWidth={sw} opacity={0.85} />
-      <polygon points={toStr(frontTri)} fill={front} stroke={stroke} strokeWidth={sw} />
-      <polygon points={toStr(rightTri)} fill={right} stroke={stroke} strokeWidth={sw} />
-      {/* base outline for clarity */}
-      <polygon points={toStr([g.c000, g.c100, g.c110, g.c010])} fill="none" stroke="#1f1d1a" strokeWidth={0.7} strokeDasharray="2 2" opacity="0.6" />
+      <polygon points={toStr(frontTri)} fill={front} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
+      <polygon points={toStr(rightTri)} fill={right} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
     </g>
   );
 }
