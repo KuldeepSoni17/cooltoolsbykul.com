@@ -9,7 +9,7 @@ import {
 const MODEL =
   process.env.DIVERGENCE_ANTHROPIC_MODEL ??
   process.env.ANTHROPIC_MODEL ??
-  "claude-sonnet-4-20250514";
+  "claude-sonnet-4-5";
 
 function extractJson(text: string): string {
   const trimmed = text.trim();
