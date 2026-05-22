@@ -39,6 +39,11 @@ const nextConfig: NextConfig = {
         source: "/timeline",
         destination: "/timeline/index.html",
       },
+      // LegoDigital — iso brick builder in public/LegoDigital
+      {
+        source: "/LegoDigital",
+        destination: "/LegoDigital/index.html",
+      },
       // Divergence — scenario analytics (separate Vercel project)
       {
         source: "/divergence",

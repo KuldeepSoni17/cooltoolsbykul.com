@@ -37,5 +37,7 @@ export const config = {
     "/timeline/:path*",
     "/tag-app-play",
     "/tag-app-play/:path*",
+    "/LegoDigital",
+    "/LegoDigital/:path*",
   ],
 };

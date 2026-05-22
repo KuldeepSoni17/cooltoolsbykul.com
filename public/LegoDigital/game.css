@@ -1,0 +1,465 @@
+/* ---------- LegoDigital game-specific styles ---------- */
+
+html, body, #root { height: 100%; }
+body { overflow: hidden; }
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 22px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--paper-2);
+  flex-shrink: 0;
+}
+.app-header .shell-brand { margin: 0; padding: 0; font-size: 28px; }
+.app-nav { display: flex; gap: 6px; }
+.app-nav span {
+  font-family: 'Patrick Hand', cursive; font-size: 17px;
+  padding: 6px 16px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 10px 14px 10px 12px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  box-shadow: var(--shadow-sm);
+}
+.app-nav span.on { background: var(--lego-yellow); color: var(--ink); font-weight: 700; }
+
+.app-main {
+  flex: 1;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+/* ---- Home / library ---- */
+.home {
+  height: 100%;
+  overflow: auto;
+  padding: 30px 32px 60px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.home-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  padding-bottom: 18px;
+  border-bottom: 2px dashed var(--ink-light);
+}
+.set-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+@media (max-width: 1100px) {
+  .set-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.thumb-iso {
+  background-color: var(--paper-2);
+  background-image:
+    linear-gradient(60deg, rgba(31,29,26,0.10) 1px, transparent 1px),
+    linear-gradient(-60deg, rgba(31,29,26,0.10) 1px, transparent 1px);
+  background-size: 36px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- Set detail ---- */
+.detail-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.detail-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  min-height: 0;
+}
+.detail-hero {
+  border-right: 2px solid var(--ink);
+  position: relative;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.detail-info {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: auto;
+}
+
+/* ---- Game (sandbox + instructions) frame ---- */
+.game-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--paper);
+}
+.game-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--paper-2);
+  flex-shrink: 0;
+}
+.game-top .file-name {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  color: var(--ink-soft);
+  margin-left: 8px;
+}
+.game-body {
+  flex: 1;
+  display: grid;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ---- Sandbox layout ---- */
+.sandbox-grid {
+  grid-template-columns: 70px 1fr 240px;
+}
+
+/* ---- Instructions layout ---- */
+.instructions-grid {
+  grid-template-columns: 200px 320px 1fr;
+}
+.step-panel {
+  background: var(--paper-2);
+  border-right: 2px solid var(--ink);
+  padding: 14px;
+  overflow: auto;
+}
+.step-panel h3 { font-size: 22px; margin-bottom: 8px; }
+.instruction-card {
+  padding: 18px 20px;
+  border-right: 2px solid var(--ink);
+  overflow: auto;
+}
+
+/* ---- Shared with wireframes (reused classnames) ---- */
+.tool-rail {
+  background: var(--paper-2);
+  border-right: 2px solid var(--ink);
+  padding: 10px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  overflow: auto;
+}
+.tool-rail .tool {
+  width: 44px; height: 40px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  border-radius: 8px 12px 8px 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Patrick Hand'; font-size: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.tool-rail .tool:hover { transform: translate(-1px,-1px); }
+.tool-rail .tool.on { background: var(--lego-yellow); }
+.tool-rail .tool-label { font-family: 'Kalam'; font-size: 10px; color: var(--ink-faded); }
+
+.viewport {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--paper-2);
+  background-image:
+    linear-gradient(60deg, rgba(31,29,26,0.10) 1px, transparent 1px),
+    linear-gradient(-60deg, rgba(31,29,26,0.10) 1px, transparent 1px);
+  background-size: 36px 22px;
+}
+.viewport svg { display: block; user-select: none; }
+.viewport .vp-controls {
+  position: absolute; top: 12px; right: 12px;
+  display: flex; gap: 6px; z-index: 4;
+}
+.viewport .vp-hud {
+  position: absolute; top: 12px; left: 12px;
+  font-family: 'Kalam'; font-size: 13px;
+  color: var(--ink-faded); z-index: 4;
+  background: rgba(244,237,224,0.7);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.inspector {
+  background: var(--paper-2);
+  border-left: 2px solid var(--ink);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: auto;
+}
+
+.palette {
+  background: var(--paper-2);
+  border-top: 2px solid var(--ink);
+  flex-shrink: 0;
+  max-height: 168px;
+  display: flex;
+  flex-direction: column;
+}
+.palette-tabs {
+  display: flex; gap: 0; padding: 6px 10px 0;
+  border-bottom: 2px solid var(--ink);
+  background: var(--paper);
+}
+.palette-tabs .pt {
+  font-family: 'Patrick Hand'; font-size: 16px;
+  padding: 4px 14px 6px;
+  border: 2px solid var(--ink); border-bottom: none;
+  background: var(--paper-2); margin-right: 4px;
+  border-radius: 8px 10px 0 0;
+  cursor: pointer; margin-bottom: -2px;
+}
+.palette-tabs .pt.on { background: var(--paper); font-weight: 700; padding-top: 6px; }
+.palette-bin {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 8px;
+  padding: 10px;
+  overflow: auto;
+}
+.palette-bin .item {
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  border-radius: 8px 10px 6px 12px;
+  padding: 6px 4px 4px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; box-shadow: var(--shadow-sm);
+  position: relative;
+}
+.palette-bin .item:hover { transform: translate(-1px,-1px); }
+.palette-bin .item.on { background: var(--lego-yellow); }
+.palette-bin .item .name { font-family: 'Kalam'; font-size: 11px; color: var(--ink-soft); }
+
+/* Step list */
+.step-list {
+  display: flex; flex-direction: column; gap: 4px;
+  font-family: 'Kalam'; font-size: 14px;
+}
+.step-list .step {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 4px 8px;
+  border: 1.5px dashed transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.step-list .step:hover { background: var(--paper); }
+.step-list .step.done { color: var(--ink-faded); }
+.step-list .step.done span:last-child { text-decoration: line-through; }
+.step-list .step.current { background: var(--lego-yellow); border-color: var(--ink); font-weight: 700; }
+.step-list .step.upcoming { color: var(--ink-soft); }
+.step-list .step .num {
+  font-family: 'Patrick Hand'; font-size: 15px;
+  width: 26px; text-align: right;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+/* Progress bar */
+.progress {
+  height: 14px; border: 2px solid var(--ink);
+  border-radius: 8px; background: var(--paper-2);
+  overflow: hidden; position: relative;
+}
+.progress > i {
+  display: block; height: 100%;
+  background: var(--lego-yellow);
+  border-right: 2px solid var(--ink);
+  transition: width 0.25s ease;
+}
+
+/* Tweak existing toolbar inside game */
+.wf-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--paper);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* set-card override: thumb shows iso scene */
+.set-card .thumb { background: var(--paper-2); }
+
+/* small footnote */
+.footnote {
+  margin-top: 24px;
+  padding: 14px 18px;
+  border-top: 2px dashed var(--ink-light);
+  font-family: 'Caveat', cursive;
+  color: var(--ink-soft);
+  font-size: 17px;
+}
+
+/* sk-btn primary inherit */
+.sk-btn.danger { background: var(--lego-red); color: var(--lego-white); }
+.sk-btn[disabled] { opacity: 0.4; pointer-events: none; }
+
+/* Camera controls (orbit/zoom/layer) */
+.vp-camera {
+  position: absolute;
+  top: 12px; right: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 5;
+  background: rgba(244,237,224,0.92);
+  border: 2px solid var(--ink);
+  border-radius: 10px 12px 8px 14px;
+  padding: 8px 10px;
+  box-shadow: var(--shadow-sm);
+}
+.vp-camera .cam-orbit,
+.vp-camera .cam-zoom,
+.vp-camera .cam-layer {
+  display: flex; align-items: center; gap: 6px;
+}
+.vp-camera .cam-layer input[type="range"] {
+  width: 80px;
+}
+
+/* Highlight selected palette item with yellow background */
+.palette-bin .item.on {
+  background: var(--lego-yellow);
+}
+
+/* Build-instructions modal */
+.instructions-modal {
+  position: fixed; inset: 0;
+  background: rgba(31,29,26,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+  padding: 24px;
+}
+.instructions-modal-card {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px 18px 10px 16px / 16px 10px 18px 14px;
+  box-shadow: 4px 5px 0 rgba(31,29,26,0.85);
+  width: min(680px, 100%);
+  max-height: 80vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.instructions-modal-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--paper-2);
+}
+.instructions-modal-head h3 {
+  font-size: 24px; margin: 0;
+}
+.instructions-modal-body {
+  padding: 14px 18px;
+  overflow: auto;
+  flex: 1;
+}
+.instructions-modal-foot {
+  padding: 8px 16px;
+  border-top: 2px dashed var(--ink-light);
+  background: var(--paper-2);
+}
+.instr-list {
+  margin: 0; padding: 0 0 0 22px;
+  font-family: 'Kalam', sans-serif; font-size: 15px;
+  line-height: 1.5;
+}
+.instr-list li {
+  padding: 4px 0;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px dashed var(--paper-3);
+}
+.instr-list li:last-child { border-bottom: none; }
+.instr-preview {
+  margin-left: auto; flex-shrink: 0;
+  width: 60px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Step coord list inside the Instructions panel */
+.step-coords {
+  margin: 4px 0 0; padding: 0 0 0 22px;
+  font-family: 'Kalam', sans-serif; font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  max-height: 160px; overflow: auto;
+}
+.step-coords li { padding: 1px 0; }
+.step-coords b { color: var(--ink); font-family: 'Patrick Hand'; font-size: 14px; }
+
+/* The viewport doesn't get the iso-floor background anymore — grid paper is rendered inside the SVG.
+   Keep a light page tint so the boundary feels grounded. */
+.viewport {
+  background-color: var(--paper);
+}
+
+/* Compact camera button styling */
+.vp-camera .cam-grid .sk-btn.on,
+.vp-camera .cam-mode .sk-btn.on { background: var(--lego-yellow); font-weight: 700; }
+
+.vp-camera .cam-mode { display: flex; gap: 4px; }
+
+/* Ghost-placement HUD — shown above the viewport while hovering with place tool */
+.ghost-hud {
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 10px 14px 8px 12px;
+  padding: 6px 14px;
+  box-shadow: var(--shadow);
+  font-family: 'Patrick Hand', cursive;
+  font-size: 16px;
+  z-index: 6;
+  pointer-events: none;
+}
+.ghost-hud-label {
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  color: var(--ink-faded);
+}
+.ghost-hud-coord {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--lego-red);
+  letter-spacing: 1px;
+}
+.ghost-hud-layer {
+  font-family: 'Kalam', sans-serif;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+.ghost-hud-piece {
+  font-family: 'Kalam', sans-serif;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* Dark mode tweaks */
+body.dark .viewport { background-color: #1a1714; }
+body.dark .vp-camera { background: rgba(34,30,26,0.92); }

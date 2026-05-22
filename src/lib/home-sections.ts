@@ -58,6 +58,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
       { id: "storage-war", title: "Storage War", tagline: "Bid and collect treasures.", href: "/StorageWar" },
       { id: "echo-garden", title: "Echo Garden", tagline: "Grow a living Phaser garden.", href: "/echo-garden" },
       { id: "wandwork", title: "Wandwork", tagline: "Wizarding platformer.", href: "/harrypotter" },
+      { id: "legodigital", title: "LegoDigital", tagline: "Iso brick sandbox + guided builds.", href: "/LegoDigital" },
     ],
   },
   {

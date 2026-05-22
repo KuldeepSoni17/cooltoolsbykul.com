@@ -7,4 +7,5 @@ export const SPA_PATH_PREFIXES = [
   "/harrypotter",
   "/timeline",
   "/tag-app-play",
+  "/LegoDigital",
 ];
