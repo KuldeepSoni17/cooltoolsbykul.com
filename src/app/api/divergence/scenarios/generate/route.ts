@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { generateDivergenceScenario } from "@/features/divergence/generate";
 
+/** Allow up to 60s on Vercel (stay under Cloudflare ~100s proxy limit) */
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -34,22 +37,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
+    const vars = Array.isArray(variablesToTrack)
+      ? (variablesToTrack as string[]).slice(0, 4)
+      : undefined;
+
     const scenario = await generateDivergenceScenario({
       mode: "hindsight",
       region,
       divergenceDate,
       description,
       changeDetails,
-      variablesToTrack: Array.isArray(variablesToTrack)
-        ? (variablesToTrack as string[])
-        : undefined,
+      variablesToTrack: vars,
     });
 
     return NextResponse.json(scenario);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Scenario generation failed";
-    const status = message.includes("ANTHROPIC_API_KEY") ? 503 : 500;
+    const status = message.includes("ANTHROPIC_API_KEY")
+      ? 503
+      : message.includes("timed out")
+        ? 504
+        : 500;
     return NextResponse.json({ error: message }, { status });
   }
 }

@@ -6,10 +6,14 @@ import {
   type ScenarioInput,
 } from "./prompts";
 
+/** Fast model — same family as WorthIt; completes within Cloudflare ~100s limit */
 const MODEL =
   process.env.DIVERGENCE_ANTHROPIC_MODEL ??
   process.env.ANTHROPIC_MODEL ??
-  "claude-sonnet-4-5";
+  "claude-haiku-4-5-20251001";
+
+const MAX_TOKENS = 8192;
+const REQUEST_TIMEOUT_MS = 85_000;
 
 function extractJson(text: string): string {
   const trimmed = text.trim();
@@ -24,36 +28,51 @@ function extractJson(text: string): string {
 async function callAnthropic(
   apiKey: string,
   messages: { role: "user" | "assistant"; content: string }[],
-  temperature = 0.7
+  temperature = 0.5
 ): Promise<string> {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 16000,
-      temperature,
-      system: DIVERGENCE_SYSTEM_PROMPT,
-      messages,
-    }),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  const data = (await response.json()) as {
-    content?: { type: string; text?: string }[];
-    error?: { message?: string };
-  };
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
+        temperature,
+        system: DIVERGENCE_SYSTEM_PROMPT,
+        messages,
+      }),
+    });
 
-  if (!response.ok) {
-    throw new Error(data.error?.message ?? "Anthropic API error");
+    const data = (await response.json()) as {
+      content?: { type: string; text?: string }[];
+      error?: { message?: string };
+    };
+
+    if (!response.ok) {
+      throw new Error(data.error?.message ?? "Anthropic API error");
+    }
+
+    const block = data.content?.find((b) => b.type === "text");
+    if (!block?.text) throw new Error("No text response from model");
+    return block.text;
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(
+        "Generation timed out on the server. Try again with fewer variables or open a curated example."
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
   }
-
-  const block = data.content?.find((b) => b.type === "text");
-  if (!block?.text) throw new Error("No text response from model");
-  return block.text;
 }
 
 export async function generateDivergenceScenario(input: ScenarioInput) {
@@ -71,16 +90,22 @@ export async function generateDivergenceScenario(input: ScenarioInput) {
   try {
     parsed = JSON.parse(extractJson(raw)) as Record<string, unknown>;
   } catch {
-    raw = await callAnthropic(
-      apiKey,
-      [
-        { role: "user", content: userPrompt },
-        { role: "assistant", content: raw },
-        { role: "user", content: buildReformatPrompt(raw) },
-      ],
-      0.3
-    );
-    parsed = JSON.parse(extractJson(raw)) as Record<string, unknown>;
+    try {
+      raw = await callAnthropic(
+        apiKey,
+        [
+          { role: "user", content: userPrompt },
+          { role: "assistant", content: raw.slice(0, 6000) },
+          { role: "user", content: buildReformatPrompt(raw) },
+        ],
+        0.2
+      );
+      parsed = JSON.parse(extractJson(raw)) as Record<string, unknown>;
+    } catch {
+      throw new Error(
+        "The model returned invalid JSON. Please try again — shorter change details often help."
+      );
+    }
   }
 
   return {
