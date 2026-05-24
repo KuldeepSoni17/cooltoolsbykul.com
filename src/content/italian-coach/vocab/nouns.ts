@@ -1,6 +1,6 @@
-import type { Noun } from "@/lib/italian-coach/types";
+import type { NounEntry } from "@/lib/italian-coach/types";
 
-export const nouns: Noun[] = [
+export const nouns: NounEntry[] = [
   // —— Food & drink ——
   { id: "te", singular: "tè", plural: "tè", english: "tea", gender: "m" },
   { id: "caffe", singular: "caffè", plural: "caffè", english: "coffee", gender: "m" },

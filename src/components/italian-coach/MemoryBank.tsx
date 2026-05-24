@@ -20,7 +20,8 @@ import {
 } from "@/lib/italian-coach/engine";
 import { definiteArticle } from "@/lib/italian-coach/grammar";
 import { useCoachStore } from "@/lib/italian-coach/store";
-import type { DisplayWord } from "@/lib/italian-coach/types";
+import type { CoachLevel, DisplayWord } from "@/lib/italian-coach/types";
+import { COACH_LEVELS } from "@/content/italian-coach/levels";
 
 type PaletteSection = "all" | "pronouns" | "verbs" | "nouns" | "adjectives" | "time" | "connectors";
 
@@ -30,10 +31,18 @@ export function MemoryBank({
   onPick?: (w: DisplayWord) => void;
 }) {
   const knownWordIds = useCoachStore((s) => s.knownWordIds);
+  const unlockedLevels = useCoachStore((s) => s.unlockedLevels);
   const unlockMany = useCoachStore((s) => s.unlockMany);
   const knownSet = useMemo(() => new Set(knownWordIds), [knownWordIds]);
   const [section, setSection] = useState<PaletteSection>("all");
   const [showLocked, setShowLocked] = useState(false);
+  const [levelFilter, setLevelFilter] = useState<CoachLevel | "all">("all");
+
+  const levelVisible = (level: CoachLevel) => {
+    if (!unlockedLevels.includes(level)) return false;
+    if (levelFilter !== "all" && level !== levelFilter) return false;
+    return true;
+  };
 
   const sections: { id: PaletteSection; label: string; count: string }[] = [
     { id: "all", label: "All", count: `${knownWordIds.length}` },
@@ -74,13 +83,32 @@ export function MemoryBank({
             {onPick ? "Tap any word to add it to the builder." : "Browse what you have learned."}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowLocked((s) => !s)}
-          className="text-xs font-medium text-stone-500 hover:text-stone-900"
-        >
-          {showLocked ? "Hide locked" : "Show locked"}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-xs text-stone-500">
+            Level
+            <select
+              value={levelFilter}
+              onChange={(e) =>
+                setLevelFilter(e.target.value === "all" ? "all" : (Number(e.target.value) as CoachLevel))
+              }
+              className="min-h-[36px] rounded-lg border border-stone-200 bg-white px-2 text-stone-800"
+            >
+              <option value="all">All unlocked</option>
+              {COACH_LEVELS.filter((m) => unlockedLevels.includes(m.level)).map((m) => (
+                <option key={m.level} value={m.level}>
+                  L{m.level} · {m.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowLocked((s) => !s)}
+            className="text-xs font-medium text-stone-500 hover:text-stone-900"
+          >
+            {showLocked ? "Hide locked" : "Show locked"}
+          </button>
+        </div>
       </div>
 
       <div className="-mx-1 mt-5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
@@ -101,22 +129,35 @@ export function MemoryBank({
       </div>
 
       <div className="mt-6 space-y-8">
-        {(section === "all" || section === "pronouns") && (
+        {(section === "all" || section === "pronouns") && levelVisible(1) && (
           <PronounRow knownSet={knownSet} onPick={onPick} showLocked={showLocked} />
         )}
         {(section === "all" || section === "verbs") && (
-          <VerbTable knownSet={knownSet} onPick={onPick} showLocked={showLocked} unlockMany={unlockMany} />
+          <VerbTable
+            knownSet={knownSet}
+            onPick={onPick}
+            showLocked={showLocked}
+            unlockMany={unlockMany}
+            levelVisible={levelVisible}
+          />
         )}
         {(section === "all" || section === "nouns") && (
-          <NounGrid knownSet={knownSet} onPick={onPick} showLocked={showLocked} />
+          <NounGrid knownSet={knownSet} onPick={onPick} showLocked={showLocked} levelVisible={levelVisible} />
         )}
         {(section === "all" || section === "adjectives") && (
-          <AdjectiveGrid knownSet={knownSet} onPick={onPick} showLocked={showLocked} />
+          <AdjectiveGrid
+            knownSet={knownSet}
+            onPick={onPick}
+            showLocked={showLocked}
+            levelVisible={levelVisible}
+          />
         )}
         {(section === "all" || section === "time") && (
           <SimpleRow
             label="Time"
-            items={timeWords.map((t) => ({ id: t.id, word: t.word, english: t.english, type: "time" as const }))}
+            items={timeWords
+              .filter((t) => levelVisible(t.level))
+              .map((t) => ({ id: t.id, word: t.word, english: t.english, type: "time" as const }))}
             knownSet={knownSet}
             onPick={onPick}
             showLocked={showLocked}
@@ -125,7 +166,9 @@ export function MemoryBank({
         {(section === "all" || section === "connectors") && (
           <SimpleRow
             label="Connectors"
-            items={connectors.map((c) => ({ id: c.id, word: c.word, english: c.english, type: "connector" as const }))}
+            items={connectors
+              .filter((c) => levelVisible(c.level))
+              .map((c) => ({ id: c.id, word: c.word, english: c.english, type: "connector" as const }))}
             knownSet={knownSet}
             onPick={onPick}
             showLocked={showLocked}
@@ -180,17 +223,20 @@ function VerbTable({
   onPick,
   showLocked,
   unlockMany,
+  levelVisible,
 }: {
   knownSet: Set<string>;
   onPick?: (w: DisplayWord) => void;
   showLocked: boolean;
   unlockMany: (ids: string[]) => void;
+  levelVisible: (level: CoachLevel) => boolean;
 }) {
   return (
     <div>
       <GroupHeader label="Verbs · present tense" tint="verb" hint="Each verb has six forms — one per person." />
       <div className="mt-3 space-y-3">
         {verbs.map((v) => {
+          if (!levelVisible(v.level)) return null;
           const anyKnown = PERSONS.some((p) => knownSet.has(verbFormUid(v.id, p)));
           if (!anyKnown && !showLocked) return null;
           return (
@@ -261,16 +307,19 @@ function NounGrid({
   knownSet,
   onPick,
   showLocked,
+  levelVisible,
 }: {
   knownSet: Set<string>;
   onPick?: (w: DisplayWord) => void;
   showLocked: boolean;
+  levelVisible: (level: CoachLevel) => boolean;
 }) {
   return (
     <div>
       <GroupHeader label="Nouns · gender + plural" tint="noun" hint="Italian nouns have a gender. The article changes with it." />
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
         {nouns.map((n) => {
+          if (!levelVisible(n.level)) return null;
           const isKnown = knownSet.has(nounUid(n.id));
           if (!isKnown && !showLocked) return null;
           const dw: DisplayWord = {
@@ -313,10 +362,12 @@ function AdjectiveGrid({
   knownSet,
   onPick,
   showLocked,
+  levelVisible,
 }: {
   knownSet: Set<string>;
   onPick?: (w: DisplayWord) => void;
   showLocked: boolean;
+  levelVisible: (level: CoachLevel) => boolean;
 }) {
   return (
     <div>
@@ -327,6 +378,7 @@ function AdjectiveGrid({
       />
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {adjectives.map((a) => {
+          if (!levelVisible(a.level)) return null;
           const isKnown = knownSet.has(adjUid(a.id));
           if (!isKnown && !showLocked) return null;
           const dw: DisplayWord = {

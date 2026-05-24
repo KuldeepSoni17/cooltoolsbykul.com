@@ -76,66 +76,15 @@ export const verbFormUid = (verbId: string, person: Person) => `vb_${verbId}_${p
 export const nounUid = (id: string) => `n_${id}`;
 export const adjUid = (id: string) => `aj_${id}`;
 
-/* ---------------- Default unlock set ---------------- */
-
-const STARTER_VERBS = [
-  "essere",
-  "avere",
-  "volere",
-  "potere",
-  "andare",
-  "fare",
-  "mangiare",
-  "bere",
-  "parlare",
-  "stare",
-  "vedere",
-  "dire",
-];
-
-const STARTER_NOUNS = [
-  "te",
-  "caffe",
-  "acqua",
-  "pizza",
-  "pane",
-  "casa",
-  "scuola",
-  "citta",
-  "amico",
-  "amica",
-  "libro",
-  "giorno",
-  "notte",
-  "lavoro",
-  "vita",
-  "persona",
-  "tempo",
-  "anno",
-  "mare",
-  "italia",
-];
+/* ---------------- Default unlock set (Level 1 only) ---------------- */
 
 export const DEFAULT_KNOWN_IDS: string[] = [
   ...pronouns.map((p) => pronounUid(p.id)),
-  ...verbs
-    .filter((v) => STARTER_VERBS.includes(v.id))
-    .flatMap((v) => PERSONS.map((p) => verbFormUid(v.id, p))),
-  ...STARTER_NOUNS.map(nounUid),
-  ...["bello", "grande", "piccolo", "buono", "felice", "nuovo", "italiano"].map(adjUid),
-  "oggi",
-  "domani",
-  "ieri",
-  "ora",
-  "sempre",
-  "molto",
-  "e",
-  "ma",
-  "con",
-  "per",
-  "di",
-  "a",
-  "in",
+  ...verbs.filter((v) => v.level === 1).flatMap((v) => PERSONS.map((p) => verbFormUid(v.id, p))),
+  ...nouns.filter((n) => n.level === 1).map((n) => nounUid(n.id)),
+  ...adjectives.filter((a) => a.level === 1).map((a) => adjUid(a.id)),
+  ...timeWords.filter((t) => t.level === 1).map((t) => t.id),
+  ...connectors.filter((c) => c.level === 1).map((c) => c.id),
   "art_il",
   "art_lo",
   "art_la",

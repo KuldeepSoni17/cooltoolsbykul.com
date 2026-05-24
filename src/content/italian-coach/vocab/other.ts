@@ -1,6 +1,6 @@
-import type { Adjective, Connector, TimeWord } from "@/lib/italian-coach/types";
+import type { AdjectiveEntry, ConnectorEntry, TimeWordEntry } from "@/lib/italian-coach/types";
 
-export const adjectives: Adjective[] = [
+export const adjectives: AdjectiveEntry[] = [
   { id: "bello", english: "beautiful", m_sg: "bello", f_sg: "bella", m_pl: "belli", f_pl: "belle" },
   { id: "brutto", english: "ugly", m_sg: "brutto", f_sg: "brutta", m_pl: "brutti", f_pl: "brutte" },
   { id: "grande", english: "big", m_sg: "grande", f_sg: "grande", m_pl: "grandi", f_pl: "grandi" },
@@ -33,7 +33,7 @@ export const adjectives: Adjective[] = [
   { id: "inglese", english: "English", m_sg: "inglese", f_sg: "inglese", m_pl: "inglesi", f_pl: "inglesi" },
 ];
 
-export const timeWords: TimeWord[] = [
+export const timeWords: TimeWordEntry[] = [
   { id: "oggi", word: "oggi", english: "today" },
   { id: "domani", word: "domani", english: "tomorrow" },
   { id: "ieri", word: "ieri", english: "yesterday" },
@@ -56,7 +56,7 @@ export const timeWords: TimeWord[] = [
   { id: "mese", word: "mese", english: "month" },
 ];
 
-export const connectors: Connector[] = [
+export const connectors: ConnectorEntry[] = [
   { id: "e", word: "e", english: "and" },
   { id: "ma", word: "ma", english: "but" },
   { id: "o", word: "o", english: "or" },

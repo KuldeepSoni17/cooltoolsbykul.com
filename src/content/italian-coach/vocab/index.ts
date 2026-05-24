@@ -1,12 +1,13 @@
-export { pronouns } from "./pronouns";
-export { verbs } from "./verbs";
-export { nouns } from "./nouns";
-export { adjectives, timeWords, connectors } from "./other";
+import { assembleCatalog } from "./assemble";
 
-import { pronouns } from "./pronouns";
-import { verbs } from "./verbs";
-import { nouns } from "./nouns";
-import { adjectives, timeWords, connectors } from "./other";
+const catalog = assembleCatalog();
+
+export const pronouns = catalog.pronouns;
+export const verbs = catalog.verbs;
+export const nouns = catalog.nouns;
+export const adjectives = catalog.adjectives;
+export const timeWords = catalog.timeWords;
+export const connectors = catalog.connectors;
 
 /** Catalogue size summary for UI */
 export const vocabStats = {
@@ -24,5 +25,7 @@ export const vocabStats = {
     adjectives.length +
     timeWords.length +
     connectors.length +
-    7, // articles
+    7,
 };
+
+export { assembleCatalog };

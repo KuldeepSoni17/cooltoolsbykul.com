@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CompressionPanel } from "@/components/italian-coach/CompressionPanel";
 import { GrammarEquation } from "@/components/italian-coach/GrammarEquation";
 import { InfiniteBuilder } from "@/components/italian-coach/InfiniteBuilder";
+import { LevelProgress } from "@/components/italian-coach/LevelProgress";
 import { MemoryBank } from "@/components/italian-coach/MemoryBank";
 import { MemoryPractice } from "@/components/italian-coach/MemoryPractice";
 import { MobileTabBar, type CoachTab } from "@/components/italian-coach/MobileTabBar";
@@ -158,8 +159,9 @@ export default function ItalianCoachClient() {
           >
             {tab === "memory" && (
               <div className="space-y-10 sm:space-y-12">
+                <LevelProgress />
                 <MemoryPractice />
-                <MemoryBank />
+                <MemoryBank onPick={addWord} />
               </div>
             )}
 

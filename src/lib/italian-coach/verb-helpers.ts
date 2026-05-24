@@ -1,7 +1,7 @@
-import type { Verb } from "./types";
+import type { VerbEntry } from "./types";
 
 /** Regular -are verb (parlare → parl-o, parl-i, …) */
-export function verbAre(id: string, infinitive: string, stem: string, english: string): Verb {
+export function verbAre(id: string, infinitive: string, stem: string, english: string): VerbEntry {
   return {
     id,
     infinitive,
@@ -18,7 +18,7 @@ export function verbAre(id: string, infinitive: string, stem: string, english: s
 }
 
 /** Regular -ere verb (vedere → ved-o, …) */
-export function verbEre(id: string, infinitive: string, stem: string, english: string): Verb {
+export function verbEre(id: string, infinitive: string, stem: string, english: string): VerbEntry {
   return {
     id,
     infinitive,
@@ -35,7 +35,7 @@ export function verbEre(id: string, infinitive: string, stem: string, english: s
 }
 
 /** Regular -ire verb (dormire → dorm-o, …) */
-export function verbIre(id: string, infinitive: string, stem: string, english: string): Verb {
+export function verbIre(id: string, infinitive: string, stem: string, english: string): VerbEntry {
   return {
     id,
     infinitive,
@@ -52,7 +52,7 @@ export function verbIre(id: string, infinitive: string, stem: string, english: s
 }
 
 /** -ire with -isc- insertion (capire → capisco, …) */
-export function verbIreSc(id: string, infinitive: string, stem: string, english: string): Verb {
+export function verbIreSc(id: string, infinitive: string, stem: string, english: string): VerbEntry {
   return {
     id,
     infinitive,

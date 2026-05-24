@@ -1,8 +1,8 @@
 import { verbAre, verbEre, verbIre, verbIreSc } from "@/lib/italian-coach/verb-helpers";
-import type { Verb } from "@/lib/italian-coach/types";
+import type { VerbEntry } from "@/lib/italian-coach/types";
 
 /** Irregular / high-frequency verbs (hand-authored) */
-const irregular: Verb[] = [
+const irregular = [
   {
     id: "essere",
     infinitive: "essere",
@@ -153,10 +153,10 @@ const irregular: Verb[] = [
     english: "to believe",
     present: { io: "credo", tu: "credi", lui_lei: "crede", noi: "crediamo", voi: "credete", loro: "credono" },
   },
-];
+] as VerbEntry[];
 
 /** Regular verbs generated from stems */
-const regular: Verb[] = [
+const regular = [
   verbAre("mangiare", "mangiare", "mangi", "to eat"),
   verbAre("parlare", "parlare", "parl", "to speak"),
   verbAre("lavorare", "lavorare", "lavor", "to work"),
@@ -219,9 +219,9 @@ const regular: Verb[] = [
   verbIreSc("capire", "capire", "cap", "to understand"),
   verbIreSc("preferire", "preferire", "prefer", "to prefer"),
   verbIreSc("spedire", "spedire", "sped", "to send (mail)"),
-];
+] as VerbEntry[];
 
 // Remove duplicate chiudere from regular (already in irregular)
 const regularFiltered = regular.filter((v) => !irregular.some((i) => i.id === v.id));
 
-export const verbs: Verb[] = [...irregular, ...regularFiltered];
+export const verbs = [...irregular, ...regularFiltered] as VerbEntry[];

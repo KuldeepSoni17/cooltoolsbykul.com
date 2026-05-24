@@ -1,6 +1,6 @@
-import type { Pronoun } from "@/lib/italian-coach/types";
+import type { PronounEntry } from "@/lib/italian-coach/types";
 
-export const pronouns: Pronoun[] = [
+export const pronouns: PronounEntry[] = [
   { id: "io", word: "io", english: "I", person: "io", plural: false },
   { id: "tu", word: "tu", english: "you", person: "tu", plural: false },
   { id: "lui", word: "lui", english: "he", person: "lui_lei", plural: false },
