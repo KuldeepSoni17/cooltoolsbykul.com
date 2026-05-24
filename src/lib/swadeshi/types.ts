@@ -6,6 +6,16 @@ export type Ownership =
 
 export type MatchLevel = "strong" | "good" | "situational";
 
+export type QualityVerdict =
+  | "comparable"
+  | "indian-better-value"
+  | "indian-weaker"
+  | "different-tier";
+
+export type PriceVerdict = "cheaper" | "similar" | "pricier";
+
+export type TrustLevel = "verified" | "research-assisted";
+
 export type ShopCategory = {
   id: string;
   label: string;
@@ -16,7 +26,10 @@ export type ShopCategory = {
 export type ProductAlternative = {
   id: string;
   categoryId: string;
+  subcategory: string;
   occasion: string;
+  tags?: string[];
+  trustLevel?: TrustLevel;
   common: {
     brand: string;
     product: string;
@@ -31,14 +44,28 @@ export type ProductAlternative = {
     website?: string;
   };
   match: MatchLevel;
+  qualityVerdict?: QualityVerdict;
+  priceVerdict?: PriceVerdict;
   whyMatch: string;
   notSameAs?: string;
+  summary?: string;
   price?: {
     basis: string;
     commonRange: [number, number];
     altRange: [number, number];
     note: string;
   };
+};
+
+export type ProductIndexEntry = {
+  id: string;
+  categoryId: string;
+  subcategory: string;
+  occasion: string;
+  commonBrand: string;
+  altBrand: string;
+  match: MatchLevel;
+  trustLevel?: TrustLevel;
 };
 
 export type DigitalAwareness = {
@@ -62,7 +89,6 @@ export type BrandSpotlight = {
   website?: string;
 };
 
-
 export type ImportOutflowBrand = {
   id: string;
   category: string;
@@ -73,4 +99,11 @@ export type ImportOutflowBrand = {
   whyMoneyGoesOut: string;
   indiaOptions: string;
   honestyNote: string;
+};
+
+export type CatalogManifest = {
+  version: string;
+  generatedAt: string;
+  totalProducts: number;
+  categories: (ShopCategory & { count: number })[];
 };

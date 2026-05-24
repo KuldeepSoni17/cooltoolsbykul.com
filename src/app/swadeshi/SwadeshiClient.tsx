@@ -1,27 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BRAND_SPOTLIGHT,
   DATA_VERSION,
   DIGITAL_AWARENESS,
   IMPORT_OUTFLOW_BRANDS,
-  formatInrRange,
-  getAlternativeById,
-  getAlternativesByCategory,
   HOW_IT_WORKS,
   LAST_CURATED,
-  MATCH_LABELS,
   METHODOLOGY,
-  OWNERSHIP_LABELS,
-  PRODUCT_ALTERNATIVES,
-  SHOP_CATEGORIES,
-  type MatchLevel,
-  type Ownership,
-  type ProductAlternative,
+  PRODUCT_COUNT,
+  getProductById,
 } from "@/lib/swadeshi/data";
+import type { ProductAlternative } from "@/lib/swadeshi/data";
 import ImportOutflowView from "./ImportOutflowView";
+import ShopView, { AlternativeDetailPanel } from "./ShopView";
 import styles from "./swadeshi.module.css";
 
 type View =
@@ -31,138 +25,6 @@ type View =
   | { name: "digital" }
   | { name: "imports" }
   | { name: "discover" };
-
-function MatchBadge({ level }: { level: MatchLevel }) {
-  const cls =
-    level === "strong"
-      ? styles.matchStrong
-      : level === "good"
-        ? styles.matchGood
-        : styles.matchSituational;
-  return (
-    <span className={`${styles.badge} ${cls}`}>{MATCH_LABELS[level].label}</span>
-  );
-}
-
-function OwnershipBadge({ ownership }: { ownership: Ownership }) {
-  const isMnc = ownership === "mnc-global";
-  return (
-    <span className={`${styles.badge} ${isMnc ? styles.ownMnc : styles.ownIndian}`}>
-      {OWNERSHIP_LABELS[ownership]}
-    </span>
-  );
-}
-
-function AlternativeListItem({
-  item,
-  onSelect,
-}: {
-  item: ProductAlternative;
-  onSelect: (id: string) => void;
-}) {
-  return (
-    <button type="button" className={styles.listItem} onClick={() => onSelect(item.id)}>
-      <p className={styles.listOccasion}>{item.occasion}</p>
-      <p className={styles.listBrands}>
-        {item.common.brand}
-        <span className={styles.listArrow}> → </span>
-        {item.alternative.brand}
-      </p>
-      <div className={styles.badgeRow}>
-        <MatchBadge level={item.match} />
-        <OwnershipBadge ownership={item.alternative.ownership} />
-      </div>
-    </button>
-  );
-}
-
-function AlternativeDetail({ item }: { item: ProductAlternative }) {
-  return (
-    <article className={styles.detailCard}>
-      <div className={styles.detailHeader}>
-        <p className={styles.detailOccasion}>{item.occasion}</p>
-        <p className={styles.detailVs}>
-          {item.common.brand} → {item.alternative.brand}
-        </p>
-        <div className={styles.badgeRow}>
-          <MatchBadge level={item.match} />
-        </div>
-      </div>
-
-      <div className={styles.detailBody}>
-        <div className={`${styles.compareCol} ${styles.colCommon}`}>
-          <p className={styles.colLabel}>What many of us reach for</p>
-          <p className={styles.colBrand}>{item.common.brand}</p>
-          <p className={styles.colProduct}>{item.common.product}</p>
-          <p className={styles.colOwnership}>
-            <OwnershipBadge ownership={item.common.ownership} /> —{" "}
-            {item.common.ownershipNote}
-          </p>
-        </div>
-
-        <div className={`${styles.compareCol} ${styles.colAlt}`}>
-          <p className={styles.colLabel}>Indian option worth knowing</p>
-          <p className={styles.colBrand}>{item.alternative.brand}</p>
-          <p className={styles.colProduct}>{item.alternative.product}</p>
-          <p className={styles.colOwnership}>
-            <OwnershipBadge ownership={item.alternative.ownership} /> —{" "}
-            {item.alternative.ownershipNote}
-          </p>
-        </div>
-
-        <div className={`${styles.infoBlock} ${styles.infoWhy}`}>
-          <strong>Why we paired these</strong>
-          <p style={{ marginTop: "0.35rem" }}>{item.whyMatch}</p>
-          <p style={{ marginTop: "0.5rem", fontSize: "0.8rem", opacity: 0.85 }}>
-            {MATCH_LABELS[item.match].desc}
-          </p>
-        </div>
-
-        {item.notSameAs && (
-          <div className={`${styles.infoBlock} ${styles.infoNot}`}>
-            <strong>Honest caveat</strong>
-            <p style={{ marginTop: "0.35rem" }}>{item.notSameAs}</p>
-          </div>
-        )}
-
-        {item.price && (
-          <div className={`${styles.infoBlock} ${styles.infoPrice}`}>
-            <strong>Typical price band</strong>
-            <p style={{ marginTop: "0.25rem", fontSize: "0.8rem", color: "#57534e" }}>
-              {item.price.basis} · verify at store
-            </p>
-            <div className={styles.priceGrid}>
-              <div className={styles.priceCell}>
-                <p className={styles.colLabel}>{item.common.brand}</p>
-                <p className={styles.priceRange}>
-                  {formatInrRange(item.price.commonRange)}
-                </p>
-              </div>
-              <div className={styles.priceCell}>
-                <p className={styles.colLabel}>{item.alternative.brand}</p>
-                <p className={styles.priceRange}>
-                  {formatInrRange(item.price.altRange)}
-                </p>
-              </div>
-            </div>
-            <p className={styles.priceNote}>{item.price.note}</p>
-          </div>
-        )}
-
-        {item.alternative.website && (
-          <a
-            href={item.alternative.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.linkOut}
-          >
-            Visit {item.alternative.brand} →
-          </a>
-        )}
-      </div>
-    </article>
-  );
-}
 
 function MethodologyBlock() {
   return (
@@ -184,30 +46,30 @@ export default function SwadeshiClient() {
   const [view, setView] = useState<View>({ name: "home" });
   const [discoverTab, setDiscoverTab] = useState<"all" | "established" | "startup">("all");
   const [digitalOpen, setDigitalOpen] = useState<string | null>(null);
+  const [detail, setDetail] = useState<ProductAlternative | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const goHome = useCallback(() => setView({ name: "home" }), []);
-
-  const category =
-    view.name === "shop" && view.categoryId
-      ? SHOP_CATEGORIES.find((c) => c.id === view.categoryId)
-      : null;
-
-  const detail = view.name === "detail" ? getAlternativeById(view.id) : undefined;
-
-  const shopItems = useMemo(() => {
-    if (view.name !== "shop" || !view.categoryId) return [];
-    return getAlternativesByCategory(view.categoryId);
-  }, [view]);
 
   const filteredSpotlight = useMemo(() => {
     if (discoverTab === "all") return BRAND_SPOTLIGHT;
     return BRAND_SPOTLIGHT.filter((b) => b.type === discoverTab);
   }, [discoverTab]);
 
+  useEffect(() => {
+    if (view.name !== "detail") {
+      setDetail(null);
+      return;
+    }
+    setDetailLoading(true);
+    getProductById(view.id)
+      .then((item) => setDetail(item ?? null))
+      .finally(() => setDetailLoading(false));
+  }, [view]);
+
   const headerBack = () => {
     if (view.name === "detail") {
-      const item = getAlternativeById(view.id);
-      if (item) setView({ name: "shop", categoryId: item.categoryId });
+      if (detail) setView({ name: "shop", categoryId: detail.categoryId });
       else goHome();
       return;
     }
@@ -254,9 +116,9 @@ export default function SwadeshiClient() {
                 Know what&apos;s Indian. Choose consciously.
               </h1>
               <p className={styles.heroSubtitle}>
-                A calm guide to everyday product swaps, where digital rupees flow, and
-                brands that keep value in India — with ownership labels and honest price
-                bands, not fake exact rupees.
+                {PRODUCT_COUNT.toLocaleString("en-IN")}+ tier-matched product comparisons,
+                import outflow maps, and Indian brands — with honest quality and price
+                verdicts, not fake exact rupees.
               </p>
               <span className={styles.heroTagline}>
                 जानिए, फिर चुनिए — know, then choose
@@ -294,7 +156,7 @@ export default function SwadeshiClient() {
                   at a time.
                 </p>
                 <p className={styles.pathAction}>
-                  {PRODUCT_ALTERNATIVES.length} curated pairs →
+                  {PRODUCT_COUNT.toLocaleString("en-IN")}+ comparisons →
                 </p>
               </button>
 
@@ -355,57 +217,20 @@ export default function SwadeshiClient() {
 
       {view.name === "shop" && (
         <div className={styles.page}>
-          <p className={styles.sectionLabel}>Shop smarter</p>
-          <h2 style={{ fontSize: "1.35rem", fontWeight: 700, color: "#1e1b4b" }}>
-            {category ? category.label : "Pick an aisle"}
-          </h2>
-          <p style={{ marginTop: "0.35rem", fontSize: "0.875rem", color: "#57534e" }}>
-            {category
-              ? "Tap a pair to see ownership, match quality, and price bands."
-              : "Where do you actually shop? We only show pairs we'd use in the same trip."}
-          </p>
-
-          <div
-            className={styles.categoryGrid}
-            style={{ marginTop: "1.25rem", marginBottom: category ? "1.25rem" : 0 }}
-          >
-            {SHOP_CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                className={styles.categoryCard}
-                style={
-                  category?.id === cat.id
-                    ? { borderColor: "#4f46e5", background: "#eef2ff" }
-                    : undefined
-                }
-                onClick={() => setView({ name: "shop", categoryId: cat.id })}
-              >
-                <span className={styles.categoryEmoji}>{cat.emoji}</span>
-                <p className={styles.categoryLabel}>{cat.label}</p>
-                <p className={styles.categoryHint}>{cat.hint}</p>
-              </button>
-            ))}
-          </div>
-
-          {category &&
-            (shopItems.length === 0 ? (
-              <p className={styles.empty}>No pairs in this aisle yet.</p>
-            ) : (
-              shopItems.map((item) => (
-                <AlternativeListItem
-                  key={item.id}
-                  item={item}
-                  onSelect={(id) => setView({ name: "detail", id })}
-                />
-              ))
-            ))}
+          <ShopView onSelectProduct={(id) => setView({ name: "detail", id })} />
+          <MethodologyBlock />
         </div>
       )}
 
-      {view.name === "detail" && detail && (
+      {view.name === "detail" && detailLoading && (
         <div className={styles.page}>
-          <AlternativeDetail item={detail} />
+          <p className={styles.empty}>Loading comparison…</p>
+        </div>
+      )}
+
+      {view.name === "detail" && !detailLoading && detail && (
+        <div className={styles.page}>
+          <AlternativeDetailPanel item={detail} />
           <MethodologyBlock />
         </div>
       )}

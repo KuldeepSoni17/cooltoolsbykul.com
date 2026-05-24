@@ -1,26 +1,38 @@
-export const DATA_VERSION = "2025-05";
-export const LAST_CURATED = "May 2025";
+export const DATA_VERSION = "2026-03";
+export const LAST_CURATED = "March 2026";
 
 export type {
   Ownership,
   MatchLevel,
   ShopCategory,
   ProductAlternative,
+  ProductIndexEntry,
   DigitalAwareness,
   BrandSpotlight,
   ImportOutflowBrand,
+  QualityVerdict,
+  PriceVerdict,
+  TrustLevel,
+  CatalogManifest,
 } from "./types";
 
-import type { Ownership, MatchLevel, ProductAlternative, ImportOutflowBrand } from "./types";
+import type { Ownership, MatchLevel, ProductAlternative, ImportOutflowBrand, QualityVerdict, PriceVerdict } from "./types";
 import {
-  PRODUCT_ALTERNATIVES,
-  SHOP_CATEGORIES,
   DIGITAL_AWARENESS,
   BRAND_SPOTLIGHT,
   IMPORT_OUTFLOW_BRANDS,
 } from "./catalog";
+import { CATALOG_MANIFEST, SHOP_CATEGORIES } from "./catalog-loader";
 
-export { PRODUCT_ALTERNATIVES, SHOP_CATEGORIES, DIGITAL_AWARENESS, BRAND_SPOTLIGHT, IMPORT_OUTFLOW_BRANDS };
+export { SHOP_CATEGORIES, CATALOG_MANIFEST };
+export { DIGITAL_AWARENESS, BRAND_SPOTLIGHT, IMPORT_OUTFLOW_BRANDS };
+export {
+  fetchCatalogIndex,
+  fetchCategoryProducts,
+  searchIndex,
+} from "./catalog-loader";
+
+export const PRODUCT_COUNT = CATALOG_MANIFEST.totalProducts;
 
 export const OWNERSHIP_LABELS: Record<Ownership, string> = {
   "indian-founded": "Indian-founded",
@@ -44,21 +56,37 @@ export const MATCH_LABELS: Record<MatchLevel, { label: string; desc: string }> =
   },
 };
 
+export const QUALITY_VERDICT_LABELS: Record<
+  QualityVerdict,
+  { label: string; tone: "positive" | "neutral" | "caution" }
+> = {
+  comparable: { label: "Comparable quality", tone: "positive" },
+  "indian-better-value": { label: "Better value", tone: "positive" },
+  "indian-weaker": { label: "Weaker — listed honestly", tone: "caution" },
+  "different-tier": { label: "Different tier", tone: "caution" },
+};
+
+export const PRICE_VERDICT_LABELS: Record<PriceVerdict, string> = {
+  cheaper: "Indian option tends to cost less",
+  similar: "Similar price band",
+  pricier: "Indian option tends to cost more",
+};
+
 export const HOW_IT_WORKS = [
   {
     step: 1,
     title: "Pick your aisle",
-    body: "Start with where you actually shop — bathroom, kitchen, snacks — not a random brand list.",
+    body: "Browse 1,300+ honest pairs across bathroom, kitchen, snacks, and more.",
   },
   {
     step: 2,
-    title: "See one honest pair",
-    body: "Each card is one common pick and one Indian option that solves the same job. No iPhone-vs-Lava nonsense.",
+    title: "Swipe the carousel",
+    body: "Each card is one common pick and one Indian option at a similar tier — no unfair phone swaps.",
   },
   {
     step: 3,
-    title: "Read the fine print",
-    body: "We show who owns what, how strong the match is, and a price band — not fake exact rupees.",
+    title: "Read quality & price verdicts",
+    body: "We say when the Indian option is weaker, pricier, or a true like-for-like.",
   },
   {
     step: 4,
@@ -70,11 +98,11 @@ export const HOW_IT_WORKS = [
 export const METHODOLOGY = {
   title: "How we curate",
   points: [
-    "We only list pairs we'd use ourselves in the same shopping trip.",
+    "Pairs are tier-matched — we do not list Samsung Galaxy vs Lava-style unfair comparisons.",
     "Ownership is labelled honestly — Indian-founded, listed, cooperative, or global MNC.",
-    "Prices are typical MRP bands for comparable pack sizes, checked against brand sites and major retailers. They drift — verify before you buy.",
-    "We remove entries when ownership changes or the match is marketing, not reality.",
-    "Phones and other import-heavy categories live in the import outflow map — not forced tier-mismatched swaps.",
+    "Quality and price verdicts are explicit: comparable, better value, weaker, or different tier.",
+    "Catalog is built via research-assisted pipeline + human-reviewed seeds; verify before you buy.",
+    "Phones and import-heavy categories live in the import outflow map.",
     "This is not medical, financial, or legal advice.",
   ],
 };
@@ -90,14 +118,14 @@ export function formatInrRange([low, high]: [number, number]): string {
   return `${fmt(low)} – ${fmt(high)}`;
 }
 
-export function getAlternativesByCategory(categoryId: string): ProductAlternative[] {
-  return PRODUCT_ALTERNATIVES.filter((a) => a.categoryId === categoryId);
+export async function getProductById(id: string): Promise<ProductAlternative | undefined> {
+  const { fetchCatalogIndex, fetchCategoryProducts } = await import("./catalog-loader");
+  const index = await fetchCatalogIndex();
+  const entry = index.find((e) => e.id === id);
+  if (!entry) return undefined;
+  const products = await fetchCategoryProducts(entry.categoryId);
+  return products.find((p) => p.id === id);
 }
-
-export function getAlternativeById(id: string): ProductAlternative | undefined {
-  return PRODUCT_ALTERNATIVES.find((a) => a.id === id);
-}
-
 
 export const IMPORT_INTENSITY: Record<
   ImportOutflowBrand["importDependency"],

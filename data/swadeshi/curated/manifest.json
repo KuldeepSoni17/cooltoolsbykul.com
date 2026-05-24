@@ -1,0 +1,56 @@
+{
+  "version": "2026-03",
+  "generatedAt": "2026-05-24T10:02:20.341Z",
+  "totalProducts": 1339,
+  "categories": [
+    {
+      "id": "bathroom",
+      "label": "Bathroom",
+      "hint": "Toothpaste, soap, shampoo",
+      "emoji": "🪥",
+      "count": 234
+    },
+    {
+      "id": "kitchen",
+      "label": "Kitchen",
+      "hint": "Noodles, coffee, staples",
+      "emoji": "🍳",
+      "count": 284
+    },
+    {
+      "id": "snacks",
+      "label": "Snacks & pantry",
+      "hint": "Chips, biscuits, namkeen",
+      "emoji": "🥨",
+      "count": 191
+    },
+    {
+      "id": "personal",
+      "label": "Personal care",
+      "hint": "Skin, grooming, hygiene",
+      "emoji": "🧴",
+      "count": 167
+    },
+    {
+      "id": "home",
+      "label": "Home care",
+      "hint": "Detergent, cleaners",
+      "emoji": "🧺",
+      "count": 165
+    },
+    {
+      "id": "wear",
+      "label": "Clothing & footwear",
+      "hint": "Everyday wear",
+      "emoji": "👟",
+      "count": 151
+    },
+    {
+      "id": "tech",
+      "label": "Everyday tech",
+      "hint": "Audio & accessories — no phone swaps",
+      "emoji": "🎧",
+      "count": 147
+    }
+  ]
+}

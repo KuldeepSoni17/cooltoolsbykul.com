@@ -1,0 +1,44 @@
+[
+  {
+    "id": "bathroom",
+    "label": "Bathroom",
+    "hint": "Toothpaste, soap, shampoo",
+    "emoji": "🪥"
+  },
+  {
+    "id": "kitchen",
+    "label": "Kitchen",
+    "hint": "Noodles, coffee, staples",
+    "emoji": "🍳"
+  },
+  {
+    "id": "snacks",
+    "label": "Snacks & pantry",
+    "hint": "Chips, biscuits, namkeen",
+    "emoji": "🥨"
+  },
+  {
+    "id": "personal",
+    "label": "Personal care",
+    "hint": "Skin, grooming, hygiene",
+    "emoji": "🧴"
+  },
+  {
+    "id": "home",
+    "label": "Home care",
+    "hint": "Detergent, cleaners",
+    "emoji": "🧺"
+  },
+  {
+    "id": "wear",
+    "label": "Clothing & footwear",
+    "hint": "Everyday wear",
+    "emoji": "👟"
+  },
+  {
+    "id": "tech",
+    "label": "Everyday tech",
+    "hint": "Audio & accessories — no phone swaps",
+    "emoji": "🎧"
+  }
+]

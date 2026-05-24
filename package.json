@@ -9,7 +9,11 @@
     "lint": "eslint",
     "italian:data:fetch": "node scripts/italian-coach/fetch-sources.mjs",
     "italian:data:curate": "node scripts/italian-coach/build-curated-seed.mjs",
-    "italian:data:prepare": "npm run italian:data:fetch && npm run italian:data:curate"
+    "italian:data:prepare": "npm run italian:data:fetch && npm run italian:data:curate",
+    "swadeshi:catalog:build": "node scripts/swadeshi/build-catalog.mjs",
+    "swadeshi:catalog:validate": "node scripts/swadeshi/validate-catalog.mjs",
+    "swadeshi:catalog:enrich": "node scripts/swadeshi/enrich-with-ai.mjs",
+    "swadeshi:catalog:prepare": "npm run swadeshi:catalog:build && npm run swadeshi:catalog:validate"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
