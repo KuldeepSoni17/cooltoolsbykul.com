@@ -1,378 +1,546 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
-  BRAND_CATEGORIES,
-  BRAND_SWAPS,
-  FLOW_AWARENESS,
-  formatInr,
-  INDIAN_SPOTLIGHT,
-  priceDelta,
+  BRAND_SPOTLIGHT,
+  DATA_VERSION,
+  DIGITAL_AWARENESS,
+  formatInrRange,
+  getAlternativeById,
+  getAlternativesByCategory,
+  HOW_IT_WORKS,
+  LAST_CURATED,
+  MATCH_LABELS,
+  METHODOLOGY,
+  OWNERSHIP_LABELS,
+  PRODUCT_ALTERNATIVES,
+  SHOP_CATEGORIES,
+  type MatchLevel,
+  type Ownership,
+  type ProductAlternative,
 } from "@/lib/swadeshi/data";
 import styles from "./swadeshi.module.css";
 
-type Section = "swaps" | "flow" | "spotlight";
+type View =
+  | { name: "home" }
+  | { name: "shop"; categoryId: string | null }
+  | { name: "detail"; id: string }
+  | { name: "digital" }
+  | { name: "discover" };
 
-const SECTIONS: { id: Section; label: string }[] = [
-  { id: "swaps", label: "Brand swaps" },
-  { id: "flow", label: "Where value flows" },
-  { id: "spotlight", label: "Indian ecosystem" },
-];
-
-export default function SwadeshiClient() {
-  const [section, setSection] = useState<Section>("swaps");
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string>("All");
-  const [spotlightTier, setSpotlightTier] = useState<"all" | "established" | "startup">("all");
-
-  const filteredSwaps = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return BRAND_SWAPS.filter((s) => {
-      if (category !== "All" && s.category !== category) return false;
-      if (!q) return true;
-      return (
-        s.globalBrand.toLowerCase().includes(q) ||
-        s.indianBrand.toLowerCase().includes(q) ||
-        s.category.toLowerCase().includes(q) ||
-        s.whyComparable.toLowerCase().includes(q)
-      );
-    });
-  }, [query, category]);
-
-  const filteredSpotlight = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return INDIAN_SPOTLIGHT.filter((b) => {
-      if (spotlightTier !== "all" && b.tier !== spotlightTier) return false;
-      if (!q) return true;
-      return (
-        b.name.toLowerCase().includes(q) ||
-        b.sector.toLowerCase().includes(q) ||
-        b.knownFor.toLowerCase().includes(q)
-      );
-    });
-  }, [query, spotlightTier]);
-
-  const filteredFlow = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return FLOW_AWARENESS;
-    return FLOW_AWARENESS.filter(
-      (f) =>
-        f.name.toLowerCase().includes(q) ||
-        f.whatWeUse.toLowerCase().includes(q) ||
-        f.indianAngle.toLowerCase().includes(q)
-    );
-  }, [query]);
-
+function MatchBadge({ level }: { level: MatchLevel }) {
+  const cls =
+    level === "strong"
+      ? styles.matchStrong
+      : level === "good"
+        ? styles.matchGood
+        : styles.matchSituational;
   return (
-    <div className={styles.root}>
-      <header className={styles.heroBand}>
-        <div className={styles.chakra} aria-hidden />
-        <div className="relative z-10 mx-auto max-w-5xl px-6 py-12 sm:px-10 sm:py-16">
-          <Link
-            href="/"
-            className="text-sm font-medium text-indigo-200 hover:text-white"
-          >
-            ← cooltoolsbykul.com
-          </Link>
-          <p
-            className={`mt-8 text-4xl font-bold tracking-tight sm:text-5xl ${styles.devanagari}`}
-          >
-            स्वदेशी
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold text-white sm:text-3xl">
-            Swadeshi movement portal
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-indigo-100 sm:text-lg">
-            Not preachy. Not boycott lists. Just honest pairs — Colgate and Perfora,
-            not iPhone and Lava — plus a gentle look at where everyday rupees travel,
-            and brands worth knowing.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            <span className={`${styles.badge} bg-white/15 text-white`}>
-              🇮🇳 Made for India
-            </span>
-            <span className={`${styles.badge} bg-orange-500/90 text-white`}>
-              Comparable swaps only
-            </span>
-          </div>
-        </div>
-      </header>
+    <span className={`${styles.badge} ${cls}`}>{MATCH_LABELS[level].label}</span>
+  );
+}
 
-      <div className="sticky top-0 z-20 border-b border-indigo-100/80 bg-white/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-4 sm:px-10">
-          <nav className={styles.nav} aria-label="Sections">
-            {SECTIONS.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                className={`${styles.navBtn} ${section === s.id ? styles.navBtnActive : ""}`}
-                onClick={() => setSection(s.id)}
-              >
-                {s.label}
-              </button>
-            ))}
-          </nav>
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-              ⌕
-            </span>
-            <input
-              type="search"
-              className={styles.search}
-              placeholder={
-                section === "swaps"
-                  ? "Search brands — Colgate, Lay's, Nike…"
-                  : section === "flow"
-                    ? "Search apps — YouTube, WhatsApp…"
-                    : "Search Indian brands — Amul, boAt…"
-              }
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              aria-label="Search"
-            />
-          </div>
+function OwnershipBadge({ ownership }: { ownership: Ownership }) {
+  const isMnc = ownership === "mnc-global";
+  return (
+    <span className={`${styles.badge} ${isMnc ? styles.ownMnc : styles.ownIndian}`}>
+      {OWNERSHIP_LABELS[ownership]}
+    </span>
+  );
+}
+
+function AlternativeListItem({
+  item,
+  onSelect,
+}: {
+  item: ProductAlternative;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <button type="button" className={styles.listItem} onClick={() => onSelect(item.id)}>
+      <p className={styles.listOccasion}>{item.occasion}</p>
+      <p className={styles.listBrands}>
+        {item.common.brand}
+        <span className={styles.listArrow}> → </span>
+        {item.alternative.brand}
+      </p>
+      <div className={styles.badgeRow}>
+        <MatchBadge level={item.match} />
+        <OwnershipBadge ownership={item.alternative.ownership} />
+      </div>
+    </button>
+  );
+}
+
+function AlternativeDetail({ item }: { item: ProductAlternative }) {
+  return (
+    <article className={styles.detailCard}>
+      <div className={styles.detailHeader}>
+        <p className={styles.detailOccasion}>{item.occasion}</p>
+        <p className={styles.detailVs}>
+          {item.common.brand} → {item.alternative.brand}
+        </p>
+        <div className={styles.badgeRow}>
+          <MatchBadge level={item.match} />
         </div>
       </div>
 
-      <main className="mx-auto max-w-5xl px-6 py-10 sm:px-10 sm:py-12">
-        {section === "swaps" && (
-          <>
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-indigo-900">Comparable brand swaps</h2>
-              <p className="mt-1 text-sm text-slate-600">
-                Same shelf, same job — approximate MRP for context (prices vary by city
-                and offers).
-              </p>
-            </div>
-            <div className="mb-6 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-              {BRAND_CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  className={`${styles.filterChip} ${category === cat ? styles.filterChipActive : ""}`}
-                  onClick={() => setCategory(cat)}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {filteredSwaps.map((swap) => {
-                const delta = priceDelta(swap.globalPrice.amount, swap.indianPrice.amount);
-                return (
-                  <article
-                    key={swap.id}
-                    className={`${styles.card} ${styles.orangeAccent}`}
-                  >
-                    <span className={`${styles.badge} ${styles.badgeIndigo}`}>
-                      {swap.category}
-                    </span>
-                    <div className="mt-3 flex flex-wrap items-baseline gap-2">
-                      <h3 className="text-lg font-bold text-slate-800">
-                        {swap.globalBrand}
-                      </h3>
-                      <span className="text-orange-500 font-semibold">→</span>
-                      <h3 className="text-lg font-bold text-orange-600">
-                        {swap.indianBrand}
-                      </h3>
-                    </div>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                      {swap.whyComparable}
-                    </p>
-                    <div className={styles.priceRow}>
-                      <div className={`${styles.priceBox} ${styles.priceGlobal}`}>
-                        <p className="text-xs font-semibold uppercase text-slate-500">
-                          Global / MNC
-                        </p>
-                        <p className="mt-1 font-medium text-slate-800">
-                          {swap.globalPrice.label}
-                        </p>
-                        <p className="mt-1 text-lg font-bold">
-                          {formatInr(swap.globalPrice.amount)}
-                        </p>
-                      </div>
-                      <div className={`${styles.priceBox} ${styles.priceIndian}`}>
-                        <p className="text-xs font-semibold uppercase text-orange-700">
-                          Indian alternative
-                        </p>
-                        <p className="mt-1 font-medium text-slate-800">
-                          {swap.indianPrice.label}
-                        </p>
-                        <p className="mt-1 text-lg font-bold text-orange-700">
-                          {formatInr(swap.indianPrice.amount)}
-                        </p>
-                      </div>
-                    </div>
-                    {swap.indianPrice.note && (
-                      <p className="mt-2 text-xs text-slate-500">{swap.indianPrice.note}</p>
-                    )}
-                    <p
-                      className={`${styles.delta} ${
-                        delta.cheaper === "indian"
-                          ? styles.deltaIndian
-                          : delta.cheaper === "global"
-                            ? styles.deltaGlobal
-                            : styles.deltaSame
-                      }`}
-                    >
-                      {delta.cheaper === "same"
-                        ? "Roughly same price band"
-                        : delta.cheaper === "indian"
-                          ? `Indian option ~${formatInr(Math.abs(delta.diff))} less on this SKU`
-                          : `Global SKU ~${formatInr(Math.abs(delta.diff))} less — Indian may win on offers`}
-                    </p>
-                  </article>
-                );
-              })}
-            </div>
-            {filteredSwaps.length === 0 && (
-              <p className="text-center text-slate-500 py-12">No matches — try another search.</p>
-            )}
-          </>
+      <div className={styles.detailBody}>
+        <div className={`${styles.compareCol} ${styles.colCommon}`}>
+          <p className={styles.colLabel}>What many of us reach for</p>
+          <p className={styles.colBrand}>{item.common.brand}</p>
+          <p className={styles.colProduct}>{item.common.product}</p>
+          <p className={styles.colOwnership}>
+            <OwnershipBadge ownership={item.common.ownership} /> —{" "}
+            {item.common.ownershipNote}
+          </p>
+        </div>
+
+        <div className={`${styles.compareCol} ${styles.colAlt}`}>
+          <p className={styles.colLabel}>Indian option worth knowing</p>
+          <p className={styles.colBrand}>{item.alternative.brand}</p>
+          <p className={styles.colProduct}>{item.alternative.product}</p>
+          <p className={styles.colOwnership}>
+            <OwnershipBadge ownership={item.alternative.ownership} /> —{" "}
+            {item.alternative.ownershipNote}
+          </p>
+        </div>
+
+        <div className={`${styles.infoBlock} ${styles.infoWhy}`}>
+          <strong>Why we paired these</strong>
+          <p style={{ marginTop: "0.35rem" }}>{item.whyMatch}</p>
+          <p style={{ marginTop: "0.5rem", fontSize: "0.8rem", opacity: 0.85 }}>
+            {MATCH_LABELS[item.match].desc}
+          </p>
+        </div>
+
+        {item.notSameAs && (
+          <div className={`${styles.infoBlock} ${styles.infoNot}`}>
+            <strong>Honest caveat</strong>
+            <p style={{ marginTop: "0.35rem" }}>{item.notSameAs}</p>
+          </div>
         )}
 
-        {section === "flow" && (
-          <>
-            <div className="mb-8 rounded-2xl border border-indigo-200 bg-indigo-50/80 p-6">
-              <h2 className="text-xl font-bold text-indigo-900">A gentle map</h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-700">
-                YouTube, WhatsApp, and Netflix are brilliant tools. This section is only
-                about awareness — where subscription and ad money tends to land — not a
-                lecture to quit anything.
-              </p>
+        {item.price && (
+          <div className={`${styles.infoBlock} ${styles.infoPrice}`}>
+            <strong>Typical price band</strong>
+            <p style={{ marginTop: "0.25rem", fontSize: "0.8rem", color: "#57534e" }}>
+              {item.price.basis} · verify at store
+            </p>
+            <div className={styles.priceGrid}>
+              <div className={styles.priceCell}>
+                <p className={styles.colLabel}>{item.common.brand}</p>
+                <p className={styles.priceRange}>
+                  {formatInrRange(item.price.commonRange)}
+                </p>
+              </div>
+              <div className={styles.priceCell}>
+                <p className={styles.colLabel}>{item.alternative.brand}</p>
+                <p className={styles.priceRange}>
+                  {formatInrRange(item.price.altRange)}
+                </p>
+              </div>
             </div>
-            <div className="grid gap-4">
-              {filteredFlow.map((item) => (
-                <article
+            <p className={styles.priceNote}>{item.price.note}</p>
+          </div>
+        )}
+
+        {item.alternative.website && (
+          <a
+            href={item.alternative.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.linkOut}
+          >
+            Visit {item.alternative.brand} →
+          </a>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function MethodologyBlock() {
+  return (
+    <div className={styles.methodBox}>
+      <p className={styles.methodTitle}>{METHODOLOGY.title}</p>
+      <ul className={styles.methodList}>
+        {METHODOLOGY.points.map((point) => (
+          <li key={point}>{point}</li>
+        ))}
+      </ul>
+      <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", color: "#78716c" }}>
+        Curated {LAST_CURATED} · data v{DATA_VERSION}
+      </p>
+    </div>
+  );
+}
+
+export default function SwadeshiClient() {
+  const [view, setView] = useState<View>({ name: "home" });
+  const [discoverTab, setDiscoverTab] = useState<"all" | "established" | "startup">("all");
+  const [digitalOpen, setDigitalOpen] = useState<string | null>(null);
+
+  const goHome = useCallback(() => setView({ name: "home" }), []);
+
+  const category =
+    view.name === "shop" && view.categoryId
+      ? SHOP_CATEGORIES.find((c) => c.id === view.categoryId)
+      : null;
+
+  const detail = view.name === "detail" ? getAlternativeById(view.id) : undefined;
+
+  const shopItems = useMemo(() => {
+    if (view.name !== "shop" || !view.categoryId) return [];
+    return getAlternativesByCategory(view.categoryId);
+  }, [view]);
+
+  const filteredSpotlight = useMemo(() => {
+    if (discoverTab === "all") return BRAND_SPOTLIGHT;
+    return BRAND_SPOTLIGHT.filter((b) => b.type === discoverTab);
+  }, [discoverTab]);
+
+  const headerBack = () => {
+    if (view.name === "detail") {
+      const item = getAlternativeById(view.id);
+      if (item) setView({ name: "shop", categoryId: item.categoryId });
+      else goHome();
+      return;
+    }
+    if (view.name !== "home") goHome();
+  };
+
+  const showTopBar = view.name !== "home";
+
+  return (
+    <div className={styles.root}>
+      {showTopBar && (
+        <header className={styles.topBar}>
+          <div className={styles.topBarInner}>
+            <button type="button" className={styles.backBtn} onClick={headerBack}>
+              ← Back
+            </button>
+            <span className={`${styles.wordmark} ${styles.devanagari}`}>स्वदेशी</span>
+            <span className={styles.versionTag}>v{DATA_VERSION}</span>
+          </div>
+        </header>
+      )}
+
+      {view.name === "home" && (
+        <>
+          <section className={styles.hero}>
+            <div className={styles.heroInner}>
+              <Link href="/" className={styles.backBtn}>
+                ← cooltoolsbykul.com
+              </Link>
+              <p
+                className={`${styles.heroTitle} ${styles.devanagari}`}
+                style={{ marginTop: "1.5rem" }}
+              >
+                स्वदेशी
+              </p>
+              <h1
+                style={{
+                  fontSize: "1.35rem",
+                  fontWeight: 650,
+                  color: "#1c1917",
+                  marginTop: "0.5rem",
+                }}
+              >
+                Know what&apos;s Indian. Choose consciously.
+              </h1>
+              <p className={styles.heroSubtitle}>
+                A calm guide to everyday product swaps, where digital rupees flow, and
+                brands that keep value in India — with ownership labels and honest price
+                bands, not fake exact rupees.
+              </p>
+              <span className={styles.heroTagline}>
+                जानिए, फिर चुनिए — know, then choose
+              </span>
+            </div>
+          </section>
+
+          <div className={styles.page}>
+            <p className={styles.sectionLabel}>How to use this</p>
+            <div className={styles.steps}>
+              {HOW_IT_WORKS.map((step) => (
+                <div key={step.step} className={styles.step}>
+                  <span className={styles.stepNum}>{step.step}</span>
+                  <div>
+                    <p className={styles.stepTitle}>{step.title}</p>
+                    <p className={styles.stepBody}>{step.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className={styles.sectionLabel} style={{ marginTop: "2.5rem" }}>
+              Pick a path
+            </p>
+            <div className={styles.pathways}>
+              <button
+                type="button"
+                className={`${styles.pathCard} ${styles.pathCardPrimary}`}
+                onClick={() => setView({ name: "shop", categoryId: null })}
+              >
+                <span className={styles.pathEmoji}>🛒</span>
+                <p className={styles.pathTitle}>Shop smarter</p>
+                <p className={styles.pathDesc}>
+                  Pick an aisle — bathroom, kitchen, snacks — then open one honest pair
+                  at a time.
+                </p>
+                <p className={styles.pathAction}>
+                  {PRODUCT_ALTERNATIVES.length} curated pairs →
+                </p>
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.pathCard} ${styles.pathCardSecondary}`}
+                onClick={() => setView({ name: "digital" })}
+              >
+                <span className={styles.pathEmoji}>📱</span>
+                <p className={styles.pathTitle}>Daily apps &amp; subscriptions</p>
+                <p className={styles.pathDesc}>
+                  Where YouTube, WhatsApp, and streaming money tends to flow — awareness,
+                  not a lecture.
+                </p>
+                <p className={styles.pathAction}>Open map →</p>
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.pathCard} ${styles.pathCardTertiary}`}
+                onClick={() => setView({ name: "discover" })}
+              >
+                <span className={styles.pathEmoji}>🏛</span>
+                <p className={styles.pathTitle}>Indian brands to know</p>
+                <p className={styles.pathDesc}>
+                  Cooperatives, listed giants, and startups — spread spend inside India
+                  when it fits you.
+                </p>
+                <p className={styles.pathAction}>Browse {BRAND_SPOTLIGHT.length} brands →</p>
+              </button>
+            </div>
+
+            <MethodologyBlock />
+
+            <p className={styles.footerNote}>
+              Swadeshi is a curated awareness tool — not a marketplace or affiliate site.
+              Ownership and prices change; always verify before you buy.
+            </p>
+          </div>
+        </>
+      )}
+
+      {view.name === "shop" && (
+        <div className={styles.page}>
+          <p className={styles.sectionLabel}>Shop smarter</p>
+          <h2 style={{ fontSize: "1.35rem", fontWeight: 700, color: "#1e1b4b" }}>
+            {category ? category.label : "Pick an aisle"}
+          </h2>
+          <p style={{ marginTop: "0.35rem", fontSize: "0.875rem", color: "#57534e" }}>
+            {category
+              ? "Tap a pair to see ownership, match quality, and price bands."
+              : "Where do you actually shop? We only show pairs we'd use in the same trip."}
+          </p>
+
+          <div
+            className={styles.categoryGrid}
+            style={{ marginTop: "1.25rem", marginBottom: category ? "1.25rem" : 0 }}
+          >
+            {SHOP_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                className={styles.categoryCard}
+                style={
+                  category?.id === cat.id
+                    ? { borderColor: "#4f46e5", background: "#eef2ff" }
+                    : undefined
+                }
+                onClick={() => setView({ name: "shop", categoryId: cat.id })}
+              >
+                <span className={styles.categoryEmoji}>{cat.emoji}</span>
+                <p className={styles.categoryLabel}>{cat.label}</p>
+                <p className={styles.categoryHint}>{cat.hint}</p>
+              </button>
+            ))}
+          </div>
+
+          {category &&
+            (shopItems.length === 0 ? (
+              <p className={styles.empty}>No pairs in this aisle yet.</p>
+            ) : (
+              shopItems.map((item) => (
+                <AlternativeListItem
                   key={item.id}
-                  className={`${styles.card} ${styles.flowCard} ${styles.indigoAccent}`}
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-lg font-bold text-indigo-900">{item.name}</h3>
-                    <span className={`${styles.badge} ${styles.badgeIndigo}`}>
-                      {item.category}
-                    </span>
-                  </div>
-                  <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                        What we use it for
-                      </p>
-                      <p className="mt-1 text-sm text-slate-700">{item.whatWeUse}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                        Where value often flows
-                      </p>
-                      <p className="mt-1 text-sm text-slate-700">{item.whereValueFlows}</p>
-                    </div>
-                    <div className="rounded-lg bg-orange-50 p-3 border border-orange-100">
-                      <p className="text-xs font-bold uppercase tracking-wide text-orange-700">
-                        Indian angle (optional)
-                      </p>
-                      <p className="mt-1 text-sm text-slate-700">{item.indianAngle}</p>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-            {filteredFlow.length === 0 && (
-              <p className="text-center text-slate-500 py-12">No matches.</p>
-            )}
-          </>
-        )}
+                  item={item}
+                  onSelect={(id) => setView({ name: "detail", id })}
+                />
+              ))
+            ))}
+        </div>
+      )}
 
-        {section === "spotlight" && (
-          <>
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-indigo-900">
-                Big Indian brands & honest startups
-              </h2>
-              <p className="mt-1 text-sm text-slate-600">
-                Spreading spend across established champions and young builders helps
-                wealth circulate inside India — not an endorsement of every product.
-              </p>
-            </div>
-            <div className="mb-6 flex flex-wrap gap-2">
-              {(
-                [
-                  ["all", "All"],
-                  ["established", "Established giants"],
-                  ["startup", "Honest startups"],
-                ] as const
-              ).map(([id, label]) => (
+      {view.name === "detail" && detail && (
+        <div className={styles.page}>
+          <AlternativeDetail item={detail} />
+          <MethodologyBlock />
+        </div>
+      )}
+
+      {view.name === "detail" && !detail && (
+        <div className={styles.page}>
+          <p className={styles.empty}>That item isn&apos;t in our catalog.</p>
+        </div>
+      )}
+
+      {view.name === "digital" && (
+        <div className={styles.page}>
+          <p className={styles.sectionLabel}>Daily apps</p>
+          <h2 style={{ fontSize: "1.35rem", fontWeight: 700, color: "#1e1b4b" }}>
+            Where everyday rupees tend to flow
+          </h2>
+          <p
+            style={{
+              marginTop: "0.35rem",
+              fontSize: "0.875rem",
+              color: "#57534e",
+              marginBottom: "1.25rem",
+            }}
+          >
+            Tap an app — one fact, one nuance, optional Indian options.
+          </p>
+
+          <div className={styles.digitalIntro}>
+            <strong>Not a boycott list.</strong> These tools are useful. This map is
+            only about knowing where subscription and ad money tends to land.
+          </div>
+
+          {DIGITAL_AWARENESS.map((item) => {
+            const open = digitalOpen === item.id;
+            return (
+              <div
+                key={item.id}
+                className={
+                  open ? `${styles.accordion} ${styles.accordionOpen}` : styles.accordion
+                }
+              >
                 <button
-                  key={id}
                   type="button"
-                  className={`${styles.filterChip} ${spotlightTier === id ? styles.filterChipActive : ""}`}
-                  onClick={() => setSpotlightTier(id)}
+                  className={styles.accordionBtn}
+                  onClick={() => setDigitalOpen(open ? null : item.id)}
                 >
-                  {label}
+                  <span>
+                    <span style={{ marginRight: "0.5rem" }}>{item.icon}</span>
+                    <span className={styles.accordionTitle}>{item.name}</span>
+                  </span>
+                  <span className={styles.accordionIcon} aria-hidden>
+                    {open ? "−" : "+"}
+                  </span>
                 </button>
-              ))}
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {filteredSpotlight.map((brand) => (
-                <article
-                  key={brand.id}
-                  className={`${styles.card} ${
-                    brand.tier === "established"
-                      ? styles.tierEstablished
-                      : styles.tierStartup
+                {open && (
+                  <div className={styles.accordionPanel}>
+                    <p>
+                      <span className={styles.panelLabel}>Daily use</span>
+                      {item.dailyUse}
+                    </p>
+                    <p style={{ marginTop: "0.75rem" }}>
+                      <span className={styles.panelLabel}>Economics</span>
+                      {item.economics}
+                    </p>
+                    {item.indianNotes && (
+                      <p style={{ marginTop: "0.75rem" }}>
+                        <span className={styles.panelLabel}>Indian options</span>
+                        {item.indianNotes}
+                      </p>
+                    )}
+                    <p style={{ marginTop: "0.75rem" }}>
+                      <span className={styles.panelLabel}>Keep in mind</span>
+                      {item.nuance}
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <MethodologyBlock />
+        </div>
+      )}
+
+      {view.name === "discover" && (
+        <div className={styles.page}>
+          <p className={styles.sectionLabel}>Indian ecosystem</p>
+          <h2 style={{ fontSize: "1.35rem", fontWeight: 700, color: "#1e1b4b" }}>
+            Brands that keep value in India
+          </h2>
+          <p style={{ marginTop: "0.35rem", fontSize: "0.875rem", color: "#57534e" }}>
+            Why each is listed — not an endorsement of every product they make.
+          </p>
+
+          <div className={styles.tabRow} style={{ marginTop: "1.25rem" }}>
+            {(
+              [
+                ["all", "All"],
+                ["established", "Established"],
+                ["startup", "Startups"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                className={`${styles.tab} ${discoverTab === id ? styles.tabActive : ""}`}
+                onClick={() => setDiscoverTab(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {filteredSpotlight.map((brand) => (
+            <article key={brand.id} className={styles.spotCard}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "0.5rem",
+                }}
+              >
+                <p className={styles.spotName}>{brand.name}</p>
+                <span
+                  className={`${styles.badge} ${
+                    brand.type === "established" ? styles.matchGood : styles.matchSituational
                   }`}
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-lg font-bold text-slate-900">{brand.name}</h3>
-                    <span
-                      className={`${styles.badge} ${
-                        brand.tier === "established"
-                          ? styles.badgeIndigo
-                          : styles.badgeOrange
-                      }`}
-                    >
-                      {brand.tier === "established" ? "Established" : "Startup"}
-                    </span>
-                  </div>
-                  <p className="text-xs font-semibold text-slate-500">{brand.sector}</p>
-                  <p className="mt-2 text-sm text-slate-700">{brand.blurb}</p>
-                  <p className="mt-2 text-sm">
-                    <span className="font-semibold text-indigo-800">Known for: </span>
-                    {brand.knownFor}
-                  </p>
-                  {brand.website && (
-                    <a
-                      href={brand.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-3 inline-block text-sm font-semibold text-orange-600 hover:underline"
-                    >
-                      Visit site →
-                    </a>
-                  )}
-                </article>
-              ))}
-            </div>
-            {filteredSpotlight.length === 0 && (
-              <p className="text-center text-slate-500 py-12">No matches.</p>
-            )}
-          </>
-        )}
+                  {brand.type}
+                </span>
+              </div>
+              <p className={styles.spotMeta}>
+                {brand.sector} · {brand.hq}
+              </p>
+              <p className={styles.spotWhy}>{brand.whyListed}</p>
+              <p style={{ marginTop: "0.5rem", fontSize: "0.85rem" }}>
+                <strong>Known for:</strong> {brand.highlights}
+              </p>
+              {brand.website && (
+                <a
+                  href={brand.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.linkOut}
+                >
+                  Official site →
+                </a>
+              )}
+            </article>
+          ))}
 
-        <footer className="mt-16 border-t border-indigo-100 pt-8">
-          <p className={`${styles.disclaimer} max-w-3xl`}>
-            Prices are indicative MRP snapshots (2024–25) for comparison education —
-            not live quotes. Brand ownership can be complex (Indian companies with
-            foreign investors, MNCs with Indian factories). We focus on realistic
-            substitutes and informed choice, not purity tests.
-          </p>
-          <p className={`${styles.disclaimer} mt-3`}>
-            Built for the Swadeshi spirit of awareness —{" "}
-            <span className={styles.devanagari}>जानिए, फिर चुनिए</span> (know, then
-            choose).
-          </p>
-        </footer>
-      </main>
+          <MethodologyBlock />
+        </div>
+      )}
     </div>
   );
 }

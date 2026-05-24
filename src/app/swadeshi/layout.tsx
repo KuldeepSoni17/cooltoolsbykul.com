@@ -10,7 +10,7 @@ const notoDevanagari = Noto_Sans_Devanagari({
 export const metadata: Metadata = {
   title: "Swadeshi | Cool Tools by Kul",
   description:
-    "Discover comparable Indian alternatives to everyday global brands — with honest price context, gentle awareness, and homegrown heroes.",
+    "A calm, curated guide to Indian product alternatives — with ownership labels, honest price bands, and gentle digital awareness.",
 };
 
 export default function SwadeshiLayout({
