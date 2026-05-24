@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { combatChallenges } from "@/content/italian-coach/dictionary";
-import { almostCorrectFeedback } from "@/lib/italian-coach/engine";
+import { almostCorrectFeedback, permutationMatch } from "@/lib/italian-coach/engine";
 import { useCoachStore } from "@/lib/italian-coach/store";
 import { GameCard } from "./SentenceCraft";
 
@@ -17,12 +17,16 @@ export function TranslationCombat() {
   const challenge = combatChallenges[index % combatChallenges.length];
 
   function attack() {
-    const fb = almostCorrectFeedback(input, challenge.italian, challenge.hint);
+    const expectedWords = challenge.italian.split(/\s+/);
+    const ok = permutationMatch(input, expectedWords);
+    const fb = ok
+      ? { ok: true, message: "Hit!", nativeHint: input.trim() !== challenge.italian ? `Native order: ${challenge.italian}` : undefined }
+      : almostCorrectFeedback(input, challenge.italian, challenge.hint);
     if (fb.ok) {
       const dmg = 35;
       setEnemyHp((e) => Math.max(0, e - dmg));
       addXp(8);
-      setLog(`Hit! −${dmg} enemy HP`);
+      setLog(`Hit! −${dmg} HP${fb.nativeHint ? ` · ${fb.nativeHint}` : ""}`);
       setIndex((i) => (i + 1) % combatChallenges.length);
       setInput("");
       if (enemyHp - dmg <= 0) {
@@ -59,6 +63,9 @@ export function TranslationCombat() {
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") attack();
+        }}
         className="mt-3 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-900 outline-none focus:border-stone-900"
         placeholder="Counter-attack in Italian…"
       />

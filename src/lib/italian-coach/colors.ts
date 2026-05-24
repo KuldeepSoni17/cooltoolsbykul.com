@@ -52,14 +52,6 @@ export const WORD_TYPE_COLORS: Record<
     label: "Pron",
     group: "Pronouns",
   },
-  operator: {
-    chip: "bg-orange-50 border-orange-300 text-orange-900",
-    chipHover: "hover:bg-orange-100",
-    dot: "bg-orange-500",
-    text: "text-orange-700",
-    label: "Op",
-    group: "Operators",
-  },
   article: {
     chip: "bg-stone-50 border-stone-300 text-stone-900",
     chipHover: "hover:bg-stone-100",
@@ -78,5 +70,4 @@ export const WORD_TYPE_ORDER: WordType[] = [
   "time",
   "connector",
   "article",
-  "operator",
 ];

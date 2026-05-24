@@ -7,7 +7,7 @@ import { useCoachStore } from "@/lib/italian-coach/store";
 export function PhraseExplosion() {
   const knownWordIds = useCoachStore((s) => s.knownWordIds);
   const knownSet = useMemo(() => new Set(knownWordIds), [knownWordIds]);
-  const phrases = useMemo(() => generatePhrases(knownSet, undefined, 12), [knownSet]);
+  const phrases = useMemo(() => generatePhrases(knownSet, 14), [knownSet]);
 
   return (
     <section>

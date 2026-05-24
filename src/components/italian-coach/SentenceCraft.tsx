@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { craftChallenges } from "@/content/italian-coach/dictionary";
-import { almostCorrectFeedback } from "@/lib/italian-coach/engine";
+import { permutationMatch, almostCorrectFeedback } from "@/lib/italian-coach/engine";
 import { useCoachStore } from "@/lib/italian-coach/store";
 
-const TIMER_SEC = 25;
+const TIMER_SEC = 30;
 
 export function SentenceCraft() {
   const addXp = useCoachStore((s) => s.addXp);
@@ -45,28 +45,39 @@ export function SentenceCraft() {
   }
 
   function submit() {
-    const fb = almostCorrectFeedback(input, challenge.answer);
-    if (fb.ok) {
-      const bonus = timeLeft > 15 ? 3 : 0;
-      addXp(5 + bonus + (combo >= 2 ? 20 : 0));
+    // Accept any valid permutation of the same words
+    const ok = permutationMatch(input, challenge.scrambled);
+    if (ok) {
+      const bonus = timeLeft > 18 ? 5 : timeLeft > 8 ? 2 : 0;
+      const earned = 5 + bonus + (combo >= 2 ? 20 : 0);
+      addXp(earned);
       setCombo((c) => c + 1);
-      setMsg(`+${5 + bonus} XP${combo >= 2 ? " · Perfect streak!" : ""}`);
+      const orderHint =
+        input.trim().toLowerCase() !== challenge.answer.toLowerCase()
+          ? ` Most natural: ${challenge.answer}.`
+          : "";
+      setMsg(`+${earned} XP${combo >= 2 ? " · perfect streak!" : ""}${orderHint}`);
       setIndex((i) => (i + 1) % craftChallenges.length);
       setInput("");
       remainingRef.current = TIMER_SEC;
       setTimeLeft(TIMER_SEC);
     } else {
+      const fb = almostCorrectFeedback(input, challenge.answer);
       setCombo(0);
-      setMsg(fb.nativeHint ? `${fb.message} ${fb.nativeHint}` : fb.message);
+      setMsg(fb.nativeHint ?? fb.message);
     }
   }
 
   return (
-    <GameCard title="Sentence Craft" subtitle="Build the sentence before time runs out.">
+    <GameCard title="Sentence Craft" subtitle="Build a valid sentence from these words. Any natural order accepted.">
       <p className="text-sm text-stone-500">{challenge.english}</p>
       <p className="mt-2 font-serif text-xl text-stone-900">{challenge.scrambled.join(" · ")}</p>
       <div className="mt-3 flex items-center gap-3">
-        <span className={`font-serif text-2xl tabular-nums ${timeLeft <= 5 && running ? "text-rose-600" : "text-stone-900"}`}>
+        <span
+          className={`font-serif text-2xl tabular-nums ${
+            timeLeft <= 5 && running ? "text-rose-600" : "text-stone-900"
+          }`}
+        >
           {running ? timeLeft : TIMER_SEC}s
         </span>
         {combo > 0 ? <span className="text-sm text-amber-600">Combo ×{combo}</span> : null}
@@ -74,6 +85,9 @@ export function SentenceCraft() {
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && running) submit();
+        }}
         disabled={!running}
         className="mt-3 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-900 outline-none focus:border-stone-900 disabled:opacity-50"
         placeholder="Type Italian sentence…"
