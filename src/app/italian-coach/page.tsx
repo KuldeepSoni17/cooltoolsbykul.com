@@ -3,21 +3,21 @@ import ItalianCoachClient from "./ItalianCoachClient";
 
 export default function ItalianCoachPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-zinc-950 text-zinc-100">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(34,197,94,0.22),transparent_28%),radial-gradient(circle_at_84%_20%,rgba(56,189,248,0.2),transparent_34%),radial-gradient(circle_at_50%_100%,rgba(168,85,247,0.22),transparent_36%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:36px_36px]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#f6f1e7] text-stone-900">
+      <div className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.6)_1px,transparent_0)] [background-size:24px_24px]" />
+      <div className="pointer-events-none absolute -top-40 -left-40 h-[480px] w-[480px] rounded-full bg-amber-200/40 blur-[120px]" />
+      <div className="pointer-events-none absolute -bottom-40 -right-40 h-[520px] w-[520px] rounded-full bg-emerald-200/40 blur-[140px]" />
 
       <div className="relative">
-        <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-8 sm:px-10 lg:px-16">
-          <p className="inline-flex rounded-full border border-emerald-300/50 bg-zinc-900/70 px-4 py-1 text-sm font-semibold text-emerald-200 backdrop-blur">
-            Italian Coach
-          </p>
-          <Link
-            href="/"
-            className="rounded-full border border-zinc-700 bg-zinc-900/80 px-4 py-2 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500 hover:text-white"
-          >
-            Back to Home
+        <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 pt-8 sm:px-8">
+          <Link href="/" className="text-sm font-medium text-stone-500 transition hover:text-stone-900">
+            ← cooltoolsbykul
           </Link>
+          <div className="flex items-center gap-3">
+            <span className="rounded-full border border-stone-300 bg-white/60 px-3 py-1 text-xs font-medium text-stone-600 backdrop-blur">
+              MVP · alpha
+            </span>
+          </div>
         </header>
         <ItalianCoachClient />
       </div>

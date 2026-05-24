@@ -279,6 +279,54 @@ function colorHex(c) {
   return c && c.startsWith && c.startsWith('#') ? c : (COLORS[c] || COLORS.red);
 }
 
+// Compute a viewBox that tightly fits the visible content (bricks + a small
+// baseplate frame around them). Used by IsoScene so a build that occupies a
+// corner of a big baseplate still fills the viewport instead of looking lost.
+function computeIsoViewBox(bricks, baseSize, view, opts = {}) {
+  const padX = opts.padX ?? 80, padY = opts.padY ?? 80;
+  const minScale = opts.minScale ?? 8; // baseplate cells of margin around bricks
+  const base = viewedBaseSize(baseSize, view);
+  // Always include the rotated baseplate corners at z=0 so the boundary frame
+  // shows up; but clip them to a window around the bricks so we don't pan all
+  // the way out to the empty corner of a huge baseplate.
+  let minX = 0, minY = 0, maxX = base.w, maxY = base.d;
+  if (bricks.length > 0) {
+    const rotated = bricks.map(b => applyView(b, view, baseSize));
+    let bxMin = Infinity, byMin = Infinity, bzMin = 0;
+    let bxMax = -Infinity, byMax = -Infinity, bzMax = 1;
+    for (const b of rotated) {
+      bxMin = Math.min(bxMin, b.x);
+      byMin = Math.min(byMin, b.y);
+      bxMax = Math.max(bxMax, b.x + b.w);
+      byMax = Math.max(byMax, b.y + b.d);
+      bzMax = Math.max(bzMax, b.z + (b.h ?? 1));
+    }
+    // Window around bricks with a margin in baseplate cells
+    minX = Math.max(0, bxMin - minScale);
+    minY = Math.max(0, byMin - minScale);
+    maxX = Math.min(base.w, bxMax + minScale);
+    maxY = Math.min(base.d, byMax + minScale);
+    // Need to project the maxZ of bricks too
+    opts.maxZ = Math.max(opts.maxZ || 0, bzMax + 1);
+  }
+  const maxZ = opts.maxZ ?? 6;
+  // Project the 8 corners of the visible 3D bounding box and take screen extent
+  const sx = [], sy = [];
+  for (const x of [minX, maxX]) {
+    for (const y of [minY, maxY]) {
+      for (const z of [0, maxZ]) {
+        const p = iso(x, y, z);
+        sx.push(p.x); sy.push(p.y);
+      }
+    }
+  }
+  const left = Math.min(...sx) - padX;
+  const right = Math.max(...sx) + padX;
+  const top = Math.min(...sy) - padY;
+  const bottom = Math.max(...sy) + padY;
+  return `${left} ${top} ${right - left} ${bottom - top}`;
+}
+
 // ---------- Brick shape rendering (dispatch on type) ----------
 function toStr(poly) { return poly.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '); }
 
@@ -657,6 +705,17 @@ function IsoScene({
         }
         return labels;
       })()}
+      {/* Drop shadows on the baseplate — one parallelogram per brick footprint
+          at z=0, slightly larger than the brick, so each piece feels grounded. */}
+      {rotatedBricks.filter(b => b.z === 0).map(b => {
+        const corners = [
+          iso(b.x - 0.08, b.y - 0.08, 0),
+          iso(b.x + b.w + 0.08, b.y - 0.08, 0),
+          iso(b.x + b.w + 0.08, b.y + b.d + 0.08, 0),
+          iso(b.x - 0.08, b.y + b.d + 0.08, 0),
+        ].map(p => `${(p.x + O.x).toFixed(1)},${(p.y + O.y).toFixed(1)}`).join(' ');
+        return <polygon key={`sh-${b._origId || b.id}`} points={corners} fill="rgba(31,29,26,0.18)" stroke="none" />;
+      })}
       {rotatedBricks.map(b => (
         <BrickShape key={b._origId || b.id} brick={b} origin={O}
           coveredCells={coveredCells}
@@ -870,6 +929,6 @@ Object.assign(window, {
   effSize, brickGeometry, studPositions, paintOrder,
   pickGroundCell, topZAt, pickBrick, svgPoint, colorHex,
   applyView, viewedBaseSize, invView, rotPoint, colLabel,
-  pickTopCell, pickTopBrick, computeTopViewBox,
+  pickTopCell, pickTopBrick, computeTopViewBox, computeIsoViewBox,
   BrickShape, IsoScene, TopDownScene,
 });

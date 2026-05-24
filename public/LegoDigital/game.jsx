@@ -417,7 +417,9 @@ function SandboxScreen({ initialBricks = [], initialBase = SANDBOX_BASE, onExit,
   };
 
   const maxZ = useMemo(() => bricks.reduce((m, b) => Math.max(m, b.z + (b.h ?? 1)), 6), [bricks]);
-  const isoVB = computeViewBox(viewedBaseSize(baseSize, view), Math.max(maxZ, 6) / zoom);
+  // Auto-fit iso to the bricks (plus a small baseplate margin) so a small
+  // build on a big baseplate fills the viewport instead of sitting in a corner.
+  const isoVB = computeIsoViewBox(bricks, baseSize, view, { maxZ: Math.max(maxZ, 4) / zoom, padX: 80 / zoom, padY: 80 / zoom });
   const topVB = computeTopViewBox(viewedBaseSize(baseSize, view));
   const viewBox = topView ? topVB : isoVB;
 
@@ -656,7 +658,7 @@ function InstructionsScreen({ set, onExit, onSwitchToSandbox }) {
   const progress = stepIdx / totalSteps;
 
   const maxZ = useMemo(() => allBricks.reduce((m, b) => Math.max(m, b.z + (b.h ?? 1)), 6), [allBricks]);
-  const isoVB = computeViewBox(viewedBaseSize(set.baseSize, view), Math.max(maxZ, 6) / zoom);
+  const isoVB = computeIsoViewBox(allBricks, set.baseSize, view, { maxZ: Math.max(maxZ, 4) / zoom, padX: 80 / zoom, padY: 80 / zoom });
   const topVB = computeTopViewBox(viewedBaseSize(set.baseSize, view));
   const viewBox = topView ? topVB : isoVB;
 
@@ -875,7 +877,7 @@ function HomeScreen({ onOpenSandbox, onOpenDetail }) {
 function SetCard({ set, onClick }) {
   const previewBricks = useMemo(() => flattenSet(set), [set]);
   const maxZ = useMemo(() => previewBricks.reduce((m, b) => Math.max(m, b.z + (b.h ?? 1)), 4) + 2, [previewBricks]);
-  const viewBox = computeViewBox(set.baseSize, maxZ);
+  const viewBox = computeIsoViewBox(previewBricks, set.baseSize, 0, { maxZ });
 
   return (
     <div className="set-card" onClick={onClick} style={{ cursor: 'pointer' }}>
@@ -915,7 +917,7 @@ function SetDetail({ setId, onBack, onStartInstructions, onOpenInSandbox }) {
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
   const [topView, setTopView] = useState(false);
-  const isoVB = computeViewBox(viewedBaseSize(set.baseSize, view), maxZ / zoom);
+  const isoVB = computeIsoViewBox(previewBricks, set.baseSize, view, { maxZ: maxZ / zoom, padX: 60 / zoom, padY: 60 / zoom });
   const topVB = computeTopViewBox(viewedBaseSize(set.baseSize, view));
   const viewBox = topView ? topVB : isoVB;
   const progress = parseInt(localStorage.getItem(`legodigital:progress:${set.id}`) || '0', 10);

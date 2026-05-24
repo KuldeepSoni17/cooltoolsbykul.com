@@ -8,26 +8,34 @@ export function WordChip({
   onClick,
   selected,
   size = "md",
+  showMeaning = false,
 }: {
   word: DictionaryWord;
   onClick?: () => void;
   selected?: boolean;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
+  showMeaning?: boolean;
 }) {
-  const colors = WORD_TYPE_COLORS[word.type];
-  const pad = size === "sm" ? "px-2 py-1 text-xs" : "px-3 py-1.5 text-sm";
+  const c = WORD_TYPE_COLORS[word.type];
+  const sizing =
+    size === "lg"
+      ? "px-4 py-2.5 text-lg"
+      : size === "sm"
+        ? "px-2.5 py-1 text-sm"
+        : "px-3 py-1.5 text-base";
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={!onClick}
-      className={`${pad} rounded-xl border font-medium transition ${colors.bg} ${colors.border} ${colors.text} ${
-        selected ? "ring-2 ring-white/60 scale-105" : "hover:brightness-125"
-      } ${onClick ? "cursor-pointer" : "cursor-default opacity-90"}`}
-      title={`${word.english} · ${colors.label}`}
+      className={`group inline-flex items-baseline gap-2 rounded-lg border ${sizing} ${c.chip} ${
+        onClick ? `${c.chipHover} cursor-pointer` : "cursor-default"
+      } ${selected ? "shadow-[0_2px_0_0_rgba(0,0,0,0.08)] ring-2 ring-stone-900/20" : "shadow-[0_1px_0_0_rgba(0,0,0,0.06)]"} font-medium transition-all`}
+      title={`${word.english} · ${c.label}`}
     >
-      {word.word}
+      <span>{word.word}</span>
+      {showMeaning ? <span className={`text-xs font-normal opacity-70 ${c.text}`}>{word.english}</span> : null}
     </button>
   );
 }

@@ -8,250 +8,382 @@ import { MemoryBank } from "@/components/italian-coach/MemoryBank";
 import { PhraseExplosion } from "@/components/italian-coach/PhraseExplosion";
 import { SentenceCraft } from "@/components/italian-coach/SentenceCraft";
 import { TranslationCombat } from "@/components/italian-coach/TranslationCombat";
-import { WordSandbox } from "@/components/italian-coach/WordSandbox";
+import { WordChip } from "@/components/italian-coach/WordChip";
+import { allDictionaryWords } from "@/content/italian-coach/dictionary";
 import {
   agreementFixerPrompts,
-  coachMission,
-  coachSentences,
   grammarCards,
   sentenceBuilderPrompts,
 } from "@/content/italian-coach/seed";
-import { generatePhrases, normalizeSentence } from "@/lib/italian-coach/engine";
+import {
+  generatePhrases,
+  normalizeSentence,
+  validateAgainstPhrases,
+} from "@/lib/italian-coach/engine";
 import { useCoachStore } from "@/lib/italian-coach/store";
+import type { DictionaryWord } from "@/lib/italian-coach/types";
+import { AnimatePresence, motion } from "framer-motion";
 
-type Tab = "learn" | "build" | "play" | "classic";
-type ExerciseResult = { attempts: number; correct: number };
-
-const TABS: { id: Tab; label: string }[] = [
-  { id: "learn", label: "Learn" },
-  { id: "build", label: "Build" },
-  { id: "play", label: "Play" },
-  { id: "classic", label: "Grammar" },
+type Tab = "build" | "discover" | "practice" | "grammar";
+const TABS: { id: Tab; label: string; hint: string }[] = [
+  { id: "build", label: "Build", hint: "Assemble sentences from your bank" },
+  { id: "discover", label: "Discover", hint: "See what your bank can generate" },
+  { id: "practice", label: "Practice", hint: "Timed games · Combat · Combos" },
+  { id: "grammar", label: "Grammar", hint: "Articles · agreement · fixes" },
 ];
 
 export default function ItalianCoachClient() {
-  const [tab, setTab] = useState<Tab>("learn");
+  const [tab, setTab] = useState<Tab>("build");
   const knownWordIds = useCoachStore((s) => s.knownWordIds);
   const xp = useCoachStore((s) => s.xp);
   const streak = useCoachStore((s) => s.streak);
-  const phrasesCreated = useCoachStore((s) => s.phrasesCreated);
+  const addXp = useCoachStore((s) => s.addXp);
+  const recordPhrase = useCoachStore((s) => s.recordPhraseCreated);
   const touchDaily = useCoachStore((s) => s.touchDailyLogin);
 
-  const [builderIndex, setBuilderIndex] = useState(0);
-  const [builderInput, setBuilderInput] = useState("");
-  const [fixerIndex, setFixerIndex] = useState(0);
-  const [fixerInput, setFixerInput] = useState("");
-  const [result, setResult] = useState<ExerciseResult>({ attempts: 0, correct: 0 });
-
   const knownSet = useMemo(() => new Set(knownWordIds), [knownWordIds]);
-  const generated = useMemo(() => generatePhrases(knownSet, undefined, 6), [knownSet]);
+  const bank = useMemo(
+    () => allDictionaryWords.filter((w) => knownSet.has(w.id)),
+    [knownSet],
+  );
+  const validPhrases = useMemo(() => generatePhrases(knownSet, undefined, 300), [knownSet]);
+
+  // builder state lifted here so palette can push to it
+  const [built, setBuilt] = useState<DictionaryWord[]>([]);
+  const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(null);
 
   useEffect(() => {
     touchDaily();
   }, [touchDaily]);
 
-  const builderCurrent = sentenceBuilderPrompts[builderIndex];
-  const fixerCurrent = agreementFixerPrompts[fixerIndex];
-  const masteryScore = useMemo(() => {
-    if (!result.attempts) return 0;
-    return Math.round((result.correct / result.attempts) * 100);
-  }, [result]);
-
-  function evaluateBuilder() {
-    const ok = normalizeSentence(builderInput) === normalizeSentence(builderCurrent.answer);
-    setResult((prev) => ({
-      attempts: prev.attempts + 1,
-      correct: prev.correct + (ok ? 1 : 0),
-    }));
-    setBuilderInput("");
-    setBuilderIndex((prev) => (prev + 1) % sentenceBuilderPrompts.length);
+  function addWord(w: DictionaryWord) {
+    setBuilt((prev) => [...prev, w]);
+    setFeedback(null);
   }
 
-  function evaluateFixer() {
-    const ok = normalizeSentence(fixerInput) === normalizeSentence(fixerCurrent.fixed);
-    setResult((prev) => ({
-      attempts: prev.attempts + 1,
-      correct: prev.correct + (ok ? 1 : 0),
-    }));
-    setFixerInput("");
-    setFixerIndex((prev) => (prev + 1) % agreementFixerPrompts.length);
+  function clearBuilt() {
+    setBuilt([]);
+    setFeedback(null);
   }
+
+  function validate() {
+    const sentence = built.map((w) => w.word).join(" ");
+    const result = validateAgainstPhrases(sentence, validPhrases);
+    if (result.ok) {
+      addXp(10);
+      recordPhrase();
+      setFeedback({
+        ok: true,
+        message: result.close ? `Valid · ${result.close}` : "Perfetto — valid structure.",
+      });
+    } else {
+      const partial = validPhrases.find((p) =>
+        normalizeSentence(p.italian).includes(normalizeSentence(sentence)),
+      );
+      setFeedback({
+        ok: false,
+        message: partial
+          ? `Almost — try: ${partial.italian}`
+          : "Not a known pattern. Try Subject → Verb → Object.",
+      });
+    }
+  }
+
+  const italianPreview = built.map((w) => w.word).join(" ");
+  const englishPreview = built.map((w) => w.english).join(" · ");
 
   return (
-    <div className="relative mx-auto w-full max-w-6xl px-6 py-10 sm:px-10 lg:px-16">
-      <section className="rounded-3xl border border-zinc-700/70 bg-zinc-900/60 p-6 backdrop-blur-xl sm:p-8">
-        <p className="text-xs uppercase tracking-[0.24em] text-emerald-300/90">Italian Coach</p>
-        <h1 className="mt-2 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-          Language = Memory + Patterns + Composition
+    <div className="relative mx-auto w-full max-w-5xl px-6 pb-24 pt-8 sm:px-8">
+      {/* HERO */}
+      <section className="mt-6">
+        <p className="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">italian coach</p>
+        <h1 className="mt-2 font-serif text-5xl leading-[1.05] tracking-tight text-stone-900 sm:text-6xl">
+          Language is not a list.
+          <br />
+          <span className="text-stone-500">It is a machine.</span>
         </h1>
-        <p className="mt-5 max-w-3xl text-zinc-200 sm:text-lg">
-          Not 5,000 phrases to memorize — <strong className="font-semibold text-white">500 building blocks</strong>{" "}
-          to generate millions of sentences. Learn the generative system: compression, pattern slots, and mental
-          sentence assembly.
+        <p className="mt-5 max-w-2xl text-base text-stone-600 sm:text-lg">
+          Learn 500 building blocks · generate 5,000,000 sentences. This is your workbench for memory, patterns,
+          and composition.
         </p>
       </section>
 
-      <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Card label="XP" value={String(xp)} />
-        <Card label="Streak" value={`${streak}d`} />
-        <Card label="Phrases Built" value={String(phrasesCreated)} />
-        <Card label="Review Cards" value={`${coachMission.reviewCards}`} />
-        <Card label="Mastery" value={`${masteryScore}%`} hint="Classic drills" />
+      {/* STATUS STRIP */}
+      <section className="mt-10 flex flex-wrap items-center justify-between gap-6 border-y border-stone-300 py-5">
+        <CompressionPanel knownWordIds={knownSet} />
+        <div className="flex items-baseline gap-6">
+          <span className="flex items-baseline gap-2">
+            <span className="font-serif text-2xl text-stone-900">{xp}</span>
+            <span className="text-xs uppercase tracking-wider text-stone-500">xp</span>
+          </span>
+          <span className="flex items-baseline gap-2">
+            <span className="font-serif text-2xl text-stone-900">{streak}</span>
+            <span className="text-xs uppercase tracking-wider text-stone-500">day streak</span>
+          </span>
+        </div>
       </section>
 
-      <CompressionPanel knownWordIds={knownSet} />
-
-      <nav className="mt-6 flex flex-wrap gap-2">
+      {/* TAB BAR */}
+      <nav className="mt-8 flex flex-wrap gap-1 rounded-full border border-stone-200 bg-white/60 p-1 backdrop-blur sm:w-fit">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              tab === t.id
-                ? "border border-cyan-300/60 bg-cyan-400/15 text-cyan-100"
-                : "border border-zinc-700 bg-zinc-900/80 text-zinc-400 hover:text-zinc-200"
+            className={`relative rounded-full px-4 py-1.5 text-sm font-medium transition ${
+              tab === t.id ? "text-white" : "text-stone-600 hover:text-stone-900"
             }`}
           >
-            {t.label}
+            {tab === t.id ? (
+              <motion.span
+                layoutId="tab-pill"
+                className="absolute inset-0 rounded-full bg-stone-900"
+                transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              />
+            ) : null}
+            <span className="relative">{t.label}</span>
           </button>
         ))}
       </nav>
+      <p className="mt-2 text-xs text-stone-500">{TABS.find((t) => t.id === tab)?.hint}</p>
 
-      {tab === "learn" && (
-        <div className="mt-6 space-y-6">
-          <MemoryBank />
-          <div className="grid gap-5 lg:grid-cols-2">
-            <GrammarEquation />
-            <PhraseExplosion />
-          </div>
-          <section className="rounded-3xl border border-zinc-700/60 bg-zinc-900/55 p-6 backdrop-blur-xl">
-            <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Engine Preview</p>
-            <p className="mt-1 text-sm text-zinc-400">Phrases generated from your known words right now:</p>
-            <ul className="mt-3 space-y-2">
-              {generated.map((p) => (
-                <li key={p.italian} className="flex justify-between gap-4 rounded-xl border border-zinc-700/60 bg-zinc-950/40 px-3 py-2 text-sm">
-                  <span className="text-zinc-100">{p.italian}</span>
-                  <span className="text-zinc-500">{p.english}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-          <article className="rounded-3xl border border-zinc-700/60 bg-zinc-900/55 p-6 backdrop-blur-xl">
-            <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Context Examples</p>
-            <div className="mt-3 space-y-3">
-              {coachSentences.map((sentence) => (
-                <div key={sentence.italian} className="rounded-2xl border border-zinc-700/70 bg-zinc-950/40 p-4">
-                  <p className="font-medium text-zinc-100">{sentence.italian}</p>
-                  <p className="mt-1 text-sm text-zinc-300">{sentence.english}</p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.14em] text-cyan-200">{sentence.difficulty}</p>
-                </div>
-              ))}
-            </div>
-          </article>
-        </div>
-      )}
-
-      {tab === "build" && (
-        <div className="mt-6 space-y-6">
-          <WordSandbox />
-        </div>
-      )}
-
-      {tab === "play" && (
-        <div className="mt-6 grid gap-5 lg:grid-cols-2">
-          <SentenceCraft />
-          <TranslationCombat />
-          <InfiniteBuilder />
-        </div>
-      )}
-
-      {tab === "classic" && (
-        <div className="mt-6 grid gap-5 lg:grid-cols-2">
-          <article className="rounded-3xl border border-zinc-700/60 bg-zinc-900/55 p-6 backdrop-blur-xl lg:col-span-2">
-            <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Grammar Hero</p>
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              {grammarCards.map((card) => (
-                <div key={card.title} className="rounded-2xl border border-zinc-700/70 bg-zinc-950/50 p-4">
-                  <h2 className="text-lg font-semibold text-white">{card.title}</h2>
-                  <p className="mt-1 text-sm text-zinc-300">{card.rule}</p>
-                  <p className="mt-2 text-sm text-emerald-200">Examples: {card.examples.join(", ")}</p>
-                  <p className="mt-1 text-sm text-amber-200">
-                    Mistake {"->"} Fix: {card.commonMistake} {"->"} {card.fix}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.18 }}
+          className="mt-10"
+        >
+          {tab === "build" && (
+            <div className="space-y-10">
+              {/* WORKBENCH */}
+              <section className="rounded-3xl border border-stone-200 bg-white/80 p-6 shadow-sm backdrop-blur sm:p-10">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+                    Sentence builder
                   </p>
+                  {built.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={clearBuilt}
+                      className="text-xs font-medium text-stone-400 hover:text-stone-900"
+                    >
+                      Clear
+                    </button>
+                  ) : null}
                 </div>
-              ))}
+
+                <div className="mt-5 min-h-[6rem] border-b border-dashed border-stone-300 pb-5">
+                  {built.length === 0 ? (
+                    <p className="font-serif text-3xl text-stone-300 sm:text-4xl">
+                      Tap words below…
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <AnimatePresence initial={false}>
+                        {built.map((w, i) => (
+                          <motion.span
+                            key={`${w.id}-${i}`}
+                            layout
+                            initial={{ opacity: 0, y: 12, scale: 0.92 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.85 }}
+                            transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                          >
+                            <WordChip
+                              word={w}
+                              size="lg"
+                              selected
+                              onClick={() => setBuilt((prev) => prev.filter((_, j) => j !== i))}
+                            />
+                          </motion.span>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="font-serif text-base italic text-stone-500">
+                    {englishPreview ? `↪ ${englishPreview}` : "Subject · verb · object."}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    {feedback ? (
+                      <span
+                        className={`text-sm ${feedback.ok ? "text-emerald-700" : "text-amber-700"}`}
+                      >
+                        {feedback.message}
+                      </span>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={validate}
+                      disabled={built.length < 2}
+                      className="rounded-full bg-stone-900 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-stone-700 disabled:opacity-30"
+                    >
+                      Validate
+                    </button>
+                  </div>
+                </div>
+
+                {italianPreview ? (
+                  <p className="mt-5 font-serif text-2xl text-stone-900 sm:text-3xl">
+                    {italianPreview}
+                  </p>
+                ) : null}
+              </section>
+
+              <MemoryBank onPick={addWord} />
             </div>
-          </article>
-          <ExerciseCard
-            title="Sentence Builder"
-            prompt={`Rearrange: ${builderCurrent.scrambled.join(" / ")}`}
-            value={builderInput}
-            onChange={setBuilderInput}
-            onSubmit={evaluateBuilder}
-            cta="Check Sentence"
-            placeholder="Type full sentence..."
-          />
-          <ExerciseCard
-            title="Agreement Fixer"
-            prompt={`Fix: ${fixerCurrent.wrong}`}
-            value={fixerInput}
-            onChange={setFixerInput}
-            onSubmit={evaluateFixer}
-            cta="Check Fix"
-            placeholder="Type corrected sentence..."
-          />
-        </div>
-      )}
+          )}
 
-      <section className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-950/40 px-4 py-3 text-center text-xs text-zinc-500">
-        Daily flow: 5m memory · 10m generation · 10m games · 5m conversation (coming) — Stage 1: English → Italian
-      </section>
+          {tab === "discover" && (
+            <div className="grid gap-10 lg:grid-cols-2">
+              <GrammarEquation />
+              <PhraseExplosion />
+              <section className="lg:col-span-2">
+                <h2 className="font-serif text-2xl text-stone-900">Your vocabulary</h2>
+                <p className="mt-1 text-sm text-stone-500">
+                  Hover for translation · {bank.length} words active.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {bank.map((w) => (
+                    <WordChip key={w.id} word={w} size="sm" showMeaning />
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
+
+          {tab === "practice" && (
+            <div className="grid gap-6 lg:grid-cols-3">
+              <SentenceCraft />
+              <TranslationCombat />
+              <InfiniteBuilder />
+            </div>
+          )}
+
+          {tab === "grammar" && (
+            <GrammarTab
+              sentenceBuilder={sentenceBuilderPrompts}
+              agreementFixer={agreementFixerPrompts}
+              grammarCards={grammarCards}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      <footer className="mt-16 border-t border-stone-300 pt-6 text-xs text-stone-500">
+        Memory + Patterns + Composition · v0.2 · daily flow: 5m memory · 10m generation · 10m games
+      </footer>
     </div>
   );
 }
 
-function Card({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function GrammarTab({
+  sentenceBuilder,
+  agreementFixer,
+  grammarCards,
+}: {
+  sentenceBuilder: typeof sentenceBuilderPrompts;
+  agreementFixer: typeof agreementFixerPrompts;
+  grammarCards: typeof import("@/content/italian-coach/seed").grammarCards;
+}) {
+  const [bi, setBi] = useState(0);
+  const [bInput, setBInput] = useState("");
+  const [fi, setFi] = useState(0);
+  const [fInput, setFInput] = useState("");
+  const [result, setResult] = useState({ attempts: 0, correct: 0 });
+
+  const b = sentenceBuilder[bi];
+  const f = agreementFixer[fi];
+
+  function eval1() {
+    const ok = normalizeSentence(bInput) === normalizeSentence(b.answer);
+    setResult((r) => ({ attempts: r.attempts + 1, correct: r.correct + (ok ? 1 : 0) }));
+    setBInput("");
+    setBi((i) => (i + 1) % sentenceBuilder.length);
+  }
+
+  function eval2() {
+    const ok = normalizeSentence(fInput) === normalizeSentence(f.fixed);
+    setResult((r) => ({ attempts: r.attempts + 1, correct: r.correct + (ok ? 1 : 0) }));
+    setFInput("");
+    setFi((i) => (i + 1) % agreementFixer.length);
+  }
+
   return (
-    <div className="rounded-2xl border border-zinc-700/70 bg-zinc-900/70 p-4">
-      <p className="text-xs uppercase tracking-[0.14em] text-zinc-400">{label}</p>
-      <p className="mt-2 text-2xl font-bold text-zinc-50">{value}</p>
-      {hint ? <p className="mt-1 text-xs text-zinc-400">{hint}</p> : null}
+    <div className="space-y-8">
+      <section className="grid gap-4 md:grid-cols-3">
+        {grammarCards.map((card) => (
+          <article key={card.title} className="rounded-2xl border border-stone-200 bg-white/70 p-5">
+            <h3 className="font-serif text-xl text-stone-900">{card.title}</h3>
+            <p className="mt-2 text-sm text-stone-600">{card.rule}</p>
+            <p className="mt-3 text-sm text-emerald-700">{card.examples.join(", ")}</p>
+            <p className="mt-1 text-sm text-amber-700">
+              {card.commonMistake} → {card.fix}
+            </p>
+          </article>
+        ))}
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <Drill
+          label="Sentence Builder"
+          prompt={`Rearrange: ${b.scrambled.join(" / ")}`}
+          value={bInput}
+          onChange={setBInput}
+          onSubmit={eval1}
+          cta="Check"
+        />
+        <Drill
+          label="Agreement Fixer"
+          prompt={`Fix: ${f.wrong}`}
+          value={fInput}
+          onChange={setFInput}
+          onSubmit={eval2}
+          cta="Check"
+        />
+      </section>
+
+      <p className="text-sm text-stone-500">
+        Mastery (this session): {result.attempts ? Math.round((result.correct / result.attempts) * 100) : 0}%
+      </p>
     </div>
   );
 }
 
-function ExerciseCard({
-  title,
+function Drill({
+  label,
   prompt,
   value,
   onChange,
   onSubmit,
   cta,
-  placeholder,
 }: {
-  title: string;
+  label: string;
   prompt: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (v: string) => void;
   onSubmit: () => void;
   cta: string;
-  placeholder: string;
 }) {
   return (
-    <section className="rounded-3xl border border-zinc-700/60 bg-zinc-900/55 p-5 backdrop-blur-xl">
-      <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">{title}</p>
-      <p className="mt-3 rounded-xl border border-zinc-700/70 bg-zinc-950/40 px-3 py-2 text-zinc-200">{prompt}</p>
+    <section className="rounded-2xl border border-stone-200 bg-white/70 p-5">
+      <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">{label}</p>
+      <p className="mt-3 font-serif text-lg text-stone-900">{prompt}</p>
       <input
         value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-3 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none ring-cyan-400/70 focus:ring-2"
-        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-3 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-900 outline-none focus:border-stone-900"
+        placeholder="Type the corrected sentence…"
       />
       <button
         type="button"
         onClick={onSubmit}
-        className="mt-3 rounded-xl border border-cyan-300/50 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-400/20"
+        className="mt-3 rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-700"
       >
         {cta}
       </button>

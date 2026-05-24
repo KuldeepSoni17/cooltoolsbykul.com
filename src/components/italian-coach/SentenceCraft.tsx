@@ -62,44 +62,42 @@ export function SentenceCraft() {
   }
 
   return (
-    <GameShell title="Sentence Craft" subtitle="Build the sentence before the timer ends.">
-      <p className="text-sm text-zinc-300">English: {challenge.english}</p>
-      <p className="mt-2 rounded-xl border border-zinc-700/70 bg-zinc-950/40 px-3 py-2 text-zinc-200">
-        Words: {challenge.scrambled.join(" / ")}
-      </p>
+    <GameCard title="Sentence Craft" subtitle="Build the sentence before time runs out.">
+      <p className="text-sm text-stone-500">{challenge.english}</p>
+      <p className="mt-2 font-serif text-xl text-stone-900">{challenge.scrambled.join(" · ")}</p>
       <div className="mt-3 flex items-center gap-3">
-        <span className={`text-2xl font-bold tabular-nums ${timeLeft <= 5 && running ? "text-red-300" : "text-cyan-200"}`}>
+        <span className={`font-serif text-2xl tabular-nums ${timeLeft <= 5 && running ? "text-rose-600" : "text-stone-900"}`}>
           {running ? timeLeft : TIMER_SEC}s
         </span>
-        {combo > 0 ? <span className="text-sm text-amber-200">Combo ×{combo}</span> : null}
+        {combo > 0 ? <span className="text-sm text-amber-600">Combo ×{combo}</span> : null}
       </div>
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
         disabled={!running}
-        className="mt-3 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none ring-cyan-400/70 focus:ring-2 disabled:opacity-50"
+        className="mt-3 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-900 outline-none focus:border-stone-900 disabled:opacity-50"
         placeholder="Type Italian sentence…"
       />
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3">
         {!running ? (
-          <button type="button" onClick={start} className={gameBtn}>
-            Start Round
+          <button type="button" onClick={start} className={primaryBtn}>
+            Start round
           </button>
         ) : (
-          <button type="button" onClick={submit} className={gameBtn}>
+          <button type="button" onClick={submit} className={primaryBtn}>
             Check
           </button>
         )}
       </div>
-      {msg ? <p className="mt-2 text-sm text-amber-200">{msg}</p> : null}
-    </GameShell>
+      {msg ? <p className="mt-2 text-sm text-stone-600">{msg}</p> : null}
+    </GameCard>
   );
 }
 
-const gameBtn =
-  "rounded-xl border border-cyan-300/50 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-400/20";
+const primaryBtn =
+  "rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-700";
 
-function GameShell({
+export function GameCard({
   title,
   subtitle,
   children,
@@ -109,9 +107,9 @@ function GameShell({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-zinc-700/60 bg-zinc-900/55 p-5 backdrop-blur-xl">
-      <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">{title}</p>
-      <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>
+    <section className="rounded-2xl border border-stone-200 bg-white/70 p-5">
+      <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">{title}</p>
+      <p className="mt-1 text-sm text-stone-500">{subtitle}</p>
       <div className="mt-4">{children}</div>
     </section>
   );

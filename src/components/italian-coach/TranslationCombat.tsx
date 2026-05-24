@@ -4,6 +4,7 @@ import { useState } from "react";
 import { combatChallenges } from "@/content/italian-coach/dictionary";
 import { almostCorrectFeedback } from "@/lib/italian-coach/engine";
 import { useCoachStore } from "@/lib/italian-coach/store";
+import { GameCard } from "./SentenceCraft";
 
 export function TranslationCombat() {
   const addXp = useCoachStore((s) => s.addXp);
@@ -21,12 +22,12 @@ export function TranslationCombat() {
       const dmg = 35;
       setEnemyHp((e) => Math.max(0, e - dmg));
       addXp(8);
-      setLog(`Critical hit! −${dmg} enemy HP`);
+      setLog(`Hit! −${dmg} enemy HP`);
       setIndex((i) => (i + 1) % combatChallenges.length);
       setInput("");
       if (enemyHp - dmg <= 0) {
         setEnemyHp(100);
-        setLog("Enemy defeated — next wave!");
+        setLog("Wave cleared — next.");
       }
     } else {
       setHp((h) => Math.max(0, h - 15));
@@ -35,43 +36,40 @@ export function TranslationCombat() {
   }
 
   return (
-    <section className="rounded-3xl border border-red-900/40 bg-gradient-to-b from-red-950/30 to-zinc-900/55 p-5 backdrop-blur-xl">
-      <p className="text-xs uppercase tracking-[0.24em] text-red-300/90">Translation Combat</p>
-      <p className="mt-1 text-sm text-zinc-500">Enemy attacks in English. Assemble Italian fast for attack power.</p>
-
-      <div className="mt-4 flex justify-between gap-4 text-sm">
-        <div>
-          <span className="text-zinc-500">You</span>
-          <div className="mt-1 h-2 w-32 overflow-hidden rounded-full bg-zinc-800">
-            <div className="h-full bg-cyan-400 transition-all" style={{ width: `${hp}%` }} />
+    <GameCard title="Translation Combat" subtitle="English attacks. Italian counters.">
+      <div className="flex justify-between gap-4 text-xs text-stone-500">
+        <div className="w-full">
+          You
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-stone-200">
+            <div className="h-full bg-stone-900 transition-all" style={{ width: `${hp}%` }} />
           </div>
         </div>
-        <div className="text-right">
-          <span className="text-zinc-500">Enemy</span>
-          <div className="mt-1 h-2 w-32 overflow-hidden rounded-full bg-zinc-800">
-            <div className="h-full bg-red-400 transition-all" style={{ width: `${enemyHp}%` }} />
+        <div className="w-full text-right">
+          Enemy
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-stone-200">
+            <div className="ml-auto h-full bg-rose-500 transition-all" style={{ width: `${enemyHp}%` }} />
           </div>
         </div>
       </div>
 
-      <p className="mt-4 rounded-xl border border-red-500/30 bg-red-950/30 px-4 py-3 text-lg text-red-100">
+      <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 font-serif text-lg text-rose-900">
         « {challenge.english} »
       </p>
 
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        className="mt-3 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none ring-red-400/50 focus:ring-2"
+        className="mt-3 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-900 outline-none focus:border-stone-900"
         placeholder="Counter-attack in Italian…"
       />
       <button
         type="button"
         onClick={attack}
-        className="mt-3 rounded-xl border border-red-400/50 bg-red-500/15 px-4 py-2 text-sm font-semibold text-red-100 hover:bg-red-500/25"
+        className="mt-3 rounded-full bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700"
       >
         Strike
       </button>
-      {log ? <p className="mt-2 text-sm text-amber-200">{log}</p> : null}
-    </section>
+      {log ? <p className="mt-2 text-sm text-stone-600">{log}</p> : null}
+    </GameCard>
   );
 }

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { infiniteBuilderSets } from "@/content/italian-coach/dictionary";
 import { scoreInfiniteBuilder } from "@/lib/italian-coach/engine";
 import { useCoachStore } from "@/lib/italian-coach/store";
+import { GameCard } from "./SentenceCraft";
 
 export function InfiniteBuilder() {
   const knownWordIds = useCoachStore((s) => s.knownWordIds);
@@ -29,12 +30,10 @@ export function InfiniteBuilder() {
   }
 
   return (
-    <section className="rounded-3xl border border-zinc-700/60 bg-zinc-900/55 p-5 backdrop-blur-xl">
-      <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Infinite Builder</p>
-      <p className="mt-1 text-sm text-zinc-500">Use only these 5 words. Create maximum valid phrases.</p>
-      <div className="mt-3 flex flex-wrap gap-2">
+    <GameCard title="Infinite Builder" subtitle="Use only these 5 words. Make max phrases.">
+      <div className="flex flex-wrap gap-1.5">
         {current.words.map((w) => (
-          <span key={w} className="rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-1 text-sm text-zinc-100">
+          <span key={w} className="rounded-md border border-stone-300 bg-white px-2.5 py-0.5 text-sm text-stone-700">
             {w}
           </span>
         ))}
@@ -43,29 +42,40 @@ export function InfiniteBuilder() {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 outline-none ring-cyan-400/70 focus:ring-2"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") addLine();
+          }}
+          className="flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-900 outline-none focus:border-stone-900"
           placeholder="One phrase per line…"
         />
-        <button type="button" onClick={addLine} className="rounded-xl border border-zinc-600 px-3 py-2 text-sm text-zinc-200 hover:border-zinc-500">
+        <button
+          type="button"
+          onClick={addLine}
+          className="rounded-full border border-stone-300 px-3 py-2 text-sm text-stone-700 hover:border-stone-900"
+        >
           Add
         </button>
       </div>
       {lines.length > 0 ? (
-        <ul className="mt-2 text-sm text-zinc-400">
+        <ul className="mt-2 text-sm text-stone-600">
           {lines.map((l, i) => (
             <li key={i}>· {l}</li>
           ))}
         </ul>
       ) : null}
-      <button type="button" onClick={score} className="mt-3 rounded-xl border border-emerald-400/40 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-400/20">
+      <button
+        type="button"
+        onClick={score}
+        className="mt-3 rounded-full bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-800"
+      >
         Score phrases
       </button>
       {result ? (
-        <p className="mt-2 text-sm text-emerald-200">
-          {result.count} valid phrase{result.count === 1 ? "" : "s"}
+        <p className="mt-2 text-sm text-emerald-700">
+          {result.count} valid
           {result.count >= current.minValid ? " — strong combo!" : ` — aim for ${current.minValid}+`}
         </p>
       ) : null}
-    </section>
+    </GameCard>
   );
 }
