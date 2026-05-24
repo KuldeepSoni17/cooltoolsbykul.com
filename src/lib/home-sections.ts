@@ -73,6 +73,13 @@ export const HOME_CATEGORIES: HomeCategory[] = [
       { id: "summary", title: "Summary Engine", tagline: "One truth from many sources.", href: "/summary" },
       { id: "onestopai", title: "OneStopAI", tagline: "Multi-provider AI blueprint.", href: "/onestopai" },
       { id: "swadeshi", title: "Swadeshi", tagline: "Know what's Indian. Choose consciously.", href: "/swadeshi", featured: true },
+      {
+        id: "bhakti",
+        title: "Bhakti",
+        tagline: "Japa counter, temple live darshan, daily devotion — no OTP.",
+        href: "https://bhakti.cooltoolsbykul.com",
+        featured: true,
+      },
     ],
   },
   {
