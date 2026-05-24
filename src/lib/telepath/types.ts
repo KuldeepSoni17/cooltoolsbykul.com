@@ -29,6 +29,22 @@ export interface TransferSubmission {
   feature: FeatureId | null;
 }
 
+export interface RoundMove {
+  color: PlayerColor;
+  displayName: string;
+  toRed: number;
+  toGreen: number;
+  toBlue: number;
+  feature: FeatureId | null;
+  hiddenSender?: boolean;
+}
+
+export interface RoundDelta {
+  color: PlayerColor;
+  before: number;
+  after: number;
+}
+
 export interface MatchState {
   matchId: string;
   round: number;
@@ -36,4 +52,11 @@ export interface MatchState {
   humanColor: PlayerColor;
   winner: PlayerColor | null;
   lastRoundLog: string[];
+  /** Moves from the most recently resolved round (for reveal UI). */
+  lastRoundMoves: RoundMove[];
+  /** Unit counts before last resolve (for animations). */
+  lastRoundDeltas: RoundDelta[];
+  displayNames: Record<PlayerColor, string>;
+  /** Consecutive rounds human was lowest on units (pressure). */
+  pressureStreak: number;
 }
