@@ -1,7 +1,10 @@
 // ====== Iso 3D Engine for LegoDigital ======
 // Pure-SVG isometric scene: projection, painter's-sort, picking, view rotation, piece-type rendering.
 
-const ISO = { TW: 22, TH: 11, UH: 26 };
+// 30° dimetric instead of the squashed 2:1 pixel-art iso (TH/TW = 0.5).
+// TH/TW ≈ 0.66 separates L-shape arms more clearly without losing top-face
+// visibility for stud counting — matches what Lego instruction renders use.
+const ISO = { TW: 22, TH: 15, UH: 28 };
 
 const COLORS = {
   red:    '#d01012',
