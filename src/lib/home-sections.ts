@@ -72,7 +72,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
       { id: "italian-coach", title: "Italian Coach", tagline: "Grammar-first Italian.", href: "/italian-coach" },
       { id: "summary", title: "Summary Engine", tagline: "One truth from many sources.", href: "/summary" },
       { id: "onestopai", title: "OneStopAI", tagline: "Multi-provider AI blueprint.", href: "/onestopai" },
-      { id: "swadeshi", title: "Swadeshi", tagline: "Know what's Indian. Choose consciously.", href: "/swadeshi", featured: true },
+      { id: "swadeshi", title: "Swadeshi", tagline: "Indian swaps, import outflow map, choose consciously.", href: "/swadeshi", featured: true },
       {
         id: "bhakti",
         title: "Bhakti",

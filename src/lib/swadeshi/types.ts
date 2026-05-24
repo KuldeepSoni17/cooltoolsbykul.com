@@ -61,3 +61,16 @@ export type BrandSpotlight = {
   hq: string;
   website?: string;
 };
+
+
+export type ImportOutflowBrand = {
+  id: string;
+  category: string;
+  outflowType: "electronics" | "energy" | "luxury" | "digital-services" | "consumer-goods";
+  commonSpendUse: string;
+  importDependency: "very-high" | "high" | "medium";
+  brandExamples: string[];
+  whyMoneyGoesOut: string;
+  indiaOptions: string;
+  honestyNote: string;
+};

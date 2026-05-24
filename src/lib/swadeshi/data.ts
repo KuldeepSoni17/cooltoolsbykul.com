@@ -8,17 +8,19 @@ export type {
   ProductAlternative,
   DigitalAwareness,
   BrandSpotlight,
+  ImportOutflowBrand,
 } from "./types";
 
-import type { Ownership, MatchLevel, ProductAlternative } from "./types";
+import type { Ownership, MatchLevel, ProductAlternative, ImportOutflowBrand } from "./types";
 import {
   PRODUCT_ALTERNATIVES,
   SHOP_CATEGORIES,
   DIGITAL_AWARENESS,
   BRAND_SPOTLIGHT,
+  IMPORT_OUTFLOW_BRANDS,
 } from "./catalog";
 
-export { PRODUCT_ALTERNATIVES, SHOP_CATEGORIES, DIGITAL_AWARENESS, BRAND_SPOTLIGHT };
+export { PRODUCT_ALTERNATIVES, SHOP_CATEGORIES, DIGITAL_AWARENESS, BRAND_SPOTLIGHT, IMPORT_OUTFLOW_BRANDS };
 
 export const OWNERSHIP_LABELS: Record<Ownership, string> = {
   "indian-founded": "Indian-founded",
@@ -72,6 +74,7 @@ export const METHODOLOGY = {
     "Ownership is labelled honestly — Indian-founded, listed, cooperative, or global MNC.",
     "Prices are typical MRP bands for comparable pack sizes, checked against brand sites and major retailers. They drift — verify before you buy.",
     "We remove entries when ownership changes or the match is marketing, not reality.",
+    "Phones and other import-heavy categories live in the import outflow map — not forced tier-mismatched swaps.",
     "This is not medical, financial, or legal advice.",
   ],
 };
@@ -94,3 +97,21 @@ export function getAlternativesByCategory(categoryId: string): ProductAlternativ
 export function getAlternativeById(id: string): ProductAlternative | undefined {
   return PRODUCT_ALTERNATIVES.find((a) => a.id === id);
 }
+
+
+export const IMPORT_INTENSITY: Record<
+  ImportOutflowBrand["importDependency"],
+  { label: string; score: number }
+> = {
+  "very-high": { label: "Very high outflow", score: 90 },
+  high: { label: "High outflow", score: 70 },
+  medium: { label: "Medium outflow", score: 45 },
+};
+
+export const OUTFLOW_TYPE_LABELS: Record<ImportOutflowBrand["outflowType"], string> = {
+  electronics: "Electronics & devices",
+  energy: "Energy & fuels",
+  luxury: "Luxury & precious goods",
+  "digital-services": "Digital services",
+  "consumer-goods": "Consumer goods",
+};

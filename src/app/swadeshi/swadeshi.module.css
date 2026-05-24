@@ -675,3 +675,36 @@
   color: var(--sw-muted);
   font-size: 0.9rem;
 }
+
+/* Import outflow map */
+.importHero { margin-bottom: 1.5rem; }
+.importHeroTitle { font-size: 1.35rem; font-weight: 700; color: var(--sw-indigo-900); margin-top: 0.25rem; }
+.importHeroDesc { margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.6; color: var(--sw-muted); max-width: 42rem; }
+.importStats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.625rem; margin-top: 1.25rem; }
+.importStat { padding: 0.75rem 0.85rem; background: var(--sw-white); border: 1px solid var(--sw-border); border-radius: 0.75rem; text-align: center; }
+.importStatNum { font-size: 1.25rem; font-weight: 700; color: var(--sw-indigo-900); }
+.importStatLabel { margin-top: 0.2rem; font-size: 0.7rem; color: var(--sw-muted); line-height: 1.35; }
+.carouselWrap { margin-bottom: 1.25rem; }
+.carouselHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.carouselNav { display: flex; gap: 0.35rem; }
+.carouselBtn { width: 2rem; height: 2rem; border: 1px solid var(--sw-border); border-radius: 0.5rem; background: var(--sw-white); color: var(--sw-indigo-900); font-size: 1.1rem; cursor: pointer; }
+.carouselBtn:hover { background: var(--sw-indigo-50); }
+.carouselTrack { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.35rem; scroll-snap-type: x mandatory; }
+.carouselChip { flex-shrink: 0; scroll-snap-align: start; padding: 0.45rem 0.85rem; border: 1px solid var(--sw-border); border-radius: 999px; background: var(--sw-white); font-size: 0.8rem; color: var(--sw-muted); cursor: pointer; white-space: nowrap; }
+.carouselChipActive { border-color: var(--sw-indigo-700); background: var(--sw-indigo-50); color: var(--sw-indigo-900); font-weight: 600; }
+.importList { display: flex; flex-direction: column; gap: 0.75rem; }
+.importCard { padding: 1.1rem 1.2rem; background: var(--sw-white); border: 1px solid var(--sw-border); border-radius: 0.875rem; }
+.importCardHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; }
+.importCategory { font-size: 1.05rem; font-weight: 700; color: var(--sw-indigo-900); }
+.importMeta { margin-top: 0.2rem; font-size: 0.75rem; color: var(--sw-muted); }
+.importBadge { background: #fef2f2; color: #991b1b; flex-shrink: 0; }
+.importMeterTrack { margin-top: 0.75rem; height: 0.35rem; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
+.importMeterFill { height: 100%; background: linear-gradient(90deg, var(--sw-orange-500), #dc2626); border-radius: 999px; }
+.brandChipRow { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.85rem; }
+.brandChip { padding: 0.25rem 0.55rem; font-size: 0.75rem; font-weight: 500; color: var(--sw-indigo-900); background: var(--sw-indigo-50); border: 1px solid #c7d2fe; border-radius: 0.4rem; }
+.importBlock { margin-top: 0.85rem; }
+.importBlockLabel { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--sw-muted); }
+.importBlockText { margin-top: 0.35rem; font-size: 0.875rem; line-height: 1.55; color: #44403c; }
+.importHonesty { margin-top: 0.85rem; padding: 0.65rem 0.75rem; font-size: 0.8rem; line-height: 1.5; color: #57534e; background: var(--sw-orange-50); border-radius: 0.5rem; border-left: 3px solid var(--sw-orange-500); }
+.importDisclaimer { margin-top: 1.25rem; padding: 1rem 1.1rem; font-size: 0.825rem; line-height: 1.6; color: var(--sw-muted); background: var(--sw-white); border: 1px dashed var(--sw-border); border-radius: 0.75rem; }
+@media (max-width: 520px) { .importStats { grid-template-columns: 1fr; } }

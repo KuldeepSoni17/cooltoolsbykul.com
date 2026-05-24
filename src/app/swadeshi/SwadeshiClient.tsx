@@ -6,6 +6,7 @@ import {
   BRAND_SPOTLIGHT,
   DATA_VERSION,
   DIGITAL_AWARENESS,
+  IMPORT_OUTFLOW_BRANDS,
   formatInrRange,
   getAlternativeById,
   getAlternativesByCategory,
@@ -20,6 +21,7 @@ import {
   type Ownership,
   type ProductAlternative,
 } from "@/lib/swadeshi/data";
+import ImportOutflowView from "./ImportOutflowView";
 import styles from "./swadeshi.module.css";
 
 type View =
@@ -27,6 +29,7 @@ type View =
   | { name: "shop"; categoryId: string | null }
   | { name: "detail"; id: string }
   | { name: "digital" }
+  | { name: "imports" }
   | { name: "discover" };
 
 function MatchBadge({ level }: { level: MatchLevel }) {
@@ -311,6 +314,22 @@ export default function SwadeshiClient() {
 
               <button
                 type="button"
+                className={`${styles.pathCard} ${styles.pathCardSecondary}`}
+                onClick={() => setView({ name: "imports" })}
+              >
+                <span className={styles.pathEmoji}>🌍</span>
+                <p className={styles.pathTitle}>Where India&apos;s money goes out</p>
+                <p className={styles.pathDesc}>
+                  Import-heavy categories and the global brands where household and business
+                  spending often exits India as forex.
+                </p>
+                <p className={styles.pathAction}>
+                  {IMPORT_OUTFLOW_BRANDS.length} outflow categories →
+                </p>
+              </button>
+
+              <button
+                type="button"
                 className={`${styles.pathCard} ${styles.pathCardTertiary}`}
                 onClick={() => setView({ name: "discover" })}
               >
@@ -467,6 +486,14 @@ export default function SwadeshiClient() {
             );
           })}
 
+          <MethodologyBlock />
+        </div>
+      )}
+
+
+      {view.name === "imports" && (
+        <div className={styles.page}>
+          <ImportOutflowView />
           <MethodologyBlock />
         </div>
       )}
