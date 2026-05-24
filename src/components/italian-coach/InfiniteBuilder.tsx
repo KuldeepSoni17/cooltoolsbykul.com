@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { infiniteBuilderSets } from "@/content/italian-coach/dictionary";
-import { almostCorrectFeedback, normalizeSentence, permutationMatch } from "@/lib/italian-coach/engine";
+import { normalizeSentence } from "@/lib/italian-coach/engine";
 import { useCoachStore } from "@/lib/italian-coach/store";
 import { GameCard } from "./SentenceCraft";
 
@@ -115,8 +115,6 @@ export function InfiniteBuilder() {
           ) : null}
         </div>
       ) : null}
-      {/* Avoid unused-import warning if validators not all used */}
-      <span hidden>{permutationMatch("", []) ? "" : ""}{almostCorrectFeedback("", "").ok ? "" : ""}</span>
     </GameCard>
   );
 }

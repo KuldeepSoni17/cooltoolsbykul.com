@@ -71,7 +71,7 @@ export function MemoryBank({
         <div>
           <h2 className="font-serif text-2xl text-stone-900">Palette</h2>
           <p className="mt-0.5 text-sm text-stone-500">
-            {onPick ? "Tap any word to add it to the builder." : "Browse what you've learned."}
+            {onPick ? "Tap any word to add it to the builder." : "Browse what you have learned."}
           </p>
         </div>
         <button
@@ -83,13 +83,13 @@ export function MemoryBank({
         </button>
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-1.5">
+      <div className="-mx-1 mt-5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {sections.map((s) => (
           <button
             key={s.id}
             type="button"
             onClick={() => setSection(s.id)}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+            className={`shrink-0 rounded-full border px-3 py-2 text-xs font-medium transition min-h-[40px] ${
               section === s.id
                 ? "border-stone-900 bg-stone-900 text-white"
                 : "border-stone-300 bg-white/70 text-stone-600 hover:border-stone-900"
@@ -210,7 +210,7 @@ function VerbTable({
                   </button>
                 ) : null}
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+              <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-3 md:grid-cols-6">
                 {PERSONS.map((person) => {
                   const id = verbFormUid(v.id, person);
                   const isKnown = knownSet.has(id);
@@ -269,7 +269,7 @@ function NounGrid({
   return (
     <div>
       <GroupHeader label="Nouns · gender + plural" tint="noun" hint="Italian nouns have a gender. The article changes with it." />
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
         {nouns.map((n) => {
           const isKnown = knownSet.has(nounUid(n.id));
           if (!isKnown && !showLocked) return null;

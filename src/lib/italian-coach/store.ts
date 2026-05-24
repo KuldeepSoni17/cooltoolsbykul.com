@@ -74,6 +74,6 @@ export const useCoachStore = create<CoachStore>()(
           mastery: {},
         }),
     }),
-    { name: "italian-coach-v3" },
+    { name: "italian-coach-v4" },
   ),
 );

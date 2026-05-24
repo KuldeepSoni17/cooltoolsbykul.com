@@ -11,12 +11,13 @@ export function CompressionPanel({ knownWordIds }: { knownWordIds: Set<string> }
       : String(stats.possibleSentences);
 
   return (
-    <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2 text-stone-700">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-stone-700 sm:flex sm:flex-wrap sm:items-baseline sm:gap-x-6">
       <Stat label="words" value={String(stats.wordsKnown)} />
-      <span className="text-stone-300">×</span>
       <Stat label="patterns" value={String(stats.patternsKnown)} />
-      <span className="text-stone-300">=</span>
-      <Stat label="sentences possible" value={possible} accent />
+      <div className="col-span-2 flex items-baseline gap-2 sm:col-span-1">
+        <span className="hidden text-stone-300 sm:inline">=</span>
+        <Stat label="sentences" value={possible} accent />
+      </div>
     </div>
   );
 }
@@ -25,11 +26,11 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
   return (
     <span className="flex items-baseline gap-2">
       <span
-        className={`font-serif text-2xl font-medium ${accent ? "text-emerald-700" : "text-stone-900"}`}
+        className={`font-serif text-xl font-medium sm:text-2xl ${accent ? "text-emerald-700" : "text-stone-900"}`}
       >
         {value}
       </span>
-      <span className="text-xs uppercase tracking-wider text-stone-500">{label}</span>
+      <span className="text-[10px] uppercase tracking-wider text-stone-500 sm:text-xs">{label}</span>
     </span>
   );
 }

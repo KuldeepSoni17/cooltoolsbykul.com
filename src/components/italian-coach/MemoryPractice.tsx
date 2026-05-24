@@ -169,7 +169,7 @@ function RecallDrill() {
       <ScoreBar correct={correct} attempts={attempts} streak={streak} />
       <div className="rounded-2xl border border-stone-200 bg-stone-50 p-8 text-center">
         <p className="text-xs uppercase tracking-wider text-stone-500">What does this mean?</p>
-        <p className="mt-3 font-serif text-5xl text-stone-900">{card.italian}</p>
+        <p className="mt-3 font-serif text-4xl text-stone-900 sm:text-5xl">{card.italian}</p>
         {card.hint ? <p className="mt-2 text-xs text-stone-500">{card.hint}</p> : null}
       </div>
 
@@ -261,7 +261,7 @@ function ActiveRecallDrill() {
       <ScoreBar correct={correct} attempts={attempts} streak={streak} />
       <div className="rounded-2xl border border-stone-200 bg-stone-50 p-8 text-center">
         <p className="text-xs uppercase tracking-wider text-stone-500">Type in Italian:</p>
-        <p className="mt-3 font-serif text-4xl text-stone-900">{card.english}</p>
+        <p className="mt-3 font-serif text-2xl text-stone-900 sm:text-4xl">{card.english}</p>
       </div>
       <input
         autoFocus
@@ -346,7 +346,7 @@ function ArticleDrill() {
         </p>
       </div>
 
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {choices.map((c) => {
           const isExpected = c === expected;
           const showCorrect = picked && isExpected;

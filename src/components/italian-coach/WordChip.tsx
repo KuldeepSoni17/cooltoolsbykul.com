@@ -22,10 +22,10 @@ export function WordChip({
   const c = WORD_TYPE_COLORS[word.type as WordType];
   const sizing =
     size === "lg"
-      ? "px-4 py-2.5 text-lg"
+      ? "min-h-[44px] px-4 py-2.5 text-lg"
       : size === "sm"
-        ? "px-2.5 py-1 text-sm"
-        : "px-3 py-1.5 text-base";
+        ? "min-h-[36px] px-2.5 py-1.5 text-sm"
+        : "min-h-[40px] px-3 py-1.5 text-base";
 
   return (
     <button

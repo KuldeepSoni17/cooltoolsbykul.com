@@ -78,24 +78,64 @@ export const adjUid = (id: string) => `aj_${id}`;
 
 /* ---------------- Default unlock set ---------------- */
 
+const STARTER_VERBS = [
+  "essere",
+  "avere",
+  "volere",
+  "potere",
+  "andare",
+  "fare",
+  "mangiare",
+  "bere",
+  "parlare",
+  "stare",
+  "vedere",
+  "dire",
+];
+
+const STARTER_NOUNS = [
+  "te",
+  "caffe",
+  "acqua",
+  "pizza",
+  "pane",
+  "casa",
+  "scuola",
+  "citta",
+  "amico",
+  "amica",
+  "libro",
+  "giorno",
+  "notte",
+  "lavoro",
+  "vita",
+  "persona",
+  "tempo",
+  "anno",
+  "mare",
+  "italia",
+];
+
 export const DEFAULT_KNOWN_IDS: string[] = [
-  // pronouns: all
   ...pronouns.map((p) => pronounUid(p.id)),
-  // first 8 verbs, all forms
-  ...verbs.slice(0, 8).flatMap((v) => PERSONS.map((p) => verbFormUid(v.id, p))),
-  // 12 common nouns
-  ...["te", "caffe", "acqua", "pizza", "casa", "scuola", "libro", "amico", "amica", "giorno", "vita", "lavoro"].map(nounUid),
-  // a few adjectives
-  ...["bello", "grande", "piccolo", "buono", "felice"].map(adjUid),
-  // some time + connectors
+  ...verbs
+    .filter((v) => STARTER_VERBS.includes(v.id))
+    .flatMap((v) => PERSONS.map((p) => verbFormUid(v.id, p))),
+  ...STARTER_NOUNS.map(nounUid),
+  ...["bello", "grande", "piccolo", "buono", "felice", "nuovo", "italiano"].map(adjUid),
   "oggi",
   "domani",
   "ieri",
+  "ora",
   "sempre",
+  "molto",
   "e",
   "ma",
   "con",
-  // articles
+  "per",
+  "di",
+  "a",
+  "in",
   "art_il",
   "art_lo",
   "art_la",

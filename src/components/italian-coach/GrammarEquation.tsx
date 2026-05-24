@@ -36,8 +36,8 @@ export function GrammarEquation() {
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-stone-200 bg-white/70 p-6">
-        <div className="flex flex-wrap items-center justify-center gap-3">
+      <div className="mt-5 rounded-2xl border border-stone-200 bg-white/70 p-4 sm:p-6">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
           <Slot
             label="subject"
             value={subject.word}
@@ -90,8 +90,12 @@ function Slot({
   onClick: () => void;
 }) {
   return (
-    <button type="button" onClick={onClick} className={`rounded-xl border ${tint} px-4 py-3 text-center transition`}>
-      <div className="text-lg font-medium">{value}</div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`min-h-[52px] min-w-[4.5rem] rounded-xl border ${tint} px-3 py-2.5 text-center transition sm:px-4 sm:py-3`}
+    >
+      <div className="text-base font-medium sm:text-lg">{value}</div>
       <div className="mt-0.5 text-[10px] uppercase tracking-wider opacity-70">{label}</div>
     </button>
   );
