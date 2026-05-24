@@ -366,12 +366,31 @@ function CuboidShape({ brick, origin, selected, ghost, dim, showStuds = true, co
       <polygon points={toStr(g.top)}   fill={isTrans ? 'rgba(200,232,240,0.6)' : top}   stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />
       {/* Crisp outer outline drawn last */}
       <polygon points={toStr(g.silhouette)} fill="none" stroke="#1f1d1a" strokeWidth={selected ? 2.4 : 1.2} strokeLinejoin="round" />
-      {studs.map((s, i) => (
-        <g key={i}>
-          <ellipse cx={s.x} cy={s.y + 2.5} rx={ISO.TW*0.18} ry={ISO.TW*0.09} fill="rgba(0,0,0,0.35)" />
-          <ellipse cx={s.x} cy={s.y} rx={ISO.TW*0.21} ry={ISO.TW*0.11} fill={top} stroke="#1f1d1a" strokeWidth="0.7" />
-        </g>
-      ))}
+      {/* Studs as cylindrical pegs: side strip + lit top + tiny highlight. */}
+      {(() => {
+        const sr = ISO.TW * 0.28;  // stud horizontal radius
+        const sy = ISO.TW * 0.14;  // stud vertical radius (half-height ellipse)
+        const sh = 6;              // stud height in screen pixels above brick top
+        const sideFill = darken(hex, 0.62);
+        const topFill = hex;
+        return studs.map((s, i) => (
+          <g key={i}>
+            {/* attachment shadow at the brick top */}
+            <ellipse cx={s.x} cy={s.y + 1} rx={sr * 1.05} ry={sy * 1.05} fill="rgba(0,0,0,0.28)" />
+            {/* stud cylindrical body (the visible curved side) */}
+            <path d={`M ${s.x - sr} ${s.y} L ${s.x - sr} ${s.y - sh}
+                      A ${sr} ${sy} 0 0 0 ${s.x + sr} ${s.y - sh}
+                      L ${s.x + sr} ${s.y}
+                      A ${sr} ${sy} 0 0 1 ${s.x - sr} ${s.y} Z`}
+                  fill={sideFill} stroke="#1f1d1a" strokeWidth="0.7" strokeLinejoin="round" />
+            {/* stud top — lit ellipse */}
+            <ellipse cx={s.x} cy={s.y - sh} rx={sr} ry={sy} fill={topFill} stroke="#1f1d1a" strokeWidth="0.7" />
+            {/* highlight glint */}
+            <ellipse cx={s.x - sr * 0.35} cy={s.y - sh - sy * 0.25}
+                     rx={sr * 0.35} ry={sy * 0.35} fill="rgba(255,255,255,0.45)" />
+          </g>
+        ));
+      })()}
     </g>
   );
 }
@@ -899,16 +918,23 @@ function TopDownScene({
               stroke="#7a6b58" strokeWidth="0.6" strokeDasharray="2 2" opacity="0.55" />
       )}
       <rect x={O.x} y={O.y} width={W} height={H} fill="none" stroke="#1f1d1a" strokeWidth="1.8" />
-      {showGrid && Array.from({ length: base.w }).map((_, i) =>
-        <text key={`cl-${i}`} x={O.x + (i + 0.5) * TOPSTEP} y={O.y - 6}
+      {/* World-relative labels (same convention as iso): "A1" always = world (0,0).
+          For top-down at a rotated view, we project each world cell's label through
+          rotPoint so it lands at the *visually* correct edge of the rotated baseplate. */}
+      {showGrid && Array.from({ length: baseSize.w }).map((_, i) => {
+        const r = rotPoint(i + 0.5, -0.7, view, baseSize);
+        return <text key={`cl-${i}`} x={O.x + r.x * TOPSTEP} y={O.y + r.y * TOPSTEP + 4}
               fontFamily="Patrick Hand" fontSize="14" fontWeight="700" textAnchor="middle"
-              fill="#3a2f24" style={{ pointerEvents: 'none' }}>{colLabel(i)}</text>
-      )}
-      {showGrid && Array.from({ length: base.d }).map((_, j) =>
-        <text key={`rl-${j}`} x={O.x - 10} y={O.y + (j + 0.5) * TOPSTEP + 4}
-              fontFamily="Patrick Hand" fontSize="14" fontWeight="700" textAnchor="end"
-              fill="#3a2f24" style={{ pointerEvents: 'none' }}>{j + 1}</text>
-      )}
+              fill="#3a2f24" style={{ pointerEvents: 'none', paintOrder: 'stroke' }}
+              stroke="rgba(244,237,224,0.92)" strokeWidth="3">{colLabel(i)}</text>;
+      })}
+      {showGrid && Array.from({ length: baseSize.d }).map((_, j) => {
+        const r = rotPoint(-0.7, j + 0.5, view, baseSize);
+        return <text key={`rl-${j}`} x={O.x + r.x * TOPSTEP} y={O.y + r.y * TOPSTEP + 4}
+              fontFamily="Patrick Hand" fontSize="14" fontWeight="700" textAnchor="middle"
+              fill="#3a2f24" style={{ pointerEvents: 'none', paintOrder: 'stroke' }}
+              stroke="rgba(244,237,224,0.92)" strokeWidth="3">{j + 1}</text>;
+      })}
       {rotatedBricks.map(b => (
         <TopBrick key={b._origId || b.id} brick={b} origin={O}
                   selected={selectedId === (b._origId || b.id)} />

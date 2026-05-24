@@ -63,11 +63,11 @@ function CameraControls({ view, setView, zoom, setZoom, hideAboveZ, setHideAbove
   return (
     <div className="vp-camera">
       <div className="cam-orbit">
-        <button className="sk-btn sm" title="orbit left" onClick={() => setView((view + 3) % 4)} disabled={topView}>↺</button>
+        <button className="sk-btn sm" title="orbit left" onClick={() => setView((view + 3) % 4)}>↺</button>
         <span className="sk-label tiny" style={{ minWidth: 56, textAlign: 'center' }}>
-          {topView ? 'top-down' : `view ${view * 90}°`}
+          {topView ? `top · ${view * 90}°` : `view ${view * 90}°`}
         </span>
-        <button className="sk-btn sm" title="orbit right" onClick={() => setView((view + 1) % 4)} disabled={topView}>↻</button>
+        <button className="sk-btn sm" title="orbit right" onClick={() => setView((view + 1) % 4)}>↻</button>
       </div>
       {setTopView && (
         <div className="cam-mode">
