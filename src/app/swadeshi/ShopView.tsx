@@ -8,6 +8,7 @@ import {
   PRODUCT_COUNT,
   QUALITY_VERDICT_LABELS,
   SHOP_CATEGORIES,
+  formatInrRange,
   type MatchLevel,
   type Ownership,
   type ProductAlternative,
