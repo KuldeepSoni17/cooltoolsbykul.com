@@ -77,7 +77,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
         id: "bhakti",
         title: "Bhakti",
         tagline: "Japa counter, temple live darshan, daily devotion — no OTP.",
-        href: "https://bhakti.cooltoolsbykul.com",
+        href: "/bhakti",
         featured: true,
       },
     ],

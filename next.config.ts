@@ -53,6 +53,15 @@ const nextConfig: NextConfig = {
         source: "/divergence/:path*",
         destination: "https://divergence-navy.vercel.app/divergence/:path*",
       },
+      // Bhakti — spiritual companion (separate Vercel project, basePath /bhakti)
+      {
+        source: "/bhakti",
+        destination: "https://bhakti-app.vercel.app/bhakti",
+      },
+      {
+        source: "/bhakti/:path*",
+        destination: "https://bhakti-app.vercel.app/bhakti/:path*",
+      },
       // Bare /echo with no trailing slash
       {
         source: "/echo",
