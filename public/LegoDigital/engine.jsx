@@ -1,10 +1,15 @@
 // ====== Iso 3D Engine for LegoDigital ======
 // Pure-SVG isometric scene: projection, painter's-sort, picking, view rotation, piece-type rendering.
 
-// 30° dimetric instead of the squashed 2:1 pixel-art iso (TH/TW = 0.5).
-// TH/TW ≈ 0.66 separates L-shape arms more clearly without losing top-face
-// visibility for stud counting — matches what Lego instruction renders use.
-const ISO = { TW: 22, TH: 15, UH: 28 };
+// CAVALIER (oblique) projection so the iso view preserves the top-down
+// footprint exactly: x maps to screen-right, y maps to screen-down (just like
+// the top view's grid), and z extrudes "up and slightly left" for 3D depth.
+// A brick's bottom rectangle on screen is identical to its top-down rectangle —
+// stud positions, adjacencies, corner joints all match 1:1 across views.
+//   TW, TH = screen pixels per stud (square cells, so footprint never warps)
+//   UH      = screen pixels per unit of z (brick height visualization)
+//   ZX, ZY  = direction the z axis projects (unit vector; up-and-slightly-left)
+const ISO = { TW: 24, TH: 24, UH: 16, ZX: 0.5, ZY: 0.866 };
 
 const COLORS = {
   red:    '#d01012',
@@ -40,7 +45,13 @@ function darken(hex, f) {
 }
 
 function iso(wx, wy, wz) {
-  return { x: (wx - wy) * ISO.TW, y: (wx + wy) * ISO.TH - wz * ISO.UH };
+  // Cavalier projection: x stays on screen-X, y stays on screen-Y, z extrudes
+  // upper-left. This keeps every cell at the same screen position as in the
+  // top-down view, so footprints and corners match exactly across views.
+  return {
+    x: wx * ISO.TW - wz * ISO.UH * ISO.ZX,
+    y: wy * ISO.TH - wz * ISO.UH * ISO.ZY,
+  };
 }
 
 function effSize(b) {
@@ -163,25 +174,14 @@ function paintOrder(bricks) {
   const n = bricks.length;
   if (n <= 1) return [...bricks];
 
-  // For axis-aligned non-overlapping boxes in iso view (camera at +x_far, -y_far,
-  // +z_far looking at origin), A is in front of B (A drawn after B) iff A is
-  // separated from B along one of these axes in the "front" direction AND they
-  // overlap in the other two axes' screen projection:
-  //   - A is above B in z       (A.z_min >= B.z_max)
-  //   - A is in front in y      (A.y_max <= B.y_min)   // smaller y is camera-side
-  //   - A is to the right in x  (A.x_min >= B.x_max)   // larger x is camera-side
+  // For cavalier projection (top-down camera + z extruded as a screen offset),
+  // x and y don't create depth — only z does. So A occludes B iff A sits
+  // directly on top of B in z AND they overlap in the (x,y) footprint.
   function inFrontOf(a, b) {
-    const ax = a.x, ay = a.y, az = a.z, aw = a.w, ad = a.d, ah = a.h ?? 1;
-    const bx = b.x, by = b.y, bz = b.z, bw = b.w, bd = b.d, bh = b.h ?? 1;
-    if (az >= bz + bh
-        && ax < bx + bw && bx < ax + aw
-        && ay < by + bd && by < ay + ad) return true;
-    if (ay + ad <= by
-        && ax < bx + bw && bx < ax + aw
-        && az < bz + bh && bz < az + ah) return true;
-    if (ax >= bx + bw
-        && ay < by + bd && by < ay + ad
-        && az < bz + bh && bz < az + ah) return true;
+    const ah = a.h ?? 1, bh = b.h ?? 1;
+    if (a.z >= b.z + bh
+        && a.x < b.x + b.w && b.x < a.x + a.w
+        && a.y < b.y + b.d && b.y < a.y + a.d) return true;
     return false;
   }
 
@@ -201,13 +201,15 @@ function paintOrder(bricks) {
   for (let i = 0; i < n; i++) if (deps[i] === 0) queue.push(i);
   const out = [];
   while (queue.length) {
-    // Pop the candidate with the lowest "depth proxy" (z then x+y descending)
-    // so the order is deterministic and matches intuition when there are ties.
+    // For cavalier: among ready bricks pick lowest z, then smallest (x+y) so
+    // front-adjacent bricks render first. Back-adjacent bricks render LAST so
+    // their top faces stay visible at L-joints instead of being covered by the
+    // front brick's silhouette wedge.
     let bestIdx = 0;
     for (let k = 1; k < queue.length; k++) {
       const a = bricks[queue[k]], b = bricks[queue[bestIdx]];
       if (a.z !== b.z) { if (a.z < b.z) bestIdx = k; }
-      else if ((a.x + a.y) !== (b.x + b.y)) { if ((a.x + a.y) > (b.x + b.y)) bestIdx = k; }
+      else if ((a.x + a.y) !== (b.x + b.y)) { if ((a.x + a.y) < (b.x + b.y)) bestIdx = k; }
     }
     const i = queue.splice(bestIdx, 1)[0];
     out.push(bricks[i]);
@@ -223,9 +225,11 @@ function paintOrder(bricks) {
 }
 
 function unproject(sx, sy, z) {
-  const a = sx / ISO.TW;
-  const b = (sy + z * ISO.UH) / ISO.TH;
-  return { x: (a + b) / 2, y: (b - a) / 2 };
+  // Inverse of cavalier iso(): solve for world (x, y) at a given z.
+  return {
+    x: (sx + z * ISO.UH * ISO.ZX) / ISO.TW,
+    y: (sy + z * ISO.UH * ISO.ZY) / ISO.TH,
+  };
 }
 
 function pickGroundCell(sx, sy, origin, baseSize) {
