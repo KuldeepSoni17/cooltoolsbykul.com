@@ -9,7 +9,10 @@
 //   TW, TH = screen pixels per stud (square cells, so footprint never warps)
 //   UH      = screen pixels per unit of z (brick height visualization)
 //   ZX, ZY  = direction the z axis projects (unit vector; up-and-slightly-left)
-const ISO = { TW: 24, TH: 24, UH: 16, ZX: 0.5, ZY: 0.866 };
+// Mutable: ISO.yaw (radians, rotation around the baseplate's vertical axis)
+// and ISO.cx/ISO.cy (center of rotation) are set by IsoScene before each render
+// so iso() and unproject() can apply the camera's free orbit.
+const ISO = { TW: 24, TH: 24, UH: 16, ZX: 0.5, ZY: 0.866, yaw: 0, cx: 0, cy: 0 };
 
 const COLORS = {
   red:    '#d01012',
@@ -45,12 +48,19 @@ function darken(hex, f) {
 }
 
 function iso(wx, wy, wz) {
-  // Cavalier projection: x stays on screen-X, y stays on screen-Y, z extrudes
-  // upper-left. This keeps every cell at the same screen position as in the
-  // top-down view, so footprints and corners match exactly across views.
+  // Cavalier projection with free yaw rotation around the baseplate's
+  // vertical axis at (ISO.cx, ISO.cy). x and y are first rotated in the
+  // ground plane, then cavalier-projected (z extrudes upper-left).
+  let x = wx, y = wy;
+  if (ISO.yaw) {
+    const dx = wx - ISO.cx, dy = wy - ISO.cy;
+    const c = Math.cos(ISO.yaw), s = Math.sin(ISO.yaw);
+    x = dx * c - dy * s + ISO.cx;
+    y = dx * s + dy * c + ISO.cy;
+  }
   return {
-    x: wx * ISO.TW - wz * ISO.UH * ISO.ZX,
-    y: wy * ISO.TH - wz * ISO.UH * ISO.ZY,
+    x: x * ISO.TW - wz * ISO.UH * ISO.ZX,
+    y: y * ISO.TH - wz * ISO.UH * ISO.ZY,
   };
 }
 
@@ -200,16 +210,25 @@ function paintOrder(bricks) {
   const queue = [];
   for (let i = 0; i < n; i++) if (deps[i] === 0) queue.push(i);
   const out = [];
+  // Helper: where would a brick's center land after the current yaw rotation?
+  // We use rotated (x+y) so that with free rotation the tie-breaker still
+  // places back-of-screen bricks last (after front-of-screen ones).
+  function rotCenterSum(br) {
+    const cxw = br.x + br.w / 2, cyw = br.y + br.d / 2;
+    if (!ISO.yaw) return cxw + cyw;
+    const dx = cxw - ISO.cx, dy = cyw - ISO.cy;
+    const c = Math.cos(ISO.yaw), s = Math.sin(ISO.yaw);
+    return (dx * c - dy * s + ISO.cx) + (dx * s + dy * c + ISO.cy);
+  }
   while (queue.length) {
-    // For cavalier: among ready bricks pick lowest z, then smallest (x+y) so
-    // front-adjacent bricks render first. Back-adjacent bricks render LAST so
-    // their top faces stay visible at L-joints instead of being covered by the
-    // front brick's silhouette wedge.
+    // For cavalier: among ready bricks pick lowest z, then smallest rotated
+    // (x+y) so front-of-screen bricks render first.
     let bestIdx = 0;
     for (let k = 1; k < queue.length; k++) {
       const a = bricks[queue[k]], b = bricks[queue[bestIdx]];
-      if (a.z !== b.z) { if (a.z < b.z) bestIdx = k; }
-      else if ((a.x + a.y) !== (b.x + b.y)) { if ((a.x + a.y) < (b.x + b.y)) bestIdx = k; }
+      if (a.z !== b.z) { if (a.z < b.z) bestIdx = k; continue; }
+      const sa = rotCenterSum(a), sb = rotCenterSum(b);
+      if (sa < sb) bestIdx = k;
     }
     const i = queue.splice(bestIdx, 1)[0];
     out.push(bricks[i]);
@@ -225,11 +244,15 @@ function paintOrder(bricks) {
 }
 
 function unproject(sx, sy, z) {
-  // Inverse of cavalier iso(): solve for world (x, y) at a given z.
-  return {
-    x: (sx + z * ISO.UH * ISO.ZX) / ISO.TW,
-    y: (sy + z * ISO.UH * ISO.ZY) / ISO.TH,
-  };
+  // Inverse of cavalier iso() with yaw: undo the cavalier shift first to get
+  // the rotated-world coords, then inverse-rotate around (ISO.cx, ISO.cy) to
+  // recover original world (x, y).
+  const xr = (sx + z * ISO.UH * ISO.ZX) / ISO.TW;
+  const yr = (sy + z * ISO.UH * ISO.ZY) / ISO.TH;
+  if (!ISO.yaw) return { x: xr, y: yr };
+  const dx = xr - ISO.cx, dy = yr - ISO.cy;
+  const c = Math.cos(-ISO.yaw), s = Math.sin(-ISO.yaw);
+  return { x: dx * c - dy * s + ISO.cx, y: dx * s + dy * c + ISO.cy };
 }
 
 function pickGroundCell(sx, sy, origin, baseSize) {
@@ -290,34 +313,32 @@ function colorHex(c) {
 // baseplate frame around them). Used by IsoScene so a build that occupies a
 // corner of a big baseplate still fills the viewport instead of looking lost.
 function computeIsoViewBox(bricks, baseSize, view, opts = {}) {
+  // iso() handles camera rotation via ISO.yaw — temporarily set it here so the
+  // projected bounding box reflects the current view + yawDeg, then restore.
+  const prevYaw = ISO.yaw, prevCx = ISO.cx, prevCy = ISO.cy;
+  ISO.yaw = (view * Math.PI / 2) + ((opts.yawDeg || 0) * Math.PI / 180);
+  ISO.cx = baseSize.w / 2;
+  ISO.cy = baseSize.d / 2;
   const padX = opts.padX ?? 80, padY = opts.padY ?? 80;
-  const minScale = opts.minScale ?? 8; // baseplate cells of margin around bricks
-  const base = viewedBaseSize(baseSize, view);
-  // Always include the rotated baseplate corners at z=0 so the boundary frame
-  // shows up; but clip them to a window around the bricks so we don't pan all
-  // the way out to the empty corner of a huge baseplate.
-  let minX = 0, minY = 0, maxX = base.w, maxY = base.d;
+  const minScale = opts.minScale ?? 8;
+  let minX = 0, minY = 0, maxX = baseSize.w, maxY = baseSize.d;
   if (bricks.length > 0) {
-    const rotated = bricks.map(b => applyView(b, view, baseSize));
-    let bxMin = Infinity, byMin = Infinity, bzMin = 0;
+    let bxMin = Infinity, byMin = Infinity;
     let bxMax = -Infinity, byMax = -Infinity, bzMax = 1;
-    for (const b of rotated) {
+    for (const b of bricks) {
       bxMin = Math.min(bxMin, b.x);
       byMin = Math.min(byMin, b.y);
       bxMax = Math.max(bxMax, b.x + b.w);
       byMax = Math.max(byMax, b.y + b.d);
       bzMax = Math.max(bzMax, b.z + (b.h ?? 1));
     }
-    // Window around bricks with a margin in baseplate cells
     minX = Math.max(0, bxMin - minScale);
     minY = Math.max(0, byMin - minScale);
-    maxX = Math.min(base.w, bxMax + minScale);
-    maxY = Math.min(base.d, byMax + minScale);
-    // Need to project the maxZ of bricks too
+    maxX = Math.min(baseSize.w, bxMax + minScale);
+    maxY = Math.min(baseSize.d, byMax + minScale);
     opts.maxZ = Math.max(opts.maxZ || 0, bzMax + 1);
   }
   const maxZ = opts.maxZ ?? 6;
-  // Project the 8 corners of the visible 3D bounding box and take screen extent
   const sx = [], sy = [];
   for (const x of [minX, maxX]) {
     for (const y of [minY, maxY]) {
@@ -331,6 +352,7 @@ function computeIsoViewBox(bricks, baseSize, view, opts = {}) {
   const right = Math.max(...sx) + padX;
   const top = Math.min(...sy) - padY;
   const bottom = Math.max(...sy) + padY;
+  ISO.yaw = prevYaw; ISO.cx = prevCx; ISO.cy = prevCy;
   return `${left} ${top} ${right - left} ${bottom - top}`;
 }
 
@@ -615,25 +637,31 @@ function MinifigShape({ brick, origin, selected, ghost, dim }) {
 // ---------- Whole scene ----------
 function IsoScene({
   bricks, baseSize, baseColor = COLORS.green, origin,
-  view = 0, ghost, selectedId,
+  view = 0, yawDeg = 0, ghost, selectedId,
   onPointerMove, onSceneClick, onSceneContext,
   viewBox, style,
   hideAboveZ, // optional clip layer
   showGrid = false,
 }) {
   const svgRef = React.useRef(null);
-  const base = viewedBaseSize(baseSize, view);
+  // Combine the discrete view (0/90/180/270°) with continuous fine yaw (degrees).
+  // Both rotate the world around the baseplate's vertical-axis center.
+  ISO.yaw = (view * Math.PI / 2) + (yawDeg * Math.PI / 180);
+  ISO.cx = baseSize.w / 2;
+  ISO.cy = baseSize.d / 2;
+  const base = baseSize;
 
-  // Apply view rotation to each brick and ghost
-  const rotatedBricks = React.useMemo(() => {
-    let bs = bricks.map(b => ({ ...applyView(b, view, baseSize), _origId: b.id }));
+  // Bricks stay in their original world coords; rotation happens at projection
+  // time inside iso(). No more axis-aligned applyView pre-rotation here.
+  const sortedBricks = React.useMemo(() => {
+    let bs = bricks.map(b => ({ ...b, _origId: b.id }));
     if (typeof hideAboveZ === 'number') bs = bs.filter(b => b.z < hideAboveZ);
     return paintOrder(bs);
-  }, [bricks, view, baseSize, hideAboveZ]);
-
+  }, [bricks, hideAboveZ]);
+  const rotatedBricks = sortedBricks; // alias for the rest of the JSX below
   const coveredCells = React.useMemo(() => buildCoveredCells(rotatedBricks), [rotatedBricks]);
 
-  const rotatedGhost = ghost ? applyView(ghost, view, baseSize) : null;
+  const rotatedGhost = ghost;
 
   const O = origin;
   const bp = [iso(0,0,0), iso(base.w,0,0), iso(base.w,base.d,0), iso(0,base.d,0)]
@@ -700,10 +728,11 @@ function IsoScene({
           with the camera, so coords like "A1" always identify the same world
           cell regardless of view. */}
       {showGrid && (() => {
+        // iso() now applies the camera rotation automatically, so labels at
+        // world (i+0.5, -0.7) and (-0.7, j+0.5) follow the rotated baseplate.
         const labels = [];
         for (let i = 0; i < baseSize.w; i++) {
-          const r = rotPoint(i + 0.5, -0.7, view, baseSize);
-          const p = iso(r.x, r.y, 0);
+          const p = iso(i + 0.5, -0.7, 0);
           labels.push(
             <text key={`col-${i}`}
               x={p.x + O.x} y={p.y + O.y + 4}
@@ -716,8 +745,7 @@ function IsoScene({
           );
         }
         for (let j = 0; j < baseSize.d; j++) {
-          const r = rotPoint(-0.7, j + 0.5, view, baseSize);
-          const p = iso(r.x, r.y, 0);
+          const p = iso(-0.7, j + 0.5, 0);
           labels.push(
             <text key={`row-${j}`}
               x={p.x + O.x} y={p.y + O.y + 4}

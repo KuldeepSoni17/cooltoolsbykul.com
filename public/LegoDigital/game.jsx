@@ -59,16 +59,27 @@ function downloadJSON(obj, filename) {
 // ============================================================
 // Camera control component
 // ============================================================
-function CameraControls({ view, setView, zoom, setZoom, hideAboveZ, setHideAboveZ, maxZ, showGrid, setShowGrid, topView, setTopView }) {
+function CameraControls({ view, setView, yawDeg = 0, setYawDeg, zoom, setZoom, hideAboveZ, setHideAboveZ, maxZ, showGrid, setShowGrid, topView, setTopView }) {
+  const totalDeg = ((view * 90 + yawDeg) % 360 + 360) % 360;
   return (
     <div className="vp-camera">
       <div className="cam-orbit">
-        <button className="sk-btn sm" title="orbit left" onClick={() => setView((view + 3) % 4)}>↺</button>
+        <button className="sk-btn sm" title="orbit left 15°"
+                onClick={() => setYawDeg ? setYawDeg(d => d - 15) : setView((view + 3) % 4)}>↺</button>
         <span className="sk-label tiny" style={{ minWidth: 56, textAlign: 'center' }}>
-          {topView ? `top · ${view * 90}°` : `view ${view * 90}°`}
+          {topView ? `top · ${Math.round(totalDeg)}°` : `${Math.round(totalDeg)}°`}
         </span>
-        <button className="sk-btn sm" title="orbit right" onClick={() => setView((view + 1) % 4)}>↻</button>
+        <button className="sk-btn sm" title="orbit right 15°"
+                onClick={() => setYawDeg ? setYawDeg(d => d + 15) : setView((view + 1) % 4)}>↻</button>
       </div>
+      {setYawDeg && !topView && (
+        <div className="cam-yaw">
+          <input type="range" min="-180" max="180" step="1" value={yawDeg}
+                 onChange={e => setYawDeg(parseInt(e.target.value, 10))}
+                 title="drag to rotate freely" />
+          <button className="sk-btn sm" title="reset rotation" onClick={() => { setYawDeg(0); setView(0); }}>0°</button>
+        </div>
+      )}
       {setTopView && (
         <div className="cam-mode">
           <button className={`sk-btn sm ${!topView ? 'on' : ''}`}
@@ -201,6 +212,7 @@ function SandboxScreen({ initialBricks = [], initialBase = SANDBOX_BASE, onExit,
   const [showGrid, setShowGrid] = useState(true);
   const [showInstructions, setShowInstructions] = useState(false);
   const [topView, setTopView] = useState(false);
+  const [yawDeg, setYawDeg] = useState(0);
   const idRef = useRef(1);
   const fileInputRef = useRef(null);
 
@@ -419,7 +431,7 @@ function SandboxScreen({ initialBricks = [], initialBase = SANDBOX_BASE, onExit,
   const maxZ = useMemo(() => bricks.reduce((m, b) => Math.max(m, b.z + (b.h ?? 1)), 6), [bricks]);
   // Auto-fit iso to the bricks (plus a small baseplate margin) so a small
   // build on a big baseplate fills the viewport instead of sitting in a corner.
-  const isoVB = computeIsoViewBox(bricks, baseSize, view, { maxZ: Math.max(maxZ, 4) / zoom, padX: 80 / zoom, padY: 80 / zoom });
+  const isoVB = computeIsoViewBox(bricks, baseSize, view, { maxZ: Math.max(maxZ, 4) / zoom, padX: 80 / zoom, padY: 80 / zoom, yawDeg });
   const topVB = computeTopViewBox(viewedBaseSize(baseSize, view));
   const viewBox = topView ? topVB : isoVB;
 
@@ -479,6 +491,7 @@ function SandboxScreen({ initialBricks = [], initialBase = SANDBOX_BASE, onExit,
             </div>
           )}
           <CameraControls view={view} setView={setView}
+            yawDeg={yawDeg} setYawDeg={setYawDeg}
             zoom={zoom} setZoom={setZoom}
             hideAboveZ={hideAboveZ} setHideAboveZ={setHideAboveZ} maxZ={maxZ}
             showGrid={showGrid} setShowGrid={setShowGrid}
@@ -505,6 +518,7 @@ function SandboxScreen({ initialBricks = [], initialBase = SANDBOX_BASE, onExit,
               baseSize={baseSize}
               origin={{ x: 0, y: 0 }}
               view={view}
+              yawDeg={yawDeg}
               ghost={tool === 'place' ? hover : null}
               selectedId={selected ? selected.id : (hover && hover._hover ? hover.id : null)}
               viewBox={viewBox}
@@ -624,6 +638,7 @@ function PiecePreview({ piece, color }) {
 function InstructionsScreen({ set, onExit, onSwitchToSandbox }) {
   const [stepIdx, setStepIdx] = useState(0);
   const [view, setView] = useState(0);
+  const [yawDeg, setYawDeg] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
   const [topView, setTopView] = useState(false);
@@ -658,7 +673,7 @@ function InstructionsScreen({ set, onExit, onSwitchToSandbox }) {
   const progress = stepIdx / totalSteps;
 
   const maxZ = useMemo(() => allBricks.reduce((m, b) => Math.max(m, b.z + (b.h ?? 1)), 6), [allBricks]);
-  const isoVB = computeIsoViewBox(allBricks, set.baseSize, view, { maxZ: Math.max(maxZ, 4) / zoom, padX: 80 / zoom, padY: 80 / zoom });
+  const isoVB = computeIsoViewBox(allBricks, set.baseSize, view, { maxZ: Math.max(maxZ, 4) / zoom, padX: 80 / zoom, padY: 80 / zoom, yawDeg });
   const topVB = computeTopViewBox(viewedBaseSize(set.baseSize, view));
   const viewBox = topView ? topVB : isoVB;
 
@@ -782,7 +797,9 @@ function InstructionsScreen({ set, onExit, onSwitchToSandbox }) {
 
         <div className="viewport" style={{ position: 'relative' }}>
           <div className="vp-hud">live build · {placedBricks.length} of {allBricks.length} pieces placed</div>
-          <CameraControls view={view} setView={setView} zoom={zoom} setZoom={setZoom} maxZ={maxZ}
+          <CameraControls view={view} setView={setView}
+                          yawDeg={yawDeg} setYawDeg={setYawDeg}
+                          zoom={zoom} setZoom={setZoom} maxZ={maxZ}
                           showGrid={showGrid} setShowGrid={setShowGrid}
                           topView={topView} setTopView={setTopView} />
           {topView ? (
@@ -802,6 +819,7 @@ function InstructionsScreen({ set, onExit, onSwitchToSandbox }) {
               baseColor={set.baseColor}
               origin={{ x: 0, y: 0 }}
               view={view}
+              yawDeg={yawDeg}
               viewBox={viewBox}
               style={{ width: '100%', height: '100%', display: 'block' }}
               showGrid={showGrid}
@@ -914,10 +932,11 @@ function SetDetail({ setId, onBack, onStartInstructions, onOpenInSandbox }) {
   const previewBricks = useMemo(() => flattenSet(set), [set]);
   const maxZ = useMemo(() => previewBricks.reduce((m, b) => Math.max(m, b.z + (b.h ?? 1)), 4) + 2, [previewBricks]);
   const [view, setView] = useState(0);
+  const [yawDeg, setYawDeg] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
   const [topView, setTopView] = useState(false);
-  const isoVB = computeIsoViewBox(previewBricks, set.baseSize, view, { maxZ: maxZ / zoom, padX: 60 / zoom, padY: 60 / zoom });
+  const isoVB = computeIsoViewBox(previewBricks, set.baseSize, view, { maxZ: maxZ / zoom, padX: 60 / zoom, padY: 60 / zoom, yawDeg });
   const topVB = computeTopViewBox(viewedBaseSize(set.baseSize, view));
   const viewBox = topView ? topVB : isoVB;
   const progress = parseInt(localStorage.getItem(`legodigital:progress:${set.id}`) || '0', 10);
@@ -930,7 +949,9 @@ function SetDetail({ setId, onBack, onStartInstructions, onOpenInSandbox }) {
       </div>
       <div className="detail-body">
         <div className="detail-hero" style={{ position: 'relative' }}>
-          <CameraControls view={view} setView={setView} zoom={zoom} setZoom={setZoom} maxZ={maxZ}
+          <CameraControls view={view} setView={setView}
+                          yawDeg={yawDeg} setYawDeg={setYawDeg}
+                          zoom={zoom} setZoom={setZoom} maxZ={maxZ}
                           showGrid={showGrid} setShowGrid={setShowGrid}
                           topView={topView} setTopView={setTopView} />
           {topView ? (
@@ -949,6 +970,7 @@ function SetDetail({ setId, onBack, onStartInstructions, onOpenInSandbox }) {
               baseSize={set.baseSize}
               baseColor={set.baseColor}
               origin={{ x: 0, y: 0 }}
+              yawDeg={yawDeg}
               view={view}
               viewBox={viewBox}
               style={{ width: '100%', height: '100%' }}

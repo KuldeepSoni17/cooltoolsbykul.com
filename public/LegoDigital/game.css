@@ -417,6 +417,8 @@ body { overflow: hidden; }
 .vp-camera .cam-mode .sk-btn.on { background: var(--lego-yellow); font-weight: 700; }
 
 .vp-camera .cam-mode { display: flex; gap: 4px; }
+.vp-camera .cam-yaw { display: flex; align-items: center; gap: 6px; }
+.vp-camera .cam-yaw input[type="range"] { width: 110px; }
 
 /* Ghost-placement HUD — shown above the viewport while hovering with place tool */
 .ghost-hud {
