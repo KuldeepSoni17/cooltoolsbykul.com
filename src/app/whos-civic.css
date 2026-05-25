@@ -1,0 +1,62 @@
+/* Scoped civic theme for Who's Responsible (v3 spec) */
+
+:root {
+  --wr-bg: #f6f4ef;
+  --wr-surface: #ffffff;
+  --wr-primary: #0d2137;
+  --wr-primary-foreground: #ffffff;
+  --wr-text: #0f0f0e;
+  --wr-text-muted: #6b6860;
+  --wr-text-light: #9c9a92;
+  --wr-border: #e0ddd5;
+  --wr-border-strong: #c8c5bc;
+  --wr-accent: #0e7490;
+  --wr-accent-hover: #0369a1;
+  --wr-danger: #b91c1c;
+  --wr-danger-bg: #fef2f2;
+  --wr-amber-bg: #fffbeb;
+  --wr-amber-border: #fde68a;
+  --wr-amber-text: #92400e;
+}
+
+.wr-page {
+  color-scheme: light;
+  background-color: var(--wr-bg);
+  color: var(--wr-text);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Force bright theme — ignore OS dark mode on this route */
+html.wr-light-theme,
+body.wr-light-theme {
+  color-scheme: light;
+  --background: #f6f4ef;
+  --foreground: #0f0f0e;
+  background-color: var(--wr-bg) !important;
+  color: var(--wr-text) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html.wr-light-theme,
+  body.wr-light-theme,
+  .wr-page {
+    color-scheme: light;
+    --background: #f6f4ef;
+    --foreground: #0f0f0e;
+    background-color: var(--wr-bg);
+    color: var(--wr-text);
+  }
+}
+
+.wr-hero {
+  background-color: var(--wr-primary);
+  color: var(--wr-primary-foreground);
+}
+
+.wr-card {
+  background-color: var(--wr-surface);
+  border: 1px solid var(--wr-border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import SearchForm from "@/components/SearchForm";
-import DepartmentCard from "@/components/DepartmentCard";
-import RepresentativeCard from "@/components/RepresentativeCard";
-import EscalationPath from "@/components/EscalationPath";
+import SearchForm from "@/components/whos/SearchForm";
+import DepartmentCard from "@/components/whos/DepartmentCard";
+import RepresentativeCard from "@/components/whos/RepresentativeCard";
+import EscalationPath from "@/components/whos/EscalationPath";
 import { geocodeAddress, LocationData } from "@/lib/geocode";
 import { fetchRepresentatives, Representative } from "@/lib/wikidata";
 import { getDepartmentsForIssue } from "@/data/issue-mapping";
@@ -75,22 +75,29 @@ export default function WhosResponsiblePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <section className="flex min-h-[70vh] items-center bg-[var(--primary)] text-white">
-        <div className="mx-auto max-w-2xl px-4 py-20">
-          <p className="mb-4 text-xs tracking-[0.3em] text-blue-300 uppercase">
-            Civic Accountability - India
+    <>
+      <section className="wr-hero flex min-h-[70vh] items-center">
+        <div className="mx-auto w-full max-w-2xl px-4 py-16 sm:py-20">
+          <p className="mb-4 text-xs font-semibold tracking-[0.25em] text-sky-200 uppercase">
+            Civic accountability · India
           </p>
-          <h1 className="mb-4 text-5xl font-bold text-white">
+          <h1 className="mb-4 font-[family-name:var(--font-wr-display)] text-4xl font-bold text-white sm:text-5xl">
             Who&apos;s Responsible?
           </h1>
-          <p className="mb-10 text-lg text-blue-200">
+          <p className="mb-10 text-lg text-sky-100">
             Find the exact department and officer responsible for your civic
-            issue. Then hold them to it.
+            issue — then hold them to it.
           </p>
-          <SearchForm onSearch={handleSearch} loading={loading} />
+          <SearchForm onSearch={handleSearch} loading={loading} variant="hero" />
           {error && (
-            <p className="mt-4 rounded border border-red-200 bg-red-100 px-3 py-2 text-sm text-red-800">
+            <p
+              className="mt-4 rounded-lg border px-3 py-2 text-sm"
+              style={{
+                borderColor: "var(--wr-danger)",
+                backgroundColor: "var(--wr-danger-bg)",
+                color: "var(--wr-danger)",
+              }}
+            >
               {error}
             </p>
           )}
@@ -98,24 +105,28 @@ export default function WhosResponsiblePage() {
       </section>
 
       {result && (
-        <section id="results" className="mx-auto max-w-4xl space-y-8 px-4 py-12">
-          <div className="rounded-2xl border border-[var(--border)] bg-white p-5">
-            <h2 className="text-lg font-semibold">
+        <section
+          id="results"
+          className="mx-auto max-w-4xl space-y-8 px-4 py-12"
+        >
+          <div className="wr-card p-5">
+            <h2 className="text-lg font-semibold text-stone-900">
               Responsibility for{" "}
-              <span className="text-[var(--primary-light)]">{result.issueLabel}</span>{" "}
-              in{" "}
-              <span className="text-[var(--primary-light)]">
+              <span className="text-sky-700">{result.issueLabel}</span> in{" "}
+              <span className="text-sky-700">
                 {result.location.formattedAddress}
               </span>
             </h2>
-            <p className="mt-1 text-sm text-[var(--text-muted)]">
-              {result.location.city} - {result.location.state} - {result.location.pinCode}
+            <p className="mt-1 text-sm text-stone-600">
+              {result.location.city} · {result.location.state} ·{" "}
+              {result.location.pinCode}
             </p>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold tracking-wide text-[var(--text-muted)] uppercase">
-              Responsible Department{result.departments.length > 1 ? "s" : ""}
+            <h3 className="text-sm font-semibold tracking-wide text-stone-500 uppercase">
+              Responsible department
+              {result.departments.length > 1 ? "s" : ""}
             </h3>
             {result.departments.map((dept) => (
               <DepartmentCard key={dept.id} department={dept} />
@@ -124,8 +135,8 @@ export default function WhosResponsiblePage() {
 
           {result.representatives.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold tracking-wide text-[var(--text-muted)] uppercase">
-                Your Elected Representatives
+              <h3 className="text-sm font-semibold tracking-wide text-stone-500 uppercase">
+                Your elected representatives
               </h3>
               {result.representatives.map((rep, i) => (
                 <RepresentativeCard key={`${rep.type}-${i}`} rep={rep} />
@@ -137,22 +148,17 @@ export default function WhosResponsiblePage() {
         </section>
       )}
 
-      <section className="mx-auto max-w-4xl px-4 py-16">
-        <div className="mb-8 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">What citizens are reporting</h2>
-          <Link
-            href="/whos-responsible"
-            className="text-sm font-semibold text-[var(--primary-light)] hover:underline"
-          >
-            Raise and track reports coming next →
-          </Link>
+      <footer className="border-t border-[var(--wr-border)] px-4 py-10">
+        <div className="mx-auto flex max-w-4xl flex-col gap-2 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            Part of{" "}
+            <Link href="/" className="font-medium text-sky-700 hover:text-sky-800">
+              Cool Tools by Kul
+            </Link>
+            . Data from public sources; verify helplines before filing.
+          </p>
         </div>
-        <div className="rounded-2xl border border-[var(--border)] bg-white p-6 text-sm text-[var(--text-muted)]">
-          Reports feed and 6-step raise flow are being wired into this main
-          site branch next. This page now uses the new v3 dashboard look and
-          live department/representative resolution.
-        </div>
-      </section>
-    </main>
+      </footer>
+    </>
   );
 }
