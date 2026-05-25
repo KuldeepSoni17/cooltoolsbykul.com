@@ -5,20 +5,21 @@ import {
   CATALOG_MANIFEST,
   MATCH_LABELS,
   OWNERSHIP_LABELS,
+  PRICE_VERDICT_LABELS,
   PRODUCT_COUNT,
   QUALITY_VERDICT_LABELS,
   SHOP_CATEGORIES,
   formatInrRange,
   type MatchLevel,
   type Ownership,
+  type PriceVerdict,
   type ProductAlternative,
   type ProductIndexEntry,
+  type QualityVerdict,
 } from "@/lib/swadeshi/data";
 import { fetchCatalogIndex, fetchCategoryProducts, searchIndex } from "@/lib/swadeshi/catalog-loader";
-import { SwadeshiCarousel } from "./SwadeshiCarousel";
+import SwipeCardDeck from "./SwipeCardDeck";
 import styles from "./swadeshi.module.css";
-
-const PAGE_SIZE = 24;
 
 function MatchBadge({ level }: { level: MatchLevel }) {
   const cls =
@@ -30,39 +31,82 @@ function MatchBadge({ level }: { level: MatchLevel }) {
   return <span className={`${styles.badge} ${cls}`}>{MATCH_LABELS[level].label}</span>;
 }
 
-function ProductCarouselCard({
-  item,
-  onSelect,
-}: {
-  item: ProductAlternative;
-  onSelect: (id: string) => void;
-}) {
-  const qv = item.qualityVerdict ? QUALITY_VERDICT_LABELS[item.qualityVerdict] : null;
+function QualityPill({ verdict }: { verdict: QualityVerdict }) {
+  const info = QUALITY_VERDICT_LABELS[verdict];
   return (
-    <button
-      type="button"
-      className={styles.shopCard}
-      onClick={() => onSelect(item.id)}
-      role="listitem"
-    >
-      <p className={styles.shopCardOccasion}>{item.occasion}</p>
-      <p className={styles.shopCardBrands}>
-        {item.common.brand}
-        <span className={styles.listArrow}> → </span>
-        {item.alternative.brand}
-      </p>
-      <div className={styles.badgeRow}>
-        <MatchBadge level={item.match} />
-        {qv && (
-          <span
-            className={`${styles.badge} ${qv.tone === "caution" ? styles.matchSituational : styles.matchGood}`}
-          >
-            {qv.label}
-          </span>
+    <span className={`${styles.badge} ${info.tone === "caution" ? styles.matchSituational : styles.matchGood}`}>
+      {info.label}
+    </span>
+  );
+}
+
+function PricePill({ verdict }: { verdict: PriceVerdict }) {
+  return <span className={`${styles.badge} ${styles.ownIndian}`}>{PRICE_VERDICT_LABELS[verdict]}</span>;
+}
+
+function OwnershipBadge({ ownership }: { ownership: Ownership }) {
+  const isMnc = ownership === "mnc-global";
+  return (
+    <span className={`${styles.badge} ${isMnc ? styles.ownMnc : styles.ownIndian}`}>
+      {OWNERSHIP_LABELS[ownership]}
+    </span>
+  );
+}
+
+function SwipeCard({ item }: { item: ProductAlternative }) {
+  return (
+    <div className={styles.swCard}>
+      <div className={styles.swCardHeader}>
+        <span className={styles.swCardOccasion}>{item.occasion}</span>
+        {item.subcategory && (
+          <span className={styles.swCardSub}>{item.subcategory}</span>
         )}
       </div>
-      {item.summary && <p className={styles.shopCardSummary}>{item.summary}</p>}
-    </button>
+
+      <div className={styles.swCardVs}>
+        <div className={styles.swCardSide}>
+          <span className={styles.swCardSideLabel}>Common pick</span>
+          <p className={styles.swCardBrand}>{item.common.brand}</p>
+          <p className={styles.swCardProduct}>{item.common.product}</p>
+          <OwnershipBadge ownership={item.common.ownership} />
+        </div>
+        <div className={styles.swCardDivider}>
+          <span className={styles.swCardArrow}>→</span>
+        </div>
+        <div className={`${styles.swCardSide} ${styles.swCardSideAlt}`}>
+          <span className={styles.swCardSideLabel}>Indian option</span>
+          <p className={styles.swCardBrand}>{item.alternative.brand}</p>
+          <p className={styles.swCardProduct}>{item.alternative.product}</p>
+          <OwnershipBadge ownership={item.alternative.ownership} />
+        </div>
+      </div>
+
+      <div className={styles.swCardMeta}>
+        <div className={styles.badgeRow}>
+          <MatchBadge level={item.match} />
+          {item.qualityVerdict && <QualityPill verdict={item.qualityVerdict} />}
+          {item.priceVerdict && <PricePill verdict={item.priceVerdict} />}
+        </div>
+      </div>
+
+      {item.price && (
+        <div className={styles.swCardPrice}>
+          <div className={styles.swCardPriceCol}>
+            <span className={styles.swCardPriceLabel}>{item.common.brand}</span>
+            <span className={styles.swCardPriceVal}>{formatInrRange(item.price.commonRange)}</span>
+          </div>
+          <div className={styles.swCardPriceDot} />
+          <div className={styles.swCardPriceCol}>
+            <span className={styles.swCardPriceLabel}>{item.alternative.brand}</span>
+            <span className={styles.swCardPriceVal}>{formatInrRange(item.price.altRange)}</span>
+          </div>
+        </div>
+      )}
+
+      {item.summary && <p className={styles.swCardSummary}>{item.summary}</p>}
+
+      <p className={styles.swCardTap}>Tap for full comparison</p>
+    </div>
   );
 }
 
@@ -73,8 +117,9 @@ export default function ShopView({ onSelectProduct }: { onSelectProduct: (id: st
   const [index, setIndex] = useState<ProductIndexEntry[] | null>(null);
   const [products, setProducts] = useState<ProductAlternative[]>([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
+  const [cardIndex, setCardIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [listMode, setListMode] = useState(false);
 
   useEffect(() => {
     fetchCatalogIndex()
@@ -88,7 +133,7 @@ export default function ShopView({ onSelectProduct }: { onSelectProduct: (id: st
     try {
       const data = await fetchCategoryProducts(id);
       setProducts(data);
-      setPage(1);
+      setCardIndex(0);
       setSubcategory("all");
     } catch {
       setError("Could not load this aisle.");
@@ -117,151 +162,162 @@ export default function ShopView({ onSelectProduct }: { onSelectProduct: (id: st
     return products.filter((p) => ids.has(p.id));
   }, [products, subcategory, query, index, categoryId]);
 
-  const visible = filteredProducts.slice(0, page * PAGE_SIZE);
   const category = categoryId ? SHOP_CATEGORIES.find((c) => c.id === categoryId) : null;
-  const categoryMeta = categoryId
-    ? CATALOG_MANIFEST.categories.find((c) => c.id === categoryId)
-    : null;
+  const categoryMeta = categoryId ? CATALOG_MANIFEST.categories.find((c) => c.id === categoryId) : null;
 
   return (
-    <>
-      <div className={styles.shopHero}>
-        <p className={styles.sectionLabel}>Shop smarter</p>
-        <h2 className={styles.importHeroTitle}>
-          {category ? category.label : "Pick an aisle"}
-        </h2>
-        <p className={styles.importHeroDesc}>
-          {category
-            ? `${categoryMeta?.count ?? 0} honest pairs · swipe the carousel · tap for full comparison`
-            : `${PRODUCT_COUNT.toLocaleString("en-IN")}+ tier-matched comparisons across ${SHOP_CATEGORIES.length} aisles.`}
-        </p>
-      </div>
-
-      <label className={styles.searchWrap}>
-        <span className={styles.searchLabel}>Search catalog</span>
+    <div className={styles.shopWrap}>
+      {/* Search */}
+      <div className={styles.shopSearchBar}>
         <input
           type="search"
-          className={styles.searchInput}
-          placeholder="Brand, product, occasion…"
+          className={styles.shopSearchInput}
+          placeholder="Search brands, products…"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
-            setPage(1);
+            setCardIndex(0);
           }}
         />
-      </label>
+      </div>
 
-      <SwadeshiCarousel
-        ariaLabel="Shop categories"
-        header={<p className={styles.sectionLabel}>Aisles</p>}
-      >
+      {/* Category pills */}
+      <div className={styles.shopPillTrack}>
         <button
           type="button"
-          className={`${styles.carouselChip} ${!categoryId ? styles.carouselChipActive : ""}`}
-          onClick={() => setCategoryId(null)}
+          className={`${styles.shopPill} ${!categoryId ? styles.shopPillActive : ""}`}
+          onClick={() => { setCategoryId(null); setCardIndex(0); }}
         >
-          All aisles
+          All
         </button>
-        {SHOP_CATEGORIES.map((cat) => {
-          const count = CATALOG_MANIFEST.categories.find((c) => c.id === cat.id)?.count;
-          return (
-            <button
-              key={cat.id}
-              type="button"
-              className={`${styles.carouselChip} ${categoryId === cat.id ? styles.carouselChipActive : ""}`}
-              onClick={() => setCategoryId(cat.id)}
-            >
-              {cat.emoji} {cat.label}
-              {count ? ` (${count})` : ""}
-            </button>
-          );
-        })}
-      </SwadeshiCarousel>
+        {SHOP_CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            className={`${styles.shopPill} ${categoryId === cat.id ? styles.shopPillActive : ""}`}
+            onClick={() => { setCategoryId(cat.id); setCardIndex(0); }}
+          >
+            {cat.emoji} {cat.label}
+          </button>
+        ))}
+      </div>
 
-      {!categoryId && (
-        <div className={styles.categoryGrid} style={{ marginTop: "1rem" }}>
-          {SHOP_CATEGORIES.map((cat) => {
-            const count = CATALOG_MANIFEST.categories.find((c) => c.id === cat.id)?.count ?? 0;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                className={styles.categoryCard}
-                onClick={() => setCategoryId(cat.id)}
-              >
-                <span className={styles.categoryEmoji}>{cat.emoji}</span>
-                <p className={styles.categoryLabel}>{cat.label}</p>
-                <p className={styles.categoryHint}>{count} pairs · {cat.hint}</p>
-              </button>
-            );
-          })}
+      {/* Landing grid when no category selected */}
+      {!categoryId && !query && (
+        <div className={styles.shopLanding}>
+          <h2 className={styles.shopLandingTitle}>
+            {PRODUCT_COUNT.toLocaleString("en-IN")}+ comparisons
+          </h2>
+          <p className={styles.shopLandingDesc}>Pick an aisle to start swiping</p>
+          <div className={styles.shopAisleGrid}>
+            {SHOP_CATEGORIES.map((cat) => {
+              const count = CATALOG_MANIFEST.categories.find((c) => c.id === cat.id)?.count ?? 0;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  className={styles.shopAisleCard}
+                  onClick={() => { setCategoryId(cat.id); setCardIndex(0); }}
+                >
+                  <span className={styles.shopAisleEmoji}>{cat.emoji}</span>
+                  <span className={styles.shopAisleName}>{cat.label}</span>
+                  <span className={styles.shopAisleCount}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {categoryId && (
-        <>
-          {subcategories.length > 2 && (
-            <SwadeshiCarousel ariaLabel="Subcategories" header={<p className={styles.sectionLabel}>Within this aisle</p>}>
-              {subcategories.map((sub) => (
-                <button
-                  key={sub}
-                  type="button"
-                  className={`${styles.carouselChip} ${subcategory === sub ? styles.carouselChipActive : ""}`}
-                  onClick={() => {
-                    setSubcategory(sub);
-                    setPage(1);
-                  }}
-                >
-                  {sub === "all" ? "All" : sub}
-                </button>
-              ))}
-            </SwadeshiCarousel>
-          )}
-
-          {loading && <p className={styles.empty}>Loading {category?.label}…</p>}
-          {error && <p className={styles.empty}>{error}</p>}
-
-          {!loading && !error && filteredProducts.length > 0 && (
-            <>
-              <SwadeshiCarousel
-                ariaLabel="Featured pairs in aisle"
-                header={
-                  <p className={styles.sectionLabel}>
-                    Swipe comparisons · {filteredProducts.length} shown
-                  </p>
-                }
-              >
-                {filteredProducts.slice(0, 12).map((item) => (
-                  <ProductCarouselCard key={item.id} item={item} onSelect={onSelectProduct} />
-                ))}
-              </SwadeshiCarousel>
-
-              <div className={styles.shopListSection}>
-                <p className={styles.sectionLabel}>All in {category?.label}</p>
-                <div className={styles.shopGrid}>
-                  {visible.map((item) => (
-                    <ProductCarouselCard key={`grid-${item.id}`} item={item} onSelect={onSelectProduct} />
-                  ))}
-                </div>
-                {visible.length < filteredProducts.length && (
-                  <button
-                    type="button"
-                    className={styles.loadMoreBtn}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    Load more ({filteredProducts.length - visible.length} remaining)
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-
-          {!loading && !error && filteredProducts.length === 0 && (
-            <p className={styles.empty}>No pairs match your search in this aisle.</p>
-          )}
-        </>
+      {/* Subcategory pills when category selected */}
+      {categoryId && subcategories.length > 2 && (
+        <div className={styles.shopPillTrack}>
+          {subcategories.map((sub) => (
+            <button
+              key={sub}
+              type="button"
+              className={`${styles.shopPill} ${styles.shopPillSm} ${subcategory === sub ? styles.shopPillActive : ""}`}
+              onClick={() => { setSubcategory(sub); setCardIndex(0); }}
+            >
+              {sub === "all" ? "All" : sub}
+            </button>
+          ))}
+        </div>
       )}
-    </>
+
+      {/* Mode toggle */}
+      {categoryId && filteredProducts.length > 0 && (
+        <div className={styles.shopModeRow}>
+          <span className={styles.shopModeLabel}>
+            {category?.emoji} {category?.label} · {filteredProducts.length} pairs
+          </span>
+          <div className={styles.shopModeToggle}>
+            <button
+              type="button"
+              className={`${styles.shopModeBtn} ${!listMode ? styles.shopModeBtnActive : ""}`}
+              onClick={() => setListMode(false)}
+            >
+              Cards
+            </button>
+            <button
+              type="button"
+              className={`${styles.shopModeBtn} ${listMode ? styles.shopModeBtnActive : ""}`}
+              onClick={() => setListMode(true)}
+            >
+              List
+            </button>
+          </div>
+        </div>
+      )}
+
+      {loading && <p className={styles.empty}>Loading…</p>}
+      {error && <p className={styles.empty}>{error}</p>}
+
+      {/* Swipe card deck */}
+      {!loading && !error && (categoryId || query) && filteredProducts.length > 0 && !listMode && (
+        <SwipeCardDeck
+          count={filteredProducts.length}
+          activeIndex={cardIndex}
+          onIndexChange={setCardIndex}
+          onTap={(i) => onSelectProduct(filteredProducts[i].id)}
+          renderCard={(i) => <SwipeCard item={filteredProducts[i]} />}
+        />
+      )}
+
+      {/* List mode */}
+      {!loading && !error && (categoryId || query) && filteredProducts.length > 0 && listMode && (
+        <div className={styles.shopListWrap}>
+          {filteredProducts.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={styles.shopListItem}
+              onClick={() => onSelectProduct(item.id)}
+            >
+              <div className={styles.shopListTop}>
+                <span className={styles.shopListOccasion}>{item.occasion}</span>
+                <MatchBadge level={item.match} />
+              </div>
+              <p className={styles.shopListBrands}>
+                {item.common.brand}
+                <span className={styles.shopListArrow}> → </span>
+                {item.alternative.brand}
+              </p>
+              {item.qualityVerdict && (
+                <div className={styles.badgeRow} style={{ marginTop: "0.35rem" }}>
+                  <QualityPill verdict={item.qualityVerdict} />
+                  {item.priceVerdict && <PricePill verdict={item.priceVerdict} />}
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!loading && !error && (categoryId || query) && filteredProducts.length === 0 && (
+        <p className={styles.empty}>No pairs found. Try a different aisle or search.</p>
+      )}
+    </div>
   );
 }
 
@@ -275,7 +331,7 @@ export function AlternativeDetailPanel({ item }: { item: ProductAlternative }) {
         <p className={styles.detailVs}>
           {item.common.brand} → {item.alternative.brand}
         </p>
-        <p className={styles.detailSub}>{item.subcategory}</p>
+        {item.subcategory && <p className={styles.detailSub}>{item.subcategory}</p>}
         <div className={styles.badgeRow}>
           <MatchBadge level={item.match} />
           {qv && (
@@ -283,6 +339,7 @@ export function AlternativeDetailPanel({ item }: { item: ProductAlternative }) {
               {qv.label}
             </span>
           )}
+          {item.priceVerdict && <PricePill verdict={item.priceVerdict} />}
           {item.trustLevel === "verified" && (
             <span className={`${styles.badge} ${styles.matchStrong}`}>Human verified</span>
           )}
@@ -290,7 +347,7 @@ export function AlternativeDetailPanel({ item }: { item: ProductAlternative }) {
       </div>
 
       {item.summary && (
-        <div className={`${styles.infoBlock} ${styles.infoWhy}`}>
+        <div className={`${styles.infoBlock} ${styles.infoWhy}`} style={{ margin: "1rem 1.35rem 0" }}>
           <strong>Quick take</strong>
           <p style={{ marginTop: "0.35rem" }}>{item.summary}</p>
         </div>
@@ -362,14 +419,5 @@ export function AlternativeDetailPanel({ item }: { item: ProductAlternative }) {
         )}
       </div>
     </article>
-  );
-}
-
-function OwnershipBadge({ ownership }: { ownership: Ownership }) {
-  const isMnc = ownership === "mnc-global";
-  return (
-    <span className={`${styles.badge} ${isMnc ? styles.ownMnc : styles.ownIndian}`}>
-      {OWNERSHIP_LABELS[ownership]}
-    </span>
   );
 }
