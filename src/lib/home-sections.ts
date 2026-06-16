@@ -94,6 +94,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
   {
     id: "creative",
     tools: [
+      { id: "the-art-of", title: "The Art Of", tagline: "A+++ craft knowledge, curated.", href: "/the-art-of", featured: true },
       { id: "songwriter", title: "AI Songwriting Studio", tagline: "Lyrics to production packs.", href: "/songwriter" },
       { id: "poems", title: "Poems & Stories", tagline: "Words and imagination.", href: "/poems" },
       { id: "timeline", title: "Timeline Racer", tagline: "CSV to cinematic video.", href: "/timeline" },
