@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "commons.wikimedia.org" },
     ],
   },
+  async redirects() {
+    return [
+      // PolicyMakers route is case-sensitive — send common casings to it.
+      { source: "/policymakers", destination: "/PolicyMakers", permanent: false },
+      { source: "/policymakers/:path*", destination: "/PolicyMakers/:path*", permanent: false },
+      { source: "/Policymakers", destination: "/PolicyMakers", permanent: false },
+    ];
+  },
   async rewrites() {
     return [
       // Tag App static web (Expo export in public/tag-app-play)

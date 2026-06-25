@@ -68,6 +68,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
       { id: "vacancybible", title: "VacancyBible", tagline: "Live PM job search.", href: "/vacancybible", featured: true },
       { id: "worth-it", title: "WorthIt?", tagline: "Worry less, reflect more.", href: "/worth-it" },
       { id: "whos-responsible", title: "Who's Responsible", tagline: "Civic accountability lookup.", href: "/whos-responsible" },
+      { id: "policymakers", title: "PolicyMakers", tagline: "Propose & vote on policy changes.", href: "/PolicyMakers" },
       { id: "graph-iso", title: "Graph Isomorphism", tagline: "470k+ benchmark explorer.", href: "/graph-isomorphism" },
       { id: "italian-coach", title: "Italian Coach", tagline: "Grammar-first Italian.", href: "/italian-coach" },
       { id: "summary", title: "Summary Engine", tagline: "One truth from many sources.", href: "/summary" },
