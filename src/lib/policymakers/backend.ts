@@ -61,4 +61,100 @@ export const SEED_POLICIES: Policy[] = [
     downvotes: 33,
     created_at: "2026-02-02T10:00:00.000Z",
   },
+  {
+    id: "seed-new-2",
+    kind: "new",
+    title: "Right to disconnect after working hours",
+    domain: "Labour & Workplace",
+    proposal:
+      "Give every salaried worker a legal right to ignore work calls, emails, and messages outside their contracted hours, with no penalty.",
+    rationale:
+      "Always-on culture has quietly turned an 8-hour job into a 14-hour leash. Rest is not a perk — it is the baseline for health, family, and a functioning mind.",
+    incidents:
+      "Repeated burnout-linked health breakdowns and a rise in stress-related resignations across IT and startups, where after-hours pings are treated as normal.",
+    impact_estimate:
+      "Would directly protect an estimated 90M+ salaried and knowledge workers from unpaid after-hours availability.",
+    details:
+      "Employers may define genuine on-call roles, but those must be disclosed in the contract and paid an on-call allowance.",
+    existing_policy: null,
+    proposed_change: null,
+    author_name: "Seed proposal",
+    status: "proposed",
+    upvotes: 342,
+    downvotes: 41,
+    created_at: "2026-02-18T10:00:00.000Z",
+  },
+  {
+    id: "seed-new-3",
+    kind: "new",
+    title: "Open, machine-readable public spending dashboard",
+    domain: "Governance & Transparency",
+    proposal:
+      "Mandate that every rupee of public money — central, state, and municipal — be published line-by-line in a free, open, machine-readable dashboard within 30 days of spending.",
+    rationale:
+      "You cannot fight corruption you cannot see. Sunlight on budgets lets journalists, researchers, and ordinary citizens trace where money actually goes.",
+    incidents:
+      "Numerous infrastructure projects with ballooning costs and missing audits that stayed buried because the data was locked in PDFs or never released.",
+    impact_estimate:
+      "Covers 100% of public expenditure (tens of lakh crore annually) and arms millions of citizens and 600+ districts with audit-ready data.",
+    details:
+      "Open API with bulk download. Contractor names, amounts, and completion status all required fields.",
+    existing_policy: null,
+    proposed_change: null,
+    author_name: "Seed proposal",
+    status: "proposed",
+    upvotes: 489,
+    downvotes: 52,
+    created_at: "2026-03-05T10:00:00.000Z",
+  },
+  {
+    id: "seed-modify-2",
+    kind: "modify",
+    title: "Cap election campaign spending and mandate real-time disclosure",
+    domain: "Elections & Democracy",
+    proposal:
+      "Tighten the spending ceiling and require every donation and expense to be published within 48 hours during the campaign window.",
+    rationale:
+      "When money decides who can be heard, democracy becomes an auction. Real-time disclosure makes vote-buying and dark money far harder to hide.",
+    incidents:
+      "Repeated cases of campaign spends that visibly dwarfed the legal limit, with disclosures filed months later — long after votes were cast.",
+    impact_estimate:
+      "Affects every candidate in national and state elections, and gives ~900M registered voters visibility before they vote, not after.",
+    details:
+      "Anonymous bulk instruments above a small threshold are banned. Violations trigger automatic audit.",
+    existing_policy:
+      "Current rules set a per-candidate expense ceiling but allow post-election disclosure and exempt several party-routed and instrument-based donations from itemisation.",
+    proposed_change:
+      "Lower the effective ceiling, close the party-routing exemption, and switch from post-facto filing to rolling 48-hour public disclosure.",
+    author_name: "Seed proposal",
+    status: "proposed",
+    upvotes: 376,
+    downvotes: 88,
+    created_at: "2026-03-20T10:00:00.000Z",
+  },
+  {
+    id: "seed-modify-3",
+    kind: "modify",
+    title: "Strengthen data-breach notification timelines",
+    domain: "Privacy & Technology",
+    proposal:
+      "Require companies to notify affected users within 72 hours of discovering a breach, with plain-language detail on what leaked.",
+    rationale:
+      "Today people often learn their data leaked from a news headline months later. Fast, honest notice lets you change passwords, freeze cards, and protect yourself in time.",
+    incidents:
+      "Large consumer breaches where personal and financial data circulated for months before any user was informed.",
+    impact_estimate:
+      "Would safeguard hundreds of millions of users whose data sits in breach-prone consumer platforms.",
+    details:
+      "Includes a public breach registry and proportionate penalties tied to delay and severity.",
+    existing_policy:
+      "Existing rules require breach reporting to the regulator but set vague timelines and no mandatory direct, plain-language notice to every affected individual.",
+    proposed_change:
+      "Add a hard 72-hour clock, mandate direct user notification, and publish breaches to an open registry.",
+    author_name: "Seed proposal",
+    status: "adopted",
+    upvotes: 298,
+    downvotes: 19,
+    created_at: "2026-04-08T10:00:00.000Z",
+  },
 ];
