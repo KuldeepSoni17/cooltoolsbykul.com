@@ -44,6 +44,11 @@ const nextConfig: NextConfig = {
         source: "/LegoDigital",
         destination: "/LegoDigital/index.html",
       },
+      // Aksharo — Gujarati reading room in public/Aksharo
+      {
+        source: "/Aksharo",
+        destination: "/Aksharo/index.html",
+      },
       // Divergence — scenario analytics (separate Vercel project)
       {
         source: "/divergence",

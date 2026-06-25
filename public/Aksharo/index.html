@@ -1,0 +1,1754 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Aksharo — a reading room, not a feed</title>
+<meta name="description" content="One Gujarati piece a day. Couplets, poems, fragments from stories — with context, translation, and a place to keep the lines that catch you. A reading room, not a feed." />
+<meta name="theme-color" content="#0E0B07" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..600,30..100&family=Inter:wght@400;500;600&family=Noto+Serif+Gujarati:wght@400;500;600;700&family=Hind+Vadodara:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+  /* ============== tokens ============== */
+  :root {
+    --bg:        #F4ECDA;
+    --bg-2:      #EFE5CE;
+    --surface:   #FBF6E8;
+    --ink:       #1C1812;
+    --ink-2:     #3A3026;
+    --muted:     #7A6A52;
+    --rule:      #D9CDB1;
+    --rule-soft: #E8DFC8;
+    --accent:    #B85626;
+    --accent-2:  #8C3F1B;
+    --deep:      #214A52;
+    --gold:      #A48244;
+
+    --dark:      #0E0B07;
+    --dark-2:    #16110A;
+    --dark-soft: #1F1A12;
+    --on-dark:   #F4ECDA;
+    --on-dark-2: #C9BDA1;
+    --on-dark-3: #8A7C61;
+    --gold-warm: #D4B677;
+
+    --shadow:    0 1px 0 rgba(28,24,18,.04), 0 18px 40px -22px rgba(28,24,18,.22);
+
+    --serif:     "Fraunces", "Cormorant Garamond", Georgia, serif;
+    --serif-gu:  "Noto Serif Gujarati", "Fraunces", Georgia, serif;
+    --sans-gu:   "Hind Vadodara", "Noto Sans Gujarati", system-ui, sans-serif;
+    --sans:      "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* parchment grain on the light side only */
+  .light-bg-section::before, body.in-light::before {
+    content: "";
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    opacity: .25; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.36 0 0 0 0 0.26 0 0 0 0.10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  img, svg { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgba(184, 86, 38, .22); color: var(--ink); }
+  button { font: inherit; cursor: pointer; }
+
+  /* ============== nav (hidden until past cold open) ============== */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    background: linear-gradient(to bottom, rgba(244,236,218,.92), rgba(244,236,218,.78));
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    border-bottom: 1px solid var(--rule-soft);
+    transform: translateY(-100%);
+    transition: transform .6s cubic-bezier(.22,.7,.2,1);
+  }
+  .nav.revealed { transform: translateY(0); }
+  .nav-inner {
+    max-width: 1180px; margin: 0 auto;
+    padding: 14px 22px;
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 18px;
+  }
+  .brand { display: inline-flex; align-items: baseline; gap: 10px; }
+  .brand-en {
+    font-family: var(--serif); font-weight: 500;
+    font-size: 22px; letter-spacing: .01em;
+  }
+  .brand-gu {
+    font-family: var(--serif-gu); font-size: 19px;
+    color: var(--muted); font-weight: 500;
+  }
+  .menu { display: flex; gap: 22px; align-items: center; }
+  .menu a {
+    font-family: var(--sans);
+    font-size: 12px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-2);
+    position: relative; padding: 6px 2px;
+  }
+  .menu a::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 2px;
+    height: 1px; background: var(--accent);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .35s ease;
+  }
+  .menu a:hover::after { transform: scaleX(1); }
+  .kept-chip {
+    font-family: var(--sans); font-size: 11px;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); border: 1px solid var(--accent);
+    padding: 5px 12px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .3s, color .3s;
+  }
+  .kept-chip:hover { background: var(--accent); color: var(--bg); }
+  @media (max-width: 720px) {
+    .menu a:not(.kept-chip) { display: none; }
+  }
+
+  /* ============== layout helpers ============== */
+  main { position: relative; z-index: 1; }
+  section { padding: clamp(64px, 9vw, 130px) 22px; position: relative; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  .col { width: min(72ch, 92vw); margin: 0 auto; }
+  .col-wide { width: min(102ch, 94vw); margin: 0 auto; }
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: 12px; font-weight: 500;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: var(--accent);
+    display: inline-flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before {
+    content: ""; width: 28px; height: 1px; background: var(--accent);
+    display: inline-block;
+  }
+  .eyebrow.center::before { display: none; }
+  .eyebrow.center { gap: 0; }
+  .eyebrow.dark { color: var(--gold-warm); }
+  .rule {
+    border: 0; height: 1px;
+    background: linear-gradient(to right, transparent, var(--rule), transparent);
+    margin: 0;
+  }
+
+  /* ====================================================================== */
+  /* ====================== COLD OPEN (dark, the test) ==================== */
+  /* ====================================================================== */
+  .cold-open {
+    background: var(--dark);
+    color: var(--on-dark);
+    min-height: 100svh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center;
+    padding: 80px 24px 60px;
+    position: relative; overflow: hidden;
+  }
+  .cold-open::before {
+    content: "";
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(800px 600px at 50% 30%, rgba(212,182,119,.08), transparent 60%),
+      radial-gradient(900px 600px at 70% 80%, rgba(184,86,38,.07), transparent 65%);
+  }
+  .cold-open::after {
+    content: "";
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: .8;
+  }
+  .cold-open > * { position: relative; z-index: 1; }
+
+  .co-label {
+    font-family: var(--sans);
+    font-size: 11px; letter-spacing: .32em;
+    text-transform: uppercase; color: var(--on-dark-3);
+    opacity: 0; animation: rise .8s .1s ease-out forwards;
+  }
+  .co-verse {
+    font-family: var(--serif-gu);
+    font-weight: 500;
+    font-size: clamp(26px, 4.2vw, 48px);
+    line-height: 1.55;
+    color: var(--on-dark);
+    margin: clamp(36px, 5vw, 56px) auto 0;
+    max-width: 22ch;
+    letter-spacing: .005em;
+    opacity: 0; transform: translateY(10px);
+    animation: rise 1.4s .5s cubic-bezier(.2,.7,.2,1) forwards;
+  }
+  .co-verse p { margin: 0 0 .2em; }
+  .co-dot {
+    margin: clamp(28px, 4vw, 40px) auto 0;
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--gold-warm);
+    opacity: 0; animation: rise 1s 1.6s ease-out forwards;
+  }
+  .co-roman {
+    margin: clamp(22px, 3vw, 28px) auto 0;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--on-dark-3);
+    font-size: clamp(13px, 1.5vw, 15px);
+    letter-spacing: .02em;
+    opacity: 0; animation: rise 1s 1.9s ease-out forwards;
+  }
+  .co-translation {
+    margin: clamp(14px, 2vw, 20px) auto 0;
+    font-family: var(--serif);
+    font-size: clamp(16px, 1.9vw, 22px);
+    color: var(--on-dark-2);
+    line-height: 1.55;
+    max-width: 32ch;
+    font-style: italic;
+    font-weight: 300;
+    opacity: 0; animation: rise 1.2s 2.3s ease-out forwards;
+  }
+  .co-attr {
+    margin: clamp(36px, 5vw, 56px) auto 0;
+    font-family: var(--sans);
+    font-size: 11px; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--on-dark-3);
+    opacity: 0; animation: rise 1s 3.0s ease-out forwards;
+  }
+  .co-stay {
+    position: absolute; bottom: 36px; left: 0; right: 0;
+    font-family: var(--sans); font-size: 11px;
+    letter-spacing: .32em; text-transform: uppercase;
+    color: var(--on-dark-3); text-align: center;
+    opacity: 0; animation: rise 1s 3.6s ease-out forwards;
+  }
+  .co-stay span {
+    display: block; width: 1px; height: 36px;
+    background: linear-gradient(to bottom, var(--on-dark-3), transparent);
+    margin: 12px auto 0;
+    animation: pulse 2.8s ease-in-out infinite 4s;
+  }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse {
+    0%, 100% { transform: scaleY(.5); opacity: .3; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+
+  /* ====================================================================== */
+  /* ====================== THE REVEAL / PITCH ============================ */
+  /* ====================================================================== */
+  .reveal-section {
+    background: linear-gradient(to bottom, var(--dark) 0%, var(--dark-2) 30%, var(--bg) 100%);
+    padding: clamp(80px, 12vw, 160px) 22px clamp(64px, 9vw, 120px);
+    color: var(--on-dark);
+    text-align: center;
+  }
+  .reveal-inner { max-width: 56ch; margin: 0 auto; }
+  .reveal-line {
+    font-family: var(--serif);
+    font-size: clamp(18px, 2vw, 22px);
+    line-height: 1.6;
+    color: var(--on-dark-2);
+    font-style: italic;
+    font-weight: 300;
+    margin: 0 0 1em;
+  }
+  .reveal-line em { color: var(--gold-warm); font-style: normal; font-weight: 400; }
+
+  .brand-mark {
+    margin: clamp(44px, 6vw, 64px) auto;
+    display: inline-flex; align-items: baseline; gap: 16px;
+  }
+  .brand-mark .brand-en {
+    font-size: clamp(34px, 5vw, 48px);
+    font-weight: 400;
+    color: var(--on-dark);
+    letter-spacing: -.005em;
+  }
+  .brand-mark .brand-gu {
+    font-size: clamp(22px, 3vw, 30px);
+    color: var(--gold-warm);
+  }
+  .brand-mark + .tagline {
+    color: var(--on-dark-3);
+    font-family: var(--sans);
+    font-size: 12px; letter-spacing: .28em;
+    text-transform: uppercase;
+    margin: -10px 0 0;
+  }
+
+  .pitch {
+    background: var(--bg);
+    padding: clamp(40px, 6vw, 80px) 22px clamp(70px, 9vw, 110px);
+  }
+  .pitch-body {
+    max-width: 60ch; margin: 0 auto;
+    text-align: center;
+  }
+  .pitch h2 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(28px, 4vw, 42px);
+    line-height: 1.15; letter-spacing: -.01em;
+    margin: 14px 0 28px;
+  }
+  .pitch h2 em { font-style: italic; color: var(--accent-2); }
+  .pitch p {
+    font-family: var(--serif);
+    font-size: clamp(17px, 1.8vw, 20px);
+    line-height: 1.65;
+    color: var(--ink-2);
+    margin: 0 0 1em;
+  }
+  .pitch p strong { color: var(--ink); font-weight: 500; }
+  .pitch-promise {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 36px auto 0;
+    max-width: 560px;
+  }
+  .pitch-promise span {
+    font-family: var(--sans);
+    font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 14px 8px;
+    border-top: 1px solid var(--rule);
+  }
+  .pitch-promise span strong {
+    display: block;
+    color: var(--ink);
+    font-size: 13px;
+    letter-spacing: .16em;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  @media (max-width: 560px) {
+    .pitch-promise { grid-template-columns: 1fr; gap: 0; }
+  }
+  .pitch-cta {
+    margin-top: clamp(40px, 6vw, 60px);
+    font-family: var(--sans);
+    font-size: 12px; letter-spacing: .26em;
+    text-transform: uppercase; color: var(--ink);
+    display: inline-flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 6px;
+  }
+  .pitch-cta:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ====================================================================== */
+  /* ====================== TODAY'S READING =============================== */
+  /* ====================================================================== */
+  .today {
+    border-top: 1px solid var(--rule-soft);
+    padding-top: clamp(60px, 8vw, 100px);
+    padding-bottom: clamp(60px, 8vw, 100px);
+  }
+  .today-header {
+    text-align: center;
+    margin-bottom: clamp(40px, 5vw, 60px);
+  }
+  .today-stamp {
+    font-family: var(--sans);
+    font-size: 11px; letter-spacing: .26em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .today-stamp strong {
+    color: var(--accent); font-weight: 500;
+    letter-spacing: .26em;
+  }
+  .today-title {
+    font-family: var(--serif);
+    font-weight: 400; font-style: italic;
+    font-size: clamp(28px, 4vw, 44px);
+    margin: 14px auto 6px;
+    max-width: 24ch;
+    line-height: 1.18;
+    letter-spacing: -.01em;
+  }
+  .today-meta {
+    font-family: var(--sans);
+    font-size: 12px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-2);
+    display: inline-flex; align-items: center; gap: 14px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .today-meta span small { color: var(--muted); margin-left: 6px; letter-spacing: .12em; }
+  .today-meta .dotsep {
+    width: 3px; height: 3px; border-radius: 50%;
+    background: var(--muted); display: inline-block;
+  }
+
+  .poem {
+    text-align: center;
+    margin: 0 auto;
+    padding: clamp(36px, 5vw, 64px) clamp(20px, 4vw, 60px);
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .poem::before, .poem::after {
+    content: "";
+    position: absolute;
+    width: 32px; height: 32px;
+    border: 1px solid var(--gold);
+    opacity: .5;
+  }
+  .poem::before { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+  .poem::after  { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
+  .verse-gu {
+    font-family: var(--serif-gu); font-weight: 500;
+    font-size: clamp(22px, 3.2vw, 34px);
+    line-height: 1.7; color: var(--ink);
+    letter-spacing: .002em;
+  }
+  .verse-gu p { margin: 0 0 .2em; }
+  .verse-roman {
+    margin-top: clamp(22px, 3vw, 32px);
+    font-family: var(--serif); font-style: italic;
+    font-size: clamp(14px, 1.55vw, 17px);
+    color: var(--muted); line-height: 1.7; letter-spacing: .01em;
+  }
+  .verse-roman p { margin: 0; }
+  .verse-en {
+    margin-top: clamp(28px, 3.6vw, 40px);
+    padding-top: clamp(22px, 3vw, 28px);
+    border-top: 1px solid var(--rule);
+    font-family: var(--serif);
+    font-size: clamp(17px, 1.85vw, 22px);
+    line-height: 1.65; color: var(--ink);
+    font-style: italic; font-weight: 300;
+  }
+  .verse-en p { margin: 0 0 .35em; }
+
+  .keep-bar {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    margin-top: clamp(32px, 4vw, 44px);
+  }
+  .keep-btn {
+    font-family: var(--sans);
+    font-size: 12px; letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    background: transparent;
+    border: 1px solid var(--rule);
+    padding: 10px 18px;
+    border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all .3s ease;
+  }
+  .keep-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .keep-btn.kept {
+    background: var(--accent); color: var(--bg); border-color: var(--accent);
+  }
+  .keep-btn svg { width: 14px; height: 14px; }
+
+  .context {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(28px, 4vw, 56px);
+    margin-top: clamp(40px, 5vw, 64px);
+  }
+  @media (max-width: 760px) {
+    .context { grid-template-columns: 1fr; gap: 32px; }
+  }
+  .context h4 {
+    font-family: var(--sans);
+    font-size: 12px; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--deep);
+    margin: 0 0 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .context h4::before {
+    content: ""; width: 20px; height: 1px; background: var(--deep);
+  }
+  .context p {
+    margin: 0 0 1em;
+    font-size: clamp(16px, 1.55vw, 18px);
+    color: var(--ink-2);
+    line-height: 1.7;
+  }
+  .context p:last-child { margin-bottom: 0; }
+  .context em { font-style: italic; color: var(--ink); }
+
+  .tomorrow {
+    margin-top: clamp(48px, 6vw, 72px);
+    text-align: center;
+    padding: clamp(28px, 3.5vw, 36px) clamp(22px, 3vw, 40px);
+    border: 1px dashed var(--rule);
+    border-radius: 2px;
+    max-width: 60ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .tomorrow .eyebrow.center { margin-bottom: 10px; }
+  .tomorrow h3 {
+    font-family: var(--serif); font-weight: 400; font-style: italic;
+    font-size: clamp(20px, 2.4vw, 26px);
+    margin: 0 0 8px;
+  }
+  .tomorrow p {
+    color: var(--ink-2); margin: 0;
+    font-size: clamp(15px, 1.6vw, 17px);
+  }
+
+  /* ====================================================================== */
+  /* ====================== THE THREAD ==================================== */
+  /* ====================================================================== */
+  .thread {
+    background: linear-gradient(to bottom, var(--bg), var(--bg-2));
+    border-top: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .thread-header {
+    text-align: center;
+    margin-bottom: clamp(40px, 5vw, 56px);
+  }
+  .thread-header h2 {
+    font-family: var(--serif); font-weight: 400; font-style: italic;
+    font-size: clamp(28px, 4vw, 42px);
+    margin: 14px auto 12px;
+    max-width: 22ch;
+    line-height: 1.18;
+  }
+  .thread-header h2 em { color: var(--accent-2); }
+  .thread-header p {
+    color: var(--muted); max-width: 52ch; margin: 0 auto;
+    font-size: clamp(15px, 1.6vw, 17px);
+  }
+
+  .path {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 14px;
+    margin: 0 auto;
+    max-width: 1080px;
+    position: relative;
+  }
+  .path::before {
+    content: "";
+    position: absolute;
+    top: 26px; left: 6%; right: 6%; height: 1px;
+    background: var(--rule);
+    z-index: 0;
+  }
+  .day {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    padding: 0 4px;
+  }
+  .day-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    margin-bottom: 18px;
+    margin-top: 18px;
+    position: relative;
+  }
+  .day.today .day-dot {
+    background: var(--accent); border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(184,86,38,.15), 0 0 0 8px rgba(184,86,38,.06);
+  }
+  .day.today .day-dot::after {
+    content: ""; position: absolute; inset: -8px;
+    border-radius: 50%; border: 1px solid var(--accent);
+    opacity: .4;
+    animation: ring 2.4s ease-out infinite;
+  }
+  @keyframes ring {
+    from { transform: scale(.6); opacity: .8; }
+    to { transform: scale(1.8); opacity: 0; }
+  }
+  .day-num {
+    font-family: var(--sans);
+    font-size: 10px; letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .day.today .day-num { color: var(--accent); }
+  .day-title {
+    font-family: var(--serif);
+    font-size: 13px; line-height: 1.35;
+    color: var(--ink-2);
+    margin: 0;
+  }
+  .day-poet {
+    font-family: var(--sans);
+    font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .day.locked { opacity: .55; }
+  .day.today { opacity: 1; }
+  @media (max-width: 820px) {
+    .path { grid-template-columns: 1fr; gap: 0; }
+    .path::before { display: none; }
+    .day {
+      flex-direction: row;
+      text-align: left;
+      gap: 16px;
+      padding: 16px 8px;
+      border-bottom: 1px solid var(--rule-soft);
+    }
+    .day-dot { margin: 0; flex-shrink: 0; }
+    .day-num { margin: 0; min-width: 64px; }
+    .day-title { font-size: 15px; }
+    .day-poet { margin: 4px 0 0; }
+    .day-content { display: flex; flex-direction: column; gap: 4px; }
+  }
+  .desktop-only { display: contents; }
+  .mobile-only { display: none; }
+  @media (max-width: 820px) {
+    .desktop-only { display: none; }
+    .mobile-only { display: contents; }
+  }
+
+  .paths-more {
+    margin-top: clamp(56px, 7vw, 80px);
+    text-align: center;
+  }
+  .paths-more-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 28px;
+    max-width: 820px;
+    margin-left: auto; margin-right: auto;
+  }
+  .path-card {
+    text-align: left;
+    padding: 22px 24px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    transition: all .35s ease;
+  }
+  .path-card:hover { transform: translateY(-2px); border-color: var(--rule); box-shadow: var(--shadow); }
+  .path-card-num {
+    font-family: var(--sans);
+    font-size: 11px; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .path-card h4 {
+    font-family: var(--serif); font-weight: 500;
+    font-size: 18px; margin: 0 0 6px;
+  }
+  .path-card p {
+    margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5;
+  }
+
+  /* ====================================================================== */
+  /* ====================== VAULT (kept lines) ============================ */
+  /* ====================================================================== */
+  .vault-header {
+    text-align: center;
+    margin-bottom: clamp(40px, 5vw, 56px);
+  }
+  .vault-header h2 {
+    font-family: var(--serif); font-weight: 400; font-style: italic;
+    font-size: clamp(28px, 4vw, 42px);
+    margin: 14px auto 12px;
+    max-width: 28ch;
+    line-height: 1.18;
+  }
+  .vault-header p {
+    color: var(--muted); max-width: 52ch; margin: 0 auto;
+    font-size: clamp(15px, 1.6vw, 17px);
+  }
+  .vault-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(20px, 2.5vw, 28px);
+  }
+  .couplet {
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    padding: clamp(28px, 3vw, 36px) clamp(24px, 2.6vw, 32px);
+    transition: all .4s ease;
+    display: flex; flex-direction: column; gap: 14px;
+    position: relative;
+  }
+  .couplet:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    border-color: var(--rule);
+  }
+  .couplet-gu {
+    font-family: var(--serif-gu);
+    font-size: clamp(19px, 2vw, 22px);
+    color: var(--ink); line-height: 1.55;
+    font-weight: 500;
+  }
+  .couplet-en {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-2);
+    font-size: 16px; line-height: 1.55;
+    margin: 0;
+  }
+  .couplet-foot {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule-soft);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+  }
+  .couplet-meta {
+    font-family: var(--sans);
+    font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .couplet-meta strong {
+    display: block;
+    font-weight: 500; color: var(--deep);
+    letter-spacing: .16em; margin-bottom: 2px;
+  }
+  .keep-mini {
+    background: transparent; border: 0; padding: 6px;
+    color: var(--muted);
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--sans);
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    transition: color .25s ease;
+  }
+  .keep-mini:hover { color: var(--accent); }
+  .keep-mini svg { width: 13px; height: 13px; transition: all .3s ease; }
+  .keep-mini.kept { color: var(--accent); }
+  .keep-mini.kept svg { fill: var(--accent); stroke: var(--accent); }
+  .keep-mini .count {
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  /* ====================================================================== */
+  /* ====================== VOICES ======================================== */
+  /* ====================================================================== */
+  .voices-header {
+    text-align: center;
+    margin-bottom: clamp(40px, 5vw, 56px);
+  }
+  .voices-header h2 {
+    font-family: var(--serif); font-weight: 400; font-style: italic;
+    font-size: clamp(28px, 4vw, 42px);
+    margin: 14px auto 12px;
+    max-width: 28ch;
+    line-height: 1.18;
+  }
+  .voices-header p { color: var(--muted); max-width: 52ch; margin: 0 auto; }
+  .voices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: clamp(20px, 2.5vw, 32px);
+  }
+  .voice {
+    padding: clamp(28px, 3vw, 36px);
+    background: linear-gradient(180deg, var(--surface), var(--bg-2));
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    display: flex; flex-direction: column; gap: 16px;
+    transition: all .4s ease;
+    position: relative; overflow: hidden;
+  }
+  .voice::before {
+    content: ""; position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%; background: var(--accent);
+    transform: scaleY(0); transform-origin: top;
+    transition: transform .5s ease;
+  }
+  .voice:hover { transform: translateY(-3px); border-color: var(--rule); }
+  .voice:hover::before { transform: scaleY(1); }
+  .voice-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 14px;
+  }
+  .voice-name {
+    font-family: var(--serif); font-size: clamp(20px, 2vw, 24px);
+    font-weight: 500; letter-spacing: -.005em;
+  }
+  .voice-gu {
+    font-family: var(--serif-gu);
+    color: var(--muted); font-size: 16px; font-weight: 500;
+  }
+  .voice-dates {
+    font-family: var(--sans);
+    font-size: 12px; color: var(--muted); letter-spacing: .1em;
+  }
+  .voice-tag {
+    display: inline-block;
+    font-family: var(--sans);
+    font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 10px; border-radius: 999px;
+    width: max-content;
+  }
+  .voice-desc {
+    font-family: var(--serif);
+    font-size: 17px; line-height: 1.6;
+    color: var(--ink-2); margin: 0;
+  }
+  .voice-desc em { font-style: italic; color: var(--ink); }
+
+  /* ====================================================================== */
+  /* ====================== STORIES ======================================= */
+  /* ====================================================================== */
+  .stories {
+    background: linear-gradient(180deg, var(--bg), var(--bg-2));
+    border-top: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .stories-header {
+    text-align: center;
+    margin-bottom: clamp(40px, 5vw, 56px);
+  }
+  .stories-header h2 {
+    font-family: var(--serif); font-weight: 400; font-style: italic;
+    font-size: clamp(28px, 4vw, 42px);
+    margin: 14px auto 12px;
+    max-width: 28ch; line-height: 1.18;
+  }
+  .stories-header p { color: var(--muted); max-width: 54ch; margin: 0 auto; }
+  .stories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(28px, 3vw, 44px);
+  }
+  .story {
+    display: flex; flex-direction: column; gap: 14px;
+    padding-right: 8px;
+  }
+  .story-num {
+    font-family: var(--serif); font-style: italic;
+    font-size: 48px; color: var(--gold);
+    line-height: 1; opacity: .75;
+  }
+  .story-title {
+    font-family: var(--serif);
+    font-size: clamp(22px, 2.4vw, 28px);
+    font-weight: 500;
+    margin: 0; line-height: 1.25;
+  }
+  .story-gu {
+    font-family: var(--serif-gu);
+    color: var(--muted);
+    font-size: 17px; font-weight: 500;
+    margin: -4px 0 0;
+  }
+  .story-meta {
+    font-family: var(--sans);
+    font-size: 12px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-2);
+  }
+  .story-tease {
+    font-family: var(--serif);
+    font-size: 17px; line-height: 1.65;
+    color: var(--ink-2);
+    margin: 0;
+  }
+  .story-tease em { font-style: italic; color: var(--accent-2); }
+
+  /* ====================================================================== */
+  /* ====================== SUNDAY LETTER ================================= */
+  /* ====================================================================== */
+  .letter {
+    background: var(--dark);
+    color: var(--on-dark);
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .letter::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(900px 500px at 30% 30%, rgba(212,182,119,.06), transparent 60%),
+      radial-gradient(800px 500px at 75% 70%, rgba(184,86,38,.06), transparent 60%);
+  }
+  .letter::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: .7;
+  }
+  .letter > * { position: relative; z-index: 1; }
+  .letter .eyebrow.center { color: var(--gold-warm); }
+  .letter h2 {
+    font-family: var(--serif); font-weight: 400; font-style: italic;
+    font-size: clamp(30px, 4.5vw, 46px);
+    line-height: 1.15; margin: 16px auto 22px;
+    max-width: 22ch;
+    color: var(--on-dark);
+  }
+  .letter h2 em { color: var(--gold-warm); }
+  .letter p {
+    color: var(--on-dark-2);
+    max-width: 52ch; margin: 0 auto 14px;
+    font-size: clamp(16px, 1.7vw, 19px);
+    line-height: 1.65;
+  }
+  .letter-form {
+    display: flex; gap: 0;
+    max-width: 460px;
+    margin: 36px auto 18px;
+    border-bottom: 1px solid var(--on-dark-3);
+    transition: border-color .3s;
+  }
+  .letter-form:focus-within { border-color: var(--gold-warm); }
+  .letter-form input {
+    flex: 1;
+    background: transparent;
+    border: 0; outline: 0;
+    color: var(--on-dark);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 17px;
+    padding: 14px 4px;
+  }
+  .letter-form input::placeholder { color: var(--on-dark-3); }
+  .letter-form button {
+    background: transparent;
+    border: 0; color: var(--gold-warm);
+    font-family: var(--sans);
+    font-size: 12px; letter-spacing: .22em;
+    text-transform: uppercase;
+    padding: 14px 8px;
+    transition: color .25s, transform .25s;
+  }
+  .letter-form button:hover { color: var(--on-dark); transform: translateX(3px); }
+  .letter-fine {
+    font-family: var(--sans);
+    font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--on-dark-3);
+    margin-top: 12px;
+  }
+  .letter-success {
+    display: none;
+    color: var(--gold-warm);
+    font-style: italic;
+    margin-top: 22px;
+  }
+  .letter-success.show { display: block; }
+
+  /* ====================================================================== */
+  /* ====================== CLOSING / FOOTER ============================== */
+  /* ====================================================================== */
+  .closing {
+    text-align: center;
+    padding-bottom: clamp(60px, 8vw, 100px);
+  }
+  .closing h2 {
+    font-family: var(--serif);
+    font-weight: 400; font-style: italic;
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.18;
+    margin: 18px auto 22px;
+    max-width: 24ch;
+  }
+  .closing h2 em { color: var(--accent-2); }
+  .closing p {
+    max-width: 50ch; margin: 0 auto 20px;
+    color: var(--ink-2);
+    font-size: clamp(16px, 1.6vw, 19px);
+  }
+  footer {
+    border-top: 1px solid var(--rule-soft);
+    padding: 36px 22px 56px;
+    text-align: center;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  footer .brand {
+    justify-content: center;
+    display: inline-flex;
+  }
+  footer p { margin: 12px 0 0; }
+
+  /* ============== reveal on scroll ============== */
+  .reveal-up {
+    opacity: 0; transform: translateY(16px);
+    transition: opacity .9s ease, transform .9s ease;
+  }
+  .reveal-up.in { opacity: 1; transform: translateY(0); }
+
+  /* ============== welcome-back banner ============== */
+  .welcome-back {
+    position: fixed;
+    top: 12px; left: 50%;
+    transform: translateX(-50%) translateY(-200%);
+    background: var(--ink);
+    color: var(--bg);
+    font-family: var(--sans);
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    padding: 10px 22px;
+    border-radius: 999px;
+    z-index: 60;
+    transition: transform .8s cubic-bezier(.2,.7,.2,1) 1s;
+    box-shadow: 0 8px 24px rgba(28,24,18,.25);
+  }
+  .welcome-back.show {
+    transform: translateX(-50%) translateY(0);
+  }
+  .welcome-back strong {
+    color: var(--gold-warm);
+    font-weight: 500;
+    margin-left: 6px;
+  }
+
+  /* mobile tightening */
+  @media (max-width: 520px) {
+    section { padding-left: 18px; padding-right: 18px; }
+    .nav-inner { padding-left: 18px; padding-right: 18px; }
+    .verse-gu { font-size: 22px; }
+    .poem { padding: 28px 18px; }
+    .poem::before, .poem::after { width: 22px; height: 22px; top: 8px; left: 8px; }
+    .poem::after { left: auto; top: auto; right: 8px; bottom: 8px; }
+    .co-verse { max-width: 18ch; }
+  }
+</style>
+</head>
+<body class="in-light">
+
+<!-- ============== Welcome back chip (for returning visitors) ============== -->
+<div class="welcome-back" id="welcomeBack" aria-live="polite">
+  Welcome back. <strong id="welcomeBackDay">Day 2.</strong>
+</div>
+
+<!-- ============== NAV (hidden until past cold open) ============== -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top" aria-label="Aksharo">
+      <span class="brand-en">Aksharo</span>
+      <span class="brand-gu">અક્ષરો</span>
+    </a>
+    <nav class="menu" aria-label="Primary">
+      <a href="#today">Today</a>
+      <a href="#thread">The Thread</a>
+      <a href="#vault">Vault</a>
+      <a href="#voices">Voices</a>
+      <a href="#vault" class="kept-chip" id="navKept">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 2h10v12l-5-3-5 3z"/></svg>
+        <span id="navKeptCount">0</span> kept
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ====================================================================== -->
+  <!-- ============================ COLD OPEN =============================== -->
+  <!-- ====================================================================== -->
+  <section class="cold-open" id="cold-open">
+    <div class="co-label">a Gujarati line · 1960s · Bombay</div>
+
+    <div class="co-verse">
+      <p>મારી&nbsp;હસ્તિ&nbsp;મારી&nbsp;પાછળ&nbsp;એ&nbsp;રીતે&nbsp;વિસરાઈ&nbsp;ગઈ</p>
+      <p>આંગળી&nbsp;જળમાંથી&nbsp;નીકળી,&nbsp;ને&nbsp;જગ્યા&nbsp;પુરાઈ&nbsp;ગઈ</p>
+    </div>
+
+    <div class="co-dot"></div>
+
+    <div class="co-roman">
+      Maari hasti maari paachhal e reete visaraai gayi —<br>
+      aangli jal-maanthi nikli, ne jagya puraai gayi.
+    </div>
+
+    <div class="co-translation">
+      My existence, behind me, was forgotten like this:<br>
+      a finger pulled out of water — and the space filled in.
+    </div>
+
+    <div class="co-attr">— Mareez · 1917 – 1983</div>
+
+    <div class="co-stay">
+      if you stayed, scroll
+      <span></span>
+    </div>
+  </section>
+
+  <!-- ====================================================================== -->
+  <!-- ====================== THE REVEAL ==================================== -->
+  <!-- ====================================================================== -->
+  <section class="reveal-section">
+    <div class="reveal-inner">
+      <p class="reveal-line">
+        Mareez wrote that in a one-room flat in Bombay's Bhendi Bazaar.
+        He was poor. He was an alcoholic. He never told most people he was writing.
+        He died in 1983. <em>You never heard of him.</em>
+      </p>
+      <p class="reveal-line">
+        Your phone has been hiding lines like this from you for ten years.
+      </p>
+
+      <div class="brand-mark">
+        <span class="brand-en">Aksharo</span>
+        <span class="brand-gu">અક્ષરો</span>
+      </div>
+      <div class="tagline">A reading room, not a feed.</div>
+    </div>
+  </section>
+
+  <!-- ====================================================================== -->
+  <!-- ====================== THE PITCH ===================================== -->
+  <!-- ====================================================================== -->
+  <section class="pitch">
+    <div class="pitch-body">
+      <div class="eyebrow center">What this is</div>
+      <h2>One piece of Gujarati. Every day. <em>Five minutes.</em></h2>
+      <p>
+        A couplet, a poem, a fragment from a story. Always in the original Gujarati,
+        with a transliteration for those who never learned the script, and a translation
+        that tries to keep the ache and lose the lecture.
+      </p>
+      <p>
+        We tell you where it came from. <strong>Who wrote it. What they were running from.
+        Why someone bothered to write it in the first place.</strong>
+        And then we leave you alone with it.
+      </p>
+
+      <div class="pitch-promise">
+        <span><strong>No feed</strong>The page ends when the page ends.</span>
+        <span><strong>No notifications</strong>You come back because you want to.</span>
+        <span><strong>No algorithm</strong>A human chose today's piece. On purpose.</span>
+      </div>
+
+      <a href="#today" class="pitch-cta">Today's reading ↓</a>
+    </div>
+  </section>
+
+  <!-- ====================================================================== -->
+  <!-- ====================== TODAY'S READING =============================== -->
+  <!-- ====================================================================== -->
+  <section class="today" id="today">
+    <div class="col-wide reveal-up">
+
+      <div class="today-header">
+        <div class="today-stamp">
+          <span id="todayDate">Tuesday · 16 June 2026</span>&nbsp;&nbsp;·&nbsp;&nbsp;<strong>Day 1 of Path I</strong>
+        </div>
+        <div class="eyebrow center">Today's reading</div>
+        <h2 class="today-title">A working definition of a good person</h2>
+        <div class="today-meta">
+          <span>Narsinh Mehta <small>નરસિંહ&nbsp;મહેતા</small></span>
+          <span class="dotsep"></span>
+          <span>c. 1414 – 1481</span>
+          <span class="dotsep"></span>
+          <span>Read time · 4 minutes</span>
+        </div>
+      </div>
+
+      <div class="poem">
+        <div class="verse-gu">
+          <p>વૈષ્ણવ&nbsp;જન&nbsp;તો&nbsp;તેને&nbsp;કહીએ,</p>
+          <p>જે&nbsp;પીડ&nbsp;પરાઈ&nbsp;જાણે&nbsp;રે</p>
+          <p>પરદુઃખે&nbsp;ઉપકાર&nbsp;કરે&nbsp;તોયે,</p>
+          <p>મન&nbsp;અભિમાન&nbsp;ન&nbsp;આણે&nbsp;રે</p>
+        </div>
+        <div class="verse-roman">
+          <p>Vaishnav jan to tene kahiye,</p>
+          <p>je peed parai jaane re —</p>
+          <p>par-dukhe upakaar kare toye,</p>
+          <p>man abhimaan na aane re.</p>
+        </div>
+        <div class="verse-en">
+          <p>Call him the true one — that one —</p>
+          <p>who feels another's pain as his own.</p>
+          <p>Who eases the suffering of strangers,</p>
+          <p>and lets no pride enter his heart.</p>
+        </div>
+
+        <div class="keep-bar">
+          <button class="keep-btn" data-keep="today-narsinh">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 2h10v12l-5-3-5 3z"/></svg>
+            Keep this line
+          </button>
+        </div>
+      </div>
+
+      <div class="context">
+        <div>
+          <h4>Where this comes from</h4>
+          <p>
+            Junagadh, mid-15th century. Narsinh Mehta — saint, widower, cast out of
+            his Nagar Brahmin community for the unforgivable sin of singing alongside
+            the untouchables. He has no patron, no temple, no caste, no defenders.
+          </p>
+          <p>
+            And so he writes a definition. It opens with the word <em>Vaishnav</em>,
+            but listen to where it goes: not to a god, not to a ritual, not even to a temple.
+            It goes to <em>peed parai</em> — another's pain. That's where the poem
+            locates the holy.
+          </p>
+        </div>
+        <div>
+          <h4>Why it still matters</h4>
+          <p>
+            Gandhi made this his daily prayer. Not because he was theologically
+            Vaishnav — he wasn't, particularly — but because of what comes after the word.
+            The poem says goodness isn't measured by what you believe.
+            It's measured by <em>whose pain you can feel</em>.
+          </p>
+          <p>
+            Six centuries later, the test still works. Try it on anyone you know.
+            Try it on yourself. The hardest line, always, is the last —
+            doing the kindness, then quietly refusing the credit.
+          </p>
+        </div>
+      </div>
+
+      <div class="tomorrow">
+        <div class="eyebrow center">Tomorrow</div>
+        <h3>The poet from the cold open, properly.</h3>
+        <p>
+          Mareez. The finger in water. Five hundred years after Narsinh,
+          the same question, asked sideways — <em>what is the self that does the feeling?</em>
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================== -->
+  <!-- ====================== THE THREAD ==================================== -->
+  <!-- ====================================================================== -->
+  <section class="thread" id="thread">
+    <div class="wrap reveal-up">
+
+      <div class="thread-header">
+        <div class="eyebrow center">The thread you're on</div>
+        <h2>Path I — <em>What is a self?</em></h2>
+        <p>
+          Seven days. Seven Gujarati voices, six hundred years apart, all answering
+          the same question. You're on Day 1. There's no rush.
+        </p>
+      </div>
+
+      <div class="path">
+        <div class="day today">
+          <div class="day-num">Day 1</div>
+          <div class="day-dot"></div>
+          <p class="day-title">Whoever's pain you can feel</p>
+          <div class="day-poet">Narsinh Mehta · 15th c.</div>
+        </div>
+        <div class="day locked">
+          <div class="day-num">Day 2</div>
+          <div class="day-dot"></div>
+          <p class="day-title">A finger withdrawn from water</p>
+          <div class="day-poet">Mareez · 20th c.</div>
+        </div>
+        <div class="day locked">
+          <div class="day-num">Day 3</div>
+          <div class="day-dot"></div>
+          <p class="day-title">Wherever my gaze rests</p>
+          <div class="day-poet">Kalapi · 19th c.</div>
+        </div>
+        <div class="day locked">
+          <div class="day-num">Day 4</div>
+          <div class="day-dot"></div>
+          <p class="day-title">Cease being yourself, become someone of the world</p>
+          <div class="day-poet">Umashankar Joshi · 20th c.</div>
+        </div>
+        <div class="day locked">
+          <div class="day-num">Day 5</div>
+          <div class="day-dot"></div>
+          <p class="day-title">A self that just discovered its own body</p>
+          <div class="day-poet">Ramesh Parekh · 20th c.</div>
+        </div>
+        <div class="day locked">
+          <div class="day-num">Day 6</div>
+          <div class="day-dot"></div>
+          <p class="day-title">A woman watching herself in a mirror</p>
+          <div class="day-poet">Saroj Pathak · 20th c.</div>
+        </div>
+        <div class="day locked">
+          <div class="day-num">Day 7</div>
+          <div class="day-dot"></div>
+          <p class="day-title">The self that becomes a village singing</p>
+          <div class="day-poet">A folk song · oral</div>
+        </div>
+      </div>
+
+      <div class="paths-more">
+        <div class="eyebrow center">After this week — other paths</div>
+        <div class="paths-more-grid">
+          <div class="path-card">
+            <div class="path-card-num">Path II</div>
+            <h4>Heartbreak, across four centuries</h4>
+            <p>From a 17th-century devotional ache to a Mumbai ghazal of being left on read.</p>
+          </div>
+          <div class="path-card">
+            <div class="path-card-num">Path III</div>
+            <h4>How Gujarati poets argue with God</h4>
+            <p>Less reverence than you'd expect. More elbow.</p>
+          </div>
+          <div class="path-card">
+            <div class="path-card-num">Path IV</div>
+            <h4>What Gujarati does that English can't</h4>
+            <p>Seven words English will never have. And the lines they live in.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================================== -->
+  <!-- ====================== VAULT (kept lines) ============================ -->
+  <!-- ====================================================================== -->
+  <section id="vault" class="reveal-up">
+    <div class="col-wide">
+
+      <div class="vault-header">
+        <div class="eyebrow center">The vault · this week</div>
+        <h2>Lines other readers <em>are still sitting with</em></h2>
+        <p>
+          Couplets and folk-lines visitors have kept this week. Tap the bookmark on
+          anything that catches you — it'll live in your collection. <span id="keptStatus" style="color:var(--accent);font-style:italic;"></span>
+        </p>
+      </div>
+
+      <div class="vault-grid">
+
+        <article class="couplet" data-keep="meghani-savaj">
+          <div class="couplet-gu">સાવજ&nbsp;ગરજે!<br>વનરાવનનો&nbsp;રાજા&nbsp;ગરજે!</div>
+          <p class="couplet-en">The lion roars! The king of the wild roars!</p>
+          <div class="couplet-foot">
+            <div class="couplet-meta">
+              <strong>Jhaverchand Meghani</strong>Charan Kanya · 1928
+            </div>
+            <button class="keep-mini" data-keep="meghani-savaj" aria-label="Keep this line">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 2h10v12l-5-3-5 3z"/></svg>
+              Keep <span class="count">· 412</span>
+            </button>
+          </div>
+        </article>
+
+        <article class="couplet" data-keep="kalapi-najar">
+          <div class="couplet-gu">જ્યાં&nbsp;જ્યાં&nbsp;નજર&nbsp;મારી&nbsp;ઠરે,<br>યાદી&nbsp;ભરી&nbsp;ત્યાં&nbsp;આપની.</div>
+          <p class="couplet-en">Wherever my gaze comes to rest, your memory is already there.</p>
+          <div class="couplet-foot">
+            <div class="couplet-meta">
+              <strong>Kalapi</strong>1894
+            </div>
+            <button class="keep-mini" data-keep="kalapi-najar" aria-label="Keep this line">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 2h10v12l-5-3-5 3z"/></svg>
+              Keep <span class="count">· 1,206</span>
+            </button>
+          </div>
+        </article>
+
+        <article class="couplet" data-keep="umashankar-vyakti">
+          <div class="couplet-gu">વ્યક્તિ&nbsp;મટીને&nbsp;બનું&nbsp;વિશ્વમાનવી;<br>માથે&nbsp;ધરું&nbsp;ધૂળ&nbsp;વસુન્ધરાની.</div>
+          <p class="couplet-en">Let me stop being an individual and become someone of the world; let me wear the dust of the earth on my head.</p>
+          <div class="couplet-foot">
+            <div class="couplet-meta">
+              <strong>Umashankar Joshi</strong>1947
+            </div>
+            <button class="keep-mini" data-keep="umashankar-vyakti" aria-label="Keep this line">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 2h10v12l-5-3-5 3z"/></svg>
+              Keep <span class="count">· 287</span>
+            </button>
+          </div>
+        </article>
+
+        <article class="couplet" data-keep="folk-aavje">
+          <div class="couplet-gu">મારે&nbsp;ઘેર&nbsp;આવજે&nbsp;માવા,<br>મારે&nbsp;આંગણ&nbsp;ફૂલડાં&nbsp;ઊગ્યાં&nbsp;છે.</div>
+          <p class="couplet-en">Come home, beloved — the flowers in my courtyard have bloomed.</p>
+          <div class="couplet-foot">
+            <div class="couplet-meta">
+              <strong>Folk</strong>Saurashtra · oral
+            </div>
+            <button class="keep-mini" data-keep="folk-aavje" aria-label="Keep this line">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 2h10v12l-5-3-5 3z"/></svg>
+              Keep <span class="count">· 894</span>
+            </button>
+          </div>
+        </article>
+
+        <article class="couplet" data-keep="priyakant-nabh">
+          <div class="couplet-gu">આ&nbsp;નભ&nbsp;ઝૂક્યું&nbsp;તે&nbsp;કાનજી,<br>ચાંદની&nbsp;તે&nbsp;રાધા&nbsp;રે.</div>
+          <p class="couplet-en">This sky leaning low — that's Krishna. The moonlight pouring out — that's Radha.</p>
+          <div class="couplet-foot">
+            <div class="couplet-meta">
+              <strong>Priyakant Maniyar</strong>1960s
+            </div>
+            <button class="keep-mini" data-keep="priyakant-nabh" aria-label="Keep this line">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 2h10v12l-5-3-5 3z"/></svg>
+              Keep <span class="count">· 521</span>
+            </button>
+          </div>
+        </article>
+
+        <article class="couplet" data-keep="mareez-haste">
+          <div class="couplet-gu">દુનિયામાં&nbsp;મને&nbsp;મોકલીને&nbsp;એ&nbsp;પસ્તાય&nbsp;છે,<br>કુદરત&nbsp;ભૂલ&nbsp;ભૂલમાં&nbsp;ફસાય&nbsp;છે.</div>
+          <p class="couplet-en">He regrets having sent me into the world — even providence gets caught in its own mistakes.</p>
+          <div class="couplet-foot">
+            <div class="couplet-meta">
+              <strong>Mareez</strong>1970s
+            </div>
+            <button class="keep-mini" data-keep="mareez-haste" aria-label="Keep this line">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 2h10v12l-5-3-5 3z"/></svg>
+              Keep <span class="count">· 1,743</span>
+            </button>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================== -->
+  <!-- ====================== VOICES ======================================== -->
+  <!-- ====================================================================== -->
+  <section id="voices" class="reveal-up">
+    <div class="col-wide">
+      <div class="voices-header">
+        <div class="eyebrow center">The voices</div>
+        <h2>Six poets, in one sentence each</h2>
+        <p>Just enough to know whose room you're walking into. The reading comes after.</p>
+      </div>
+
+      <div class="voices-grid">
+
+        <article class="voice">
+          <span class="voice-tag">Bhakti</span>
+          <div class="voice-head">
+            <div>
+              <div class="voice-name">Narsinh Mehta</div>
+              <div class="voice-gu">નરસિંહ&nbsp;મહેતા</div>
+            </div>
+            <div class="voice-dates">c.1414 – 1481</div>
+          </div>
+          <p class="voice-desc">
+            The first voice in the language. An outcast saint who wrote definitions, not doctrines.
+            Read him second — <em>after</em> someone modern — so you can feel how he got there first.
+          </p>
+        </article>
+
+        <article class="voice">
+          <span class="voice-tag">Ghazal</span>
+          <div class="voice-head">
+            <div>
+              <div class="voice-name">Mareez</div>
+              <div class="voice-gu">મરીઝ</div>
+            </div>
+            <div class="voice-dates">1917 – 1983</div>
+          </div>
+          <p class="voice-desc">
+            The Ghalib of Gujarati. Lived in poverty in a Bombay bylane, wrote couplets
+            so precise that people now quote them as proverbs — <em>without realising someone, somewhere, paid for each one in cigarettes and silence.</em>
+          </p>
+        </article>
+
+        <article class="voice">
+          <span class="voice-tag">Romantic</span>
+          <div class="voice-head">
+            <div>
+              <div class="voice-name">Kalapi</div>
+              <div class="voice-gu">કલાપી</div>
+            </div>
+            <div class="voice-dates">1874 – 1900</div>
+          </div>
+          <p class="voice-desc">
+            A prince who died at twenty-six, leaving Gujarati its first modern love poems —
+            the kind where the beloved isn't a goddess, just <em>someone</em>, and the speaker isn't asking
+            for her, only noticing what she has done to him.
+          </p>
+        </article>
+
+        <article class="voice">
+          <span class="voice-tag">Humanist</span>
+          <div class="voice-head">
+            <div>
+              <div class="voice-name">Umashankar Joshi</div>
+              <div class="voice-gu">ઉમાશંકર&nbsp;જોશી</div>
+            </div>
+            <div class="voice-dates">1911 – 1988</div>
+          </div>
+          <p class="voice-desc">
+            Jnanpith laureate. Wrote in the wake of partition like a man trying to be larger
+            than his own borders — and managed it more often than most of us manage on a good day.
+          </p>
+        </article>
+
+        <article class="voice">
+          <span class="voice-tag">Folk · Patriot</span>
+          <div class="voice-head">
+            <div>
+              <div class="voice-name">Jhaverchand Meghani</div>
+              <div class="voice-gu">ઝવેરચંદ&nbsp;મેઘાણી</div>
+            </div>
+            <div class="voice-dates">1896 – 1947</div>
+          </div>
+          <p class="voice-desc">
+            Travelled Saurashtra on foot, notebook in hand, collecting what the villages were
+            already singing. Gandhi called him <em>Rashtriya Shayar</em> — the national bard —
+            for poems that sound like a horse at full gallop.
+          </p>
+        </article>
+
+        <article class="voice">
+          <span class="voice-tag">Modern</span>
+          <div class="voice-head">
+            <div>
+              <div class="voice-name">Ramesh Parekh</div>
+              <div class="voice-gu">રમેશ&nbsp;પારેખ</div>
+            </div>
+            <div class="voice-dates">1940 – 2006</div>
+          </div>
+          <p class="voice-desc">
+            Wrote like a man who had just rediscovered his own body —
+            and a woman named Sonal who may or may not have been real,
+            and a Saurashtra that <em>only exists when you're reading him</em>.
+          </p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================== -->
+  <!-- ====================== STORIES ======================================= -->
+  <!-- ====================================================================== -->
+  <section class="stories" id="stories">
+    <div class="col-wide reveal-up">
+      <div class="stories-header">
+        <div class="eyebrow center">Short Stories&nbsp;·&nbsp;ટૂંકી&nbsp;વાર્તાઓ</div>
+        <h2>Three openings — <em>no endings spoiled</em></h2>
+        <p>
+          Gujarati prose was quieter than Bengali, sparser than Malayalam,
+          and at its best it could break a reader's wrist with a single sentence.
+        </p>
+      </div>
+
+      <div class="stories-grid">
+        <article class="story">
+          <div class="story-num">i.</div>
+          <h3 class="story-title">The Post Office</h3>
+          <div class="story-gu">પોસ્ટ&nbsp;ઑફિસ</div>
+          <div class="story-meta">Dhumketu&nbsp;·&nbsp;ધૂમકેતુ&nbsp;·&nbsp;1923</div>
+          <p class="story-tease">
+            An old man called Coachman Ali walks to the post office every dawn,
+            sits on the same step, and asks the same question.
+            For five years the postmaster has been annoyed by him.
+            For five years the answer has been no.
+            The story is about <em>what the postmaster realises</em> — and when.
+          </p>
+        </article>
+
+        <article class="story">
+          <div class="story-num">ii.</div>
+          <h3 class="story-title">A Tale of Humanity</h3>
+          <div class="story-gu">માનવીની&nbsp;ભવાઈ</div>
+          <div class="story-meta">Pannalal Patel&nbsp;·&nbsp;પન્નાલાલ&nbsp;પટેલ&nbsp;·&nbsp;1947</div>
+          <p class="story-tease">
+            Two villagers, Kalu and Raju, want to marry each other.
+            Then comes the Chhappaniya — the famine of 1900 — and the novel becomes
+            something else. Not a love story interrupted by hunger.
+            <em>A love story made entirely of hunger</em>,
+            in which every meal is a moral decision.
+          </p>
+        </article>
+
+        <article class="story">
+          <div class="story-num">iii.</div>
+          <h3 class="story-title">Night of the Full Moon</h3>
+          <div class="story-gu">પૂનમની&nbsp;રાત</div>
+          <div class="story-meta">Saroj Pathak&nbsp;·&nbsp;સરોજ&nbsp;પાઠક&nbsp;·&nbsp;1960s</div>
+          <p class="story-tease">
+            Saroj Pathak wrote about middle-class Gujarati women the way a surgeon
+            writes about an organ they have decided to save.
+            This story takes place over one evening, in one house, between one woman
+            and her own reflection. <em>Nothing happens.</em>
+            Everything is decided.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================== -->
+  <!-- ====================== SUNDAY LETTER ================================= -->
+  <!-- ====================================================================== -->
+  <section class="letter" id="letter">
+    <div class="col reveal-up">
+      <div class="eyebrow center dark">The Sunday letter</div>
+      <h2>One letter, one poem, <em>one Sunday morning</em>.</h2>
+      <p>
+        Once a week, a longer piece — a single Gujarati poem, the life around it,
+        and one small thing about why words still matter. Written by a person.
+        Sent at 7 a.m. on Sunday, your time.
+      </p>
+      <p style="color: var(--on-dark-3); font-size: 15px;">
+        No tracking pixels. No upsell. No "P.S. — exciting news!" If you stop reading,
+        we'll stop sending.
+      </p>
+
+      <form class="letter-form" id="letterForm">
+        <input type="email" required placeholder="your email, where letters arrive" aria-label="Email" />
+        <button type="submit">Subscribe →</button>
+      </form>
+      <div class="letter-fine">~2,000 readers · one email a week · unsubscribe in one click</div>
+      <p class="letter-success" id="letterSuccess">
+        Thank you. The first letter arrives this Sunday at 7 a.m.
+      </p>
+    </div>
+  </section>
+
+  <!-- ====================================================================== -->
+  <!-- ====================== CLOSING ======================================= -->
+  <!-- ====================================================================== -->
+  <section class="closing">
+    <div class="col reveal-up">
+      <div class="eyebrow center">Where to next</div>
+      <h2>
+        Read one of these aloud<br>
+        to someone you <em>love</em>.
+      </h2>
+      <p>
+        That's the test. Not whether you understood every word — Gujarati is generous,
+        it carries half its meaning in sound. Just whether something in the room shifted.
+        If it did, come back tomorrow. There's a finger in water waiting for you.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <a class="brand" href="#top">
+    <span class="brand-en">Aksharo</span>
+    <span class="brand-gu">અક્ષરો</span>
+  </a>
+  <p>A reading room for Gujarati literature. Built with care, not reverence.</p>
+</footer>
+
+<script>
+(function () {
+  // ---------- scroll reveal ----------
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    }
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal-up').forEach(el => io.observe(el));
+
+  // ---------- nav reveal (after cold open scrolled past) ----------
+  const nav = document.getElementById('nav');
+  const cold = document.getElementById('cold-open');
+  const navObs = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.intersectionRatio < 0.25) nav.classList.add('revealed');
+      else nav.classList.remove('revealed');
+    }
+  }, { threshold: [0, 0.25, 0.5] });
+  navObs.observe(cold);
+
+  // ---------- keep / vault (localStorage) ----------
+  const KEY = 'aksharo.kept';
+  let kept = new Set();
+  try { kept = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch(e) {}
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify([...kept])); } catch(e) {}
+    updateUI();
+  }
+
+  function updateUI() {
+    const count = kept.size;
+    document.getElementById('navKeptCount').textContent = count;
+    const status = document.getElementById('keptStatus');
+    if (count > 0) {
+      status.textContent = ` You've kept ${count} ${count === 1 ? 'line' : 'lines'} so far.`;
+    } else {
+      status.textContent = '';
+    }
+    document.querySelectorAll('[data-keep]').forEach(el => {
+      const id = el.getAttribute('data-keep');
+      if (kept.has(id)) {
+        el.classList.add('kept');
+        if (el.classList.contains('keep-btn')) {
+          el.innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor" stroke="currentColor" stroke-width="1.4"><path d="M3 2h10v12l-5-3-5 3z"/></svg> Kept';
+        }
+      } else {
+        el.classList.remove('kept');
+        if (el.classList.contains('keep-btn')) {
+          el.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 2h10v12l-5-3-5 3z"/></svg> Keep this line';
+        }
+      }
+    });
+  }
+
+  document.querySelectorAll('[data-keep]').forEach(el => {
+    // only treat <button>s and the article wrapper with the explicit button as clickable
+    if (el.tagName === 'BUTTON') {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = el.getAttribute('data-keep');
+        if (kept.has(id)) kept.delete(id); else kept.add(id);
+        save();
+      });
+    }
+  });
+  updateUI();
+
+  // ---------- visit counter / welcome back ----------
+  const VKEY = 'aksharo.visits';
+  let visits = {};
+  try { visits = JSON.parse(localStorage.getItem(VKEY) || '{}'); } catch(e) {}
+  const today = new Date().toDateString();
+  if (!visits.first) visits.first = today;
+  const lastVisit = visits.last;
+  visits.last = today;
+  visits.days = visits.days || [];
+  if (!visits.days.includes(today)) visits.days.push(today);
+  try { localStorage.setItem(VKEY, JSON.stringify(visits)); } catch(e) {}
+
+  if (lastVisit && lastVisit !== today && visits.days.length >= 2) {
+    const banner = document.getElementById('welcomeBack');
+    document.getElementById('welcomeBackDay').textContent = 'Day ' + visits.days.length + '.';
+    setTimeout(() => banner.classList.add('show'), 800);
+    setTimeout(() => banner.classList.remove('show'), 6500);
+  }
+
+  // ---------- today's date ----------
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('todayDate').textContent =
+    new Date().toLocaleDateString('en-GB', opts).replace(/,/g, ' ·');
+
+  // ---------- letter form ----------
+  const form = document.getElementById('letterForm');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    form.style.display = 'none';
+    document.getElementById('letterSuccess').classList.add('show');
+  });
+})();
+</script>
+
+</body>
+</html>
