@@ -23,7 +23,11 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: false })
     .limit(200);
 
-  if (error) return err("Could not load policies.", 500);
+  if (error) {
+    // Tables not provisioned yet — degrade to read-only seed data so the
+    // page still renders instead of erroring.
+    return ok({ policies: SEED_POLICIES, readonly: true, myVotes: {} });
+  }
 
   let myVotes: Record<string, number> = {};
   if (voterToken) {
